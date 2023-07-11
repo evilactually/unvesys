@@ -10,4 +10,5 @@ clap = { version = "4.3.4", features = ["derive"] }
 colored = "2.0.0"
 csv = "1.2.2"
 hard-xml = "1.25.0"
+petgraph = "0.6.3"
 xlsxwriter = "0.6.0"

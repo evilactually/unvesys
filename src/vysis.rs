@@ -58,11 +58,11 @@ impl<'a> Project<'a> {
         
     // }
 
-    pub fn get_name(&'a self) -> &str {
+    pub fn get_name(&'a self) -> &'a str {
         self.dom.name.as_ref()
     }
 
-    pub fn get_design(&'a self, design_name: &str) -> Option<LogicalDesign> {
+    pub fn get_design(&'a self, design_name: &str) -> Option<LogicalDesign<'a>> {
         let index = self.dom.designmgr.logicaldesign.iter().position(|design| design.name == design_name);
         match index {
             Some(index) => {
@@ -98,7 +98,7 @@ pub struct LogicalDesign<'a> {
 }
 
 impl<'a> LogicalDesign<'a> {
-    pub fn get_connection_by_pinref(&self, pinref: &str) -> Option<Connection> {
+    pub fn get_connection_by_pinref(&'a self, pinref: &str) -> Option<Connection<'a>> {
          // search connectors
         for connector_dom in &self.dom.connectivity.connector {
             let pin_dom = connector_dom.pin.iter().find(|pin_dom| pin_dom.id == pinref);
@@ -135,10 +135,30 @@ impl<'a> LogicalDesign<'a> {
                 None => {}
             }
         }
+        //search splices
+        for splice_dom in &self.dom.connectivity.splice {
+            let pin_dom = splice_dom.pin.iter().find(|pin_dom| pin_dom.id == pinref);
+            match pin_dom {
+                Some(pin_dom) => {
+                    let device = Splice {
+                        design : self,
+                        dom : splice_dom
+                    };
+                    let pin = Pin {
+                        design : self,
+                        dom : pin_dom
+                    };
+                    return Some(Connection::Splice(device, pin));
+                }
+                None => {}
+            }
+        }
+
+        // TODO: splices, ground devices, other?
         return None;
     }
 
-    pub fn get_wires(&self, harness: &str) -> Vec<Wire> {
+    pub fn get_wires(&'a self, harness: &str) -> Vec<Wire<'a>> {
         let mut wires:Vec<Wire> = Vec::new();
         for wire in &self.dom.connectivity.wire {
             if harness.is_empty() || wire.harness.as_ref().map(|cow_str| cow_str.as_ref() == harness).unwrap_or_default() {
@@ -154,17 +174,80 @@ impl<'a> LogicalDesign<'a> {
 
 pub enum Connection<'a> {
     Device(Device<'a>, Pin<'a>),
-    Connector(Connector<'a>, Pin<'a>)
+    Connector(Connector<'a>, Pin<'a>),
+    Splice(Splice<'a>, Pin<'a>)
 }
 
 pub struct Connector<'a> {
     design: &'a LogicalDesign<'a>,
-    dom: &'a XmlConnector<'a>
+    pub dom: &'a XmlConnector<'a>
+}
+
+pub struct Splice<'a> {
+    design: &'a LogicalDesign<'a>,
+    pub dom: &'a XmlSplice<'a>
+}
+
+impl<'a> Splice<'a> {
+    pub fn get_name(&self) -> &'a str { // Lifetime of returned string must match dom struct, but not &self reference
+        self.dom.name.as_ref()
+    }
+}
+
+pub enum Connection2<'a> {
+    Thing(&'a str)
 }
 
 impl<'a> Connector<'a> {
-    pub fn get_name(&self) -> &str {
+    pub fn get_name(&self) -> &'a str { // Lifetime of returned string must match dom struct, but not &self reference
         self.dom.name.as_ref()
+    }
+
+    pub fn get_design_name(&self) -> &'a str { // Lifetime of returned string must match dom struct, but not &self reference
+        self.design.dom.name.as_ref()
+    }
+
+    pub fn get_ring_connection2(&self) -> &XmlConnector {
+        let c = &self.design.dom.connectivity.connector[0];
+        //let p = &c.pin[0];
+        //Connection::Connector(c,p)
+        c
+    }
+
+    pub fn get_ring_connection3(&'a self) -> Connector<'a> {
+        let c = &self.design.dom.connectivity.connector[0];
+        let p = &c.pin[0];
+        let conn = Connector {
+            design : &self.design,
+            dom : &c
+        };
+        //Connection::Connector(c,p)
+        conn
+    }
+
+
+    /// Trace where ring is connected
+    pub fn get_ring_connection(&'a self) -> Option<Connection<'a>> {
+        self.dom.pin.get(0).as_ref()
+        .and_then(|pin| {
+            pin.connectedpin.as_ref()
+        }).and_then(|connectedpin| {
+            self.design.get_connection_by_pinref(connectedpin.as_ref())
+        })
+    }
+
+    /// Trace where ring is connected
+    // pub fn get_ring_connection(&'a self) -> Option<Connection<'a>> {
+    //     let pin = &self.dom.pin[0];
+    //     self.design.get_connection_by_pinref(pin.connectedpin.clone().unwrap().as_ref())
+    // }
+
+    pub fn is_ring(&self) -> bool {
+        self.dom.connectorusage.as_ref() == "RingTerminal"
+    }
+
+    pub fn get_customer_partno(&'a self) -> &'a str {
+        self.dom.customerpartnumber.as_ref()
     }
 }
 
@@ -173,10 +256,10 @@ pub struct Device<'a> {
     dom: &'a XmlDevice<'a>
 }
 
-impl Device<'_> {
-    pub fn get_name(&self) -> &str {
-        self.dom.name.as_ref()
-    }
+impl<'a> Device<'a> {
+    pub fn get_name(&self) -> &'a str { // Note that function takes &self NOT &'a self! In &'a str we are declaring the lifetime of returned reference to be different 
+        self.dom.name.as_ref()          // from the lifetime of containing struct Device to allow returned reference to outlive the struct.
+    }                                   // This is important for passing those references around later on.
 }
 
 pub struct Wire<'a> {
@@ -184,8 +267,8 @@ pub struct Wire<'a> {
     dom: &'a XmlWire<'a>
 }
 
-impl Wire<'_> {
-    pub fn get_name(&self) -> &str {
+impl<'a> Wire<'a> {
+    pub fn get_name(&self) -> &'a str {
         self.dom.name.as_ref()
     }
 
@@ -193,7 +276,7 @@ impl Wire<'_> {
         self.dom.wirelength
     }
 
-    pub fn get_spec(&self) -> &str {
+    pub fn get_spec(&self) -> &'a str {
         match &self.dom.wirespec {
             Some(wirespec) => {
                 wirespec.as_ref()
@@ -204,7 +287,7 @@ impl Wire<'_> {
         }
     }
 
-    pub fn get_material(&self) -> &str {
+    pub fn get_material(&self) -> &'a str {
         match &self.dom.wirematerial {
             Some(wirematerial) => {
                 wirematerial.as_ref()
@@ -215,7 +298,7 @@ impl Wire<'_> {
         }
     }
 
-    pub fn get_color(&self) -> &str {
+    pub fn get_color(&self) -> &'a str {
         match &self.dom.wirecolor {
             Some(wirecolor) => {
                 wirecolor.as_ref()
@@ -235,7 +318,7 @@ impl Wire<'_> {
             }
         }
         return connections;
-    } 
+    }
 }
 
 pub struct Pin<'a> {
@@ -243,8 +326,8 @@ pub struct Pin<'a> {
     dom: &'a XmlPin<'a>
 }
 
-impl Pin<'_> {
-    pub fn get_name(&self) -> &str {
+impl<'a> Pin<'a> {
+    pub fn get_name(&self) -> &'a str {
         self.dom.name.as_ref()
     }
 }

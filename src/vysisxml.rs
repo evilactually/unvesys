@@ -94,7 +94,13 @@ pub struct XmlConnector<'a> {
     #[xml(attr = "name")]
     pub name: Cow<'a, str>,
     #[xml(child = "pin")]
-    pub pin: Vec<XmlPin<'a>>
+    pub pin: Vec<XmlPin<'a>>,
+    #[xml(attr = "connectorusage")]
+    pub connectorusage: Cow<'a, str>,
+    #[xml(attr = "partnumber")]
+    pub partnumber: Cow<'a, str>,
+    #[xml(attr = "customerpartnumber")]
+    pub customerpartnumber: Cow<'a, str>,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
@@ -103,7 +109,9 @@ pub struct XmlPin<'a> {
     #[xml(attr = "name")]
     pub name: Cow<'a, str>,
     #[xml(attr = "id")]
-    pub id: Cow<'a, str>
+    pub id: Cow<'a, str>,
+    #[xml(attr = "connectedpin")]
+    pub connectedpin: Option<Cow<'a, str>>
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
@@ -111,6 +119,8 @@ pub struct XmlPin<'a> {
 pub struct XmlSplice<'a> {
     #[xml(attr = "name")]
     pub name: Cow<'a, str>,
+    #[xml(child = "pin")]
+    pub pin: Vec<XmlPin<'a>>,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
@@ -148,3 +158,5 @@ pub struct XmlConnection<'a> {
 }
 
 
+// Library
+// Divice -> Housing -> Terminals -> Single Wire Fits/Multiple Wires Fits

@@ -25,6 +25,7 @@ THINGS I'M TRYING TO PROVIDE:
 TERMINATION:
 The thing you actually put on the wire.
 RINGS are terminations, not connectors. Ring usually has a device where it is connected to.
+Wires can share a termination.
 
 TO/FROM:
 Identifies label information that you are supposed match.
