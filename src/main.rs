@@ -41,6 +41,14 @@ use petgraph::EdgeType;
 
 use petgraph::algo::{min_spanning_tree, MinSpanningTree};
 
+mod bfs;
+use crate::bfs::*;
+
+use xlsxwriter::worksheet::WorksheetRow;
+use xlsxwriter::worksheet::WorksheetCol;
+
+mod xlsxtable;
+use crate::xlsxtable::*;
 
 /// VeSys XML project post-processor 
 #[derive(Parser, Debug)]
@@ -181,20 +189,31 @@ fn show_device_info(dom: &XmlChssystem, partno: &str) {
 
 // Main connectors: N, 
 
-struct WireEntry<'a> {
-    name: &'a str,
-    left: WireEndEntry<'a>,
-    right: WireEndEntry<'a>
+pub struct WireList {
+    pub wires:Vec<WireEntry>,
+}
+
+pub struct WireEntry {
+    pub name: Box<str>,
+    pub partno: Box<str>,
+    pub material: Box<str>,
+    pub spec: Box<str>,
+    pub color: Box<str>,
+    pub length: f32,
+    pub left: Option<WireEndEntry>,
+    pub right: Option<WireEndEntry>
 }
 
 #[derive(Default)]
-struct WireEndEntry<'a> {
-    device : &'a str,
-    pin : &'a str,
-    termination : &'a str
+#[derive(Clone)]
+pub struct WireEndEntry{
+    pub device : Box<str>,
+    pub pin : Box<str>,
+    pub termination : Box<str>,
+    pub termination_name : Box<str>
 }
 
-fn process_connection<'a>(connection:&'a  Connection<'a>) -> WireEndEntry<'a> {
+fn process_connection<'a>(connection:&'a  Connection<'a>) -> WireEndEntry {
     let mut wire_end_info : WireEndEntry = Default::default();
     match connection {
         Connection::Connector(connector,pin) => {
@@ -205,8 +224,8 @@ fn process_connection<'a>(connection:&'a  Connection<'a>) -> WireEndEntry<'a> {
                     Some(ring_connection) => {
                         match ring_connection {
                             Connection::Device(mated_device,mated_pin) => {
-                                wire_end_info.device = mated_device.get_name();
-                                wire_end_info.pin = mated_pin.get_name();
+                                wire_end_info.device = mated_device.get_name().into();
+                                wire_end_info.pin = mated_pin.get_name().into();
                             }
                             // TODO: add grounddevice
                             _ => {
@@ -218,28 +237,28 @@ fn process_connection<'a>(connection:&'a  Connection<'a>) -> WireEndEntry<'a> {
                 }
                 // Ring is not connected anywhere, leave device empty
                 // Show ring as termination
-                wire_end_info.termination = connector.get_customer_partno();
+                wire_end_info.termination = connector.get_customer_partno().into();
             } else
             {
                 //println!("{}", connector.get_name());
-                wire_end_info.device = connector.get_name();
-                wire_end_info.pin = pin.get_name();
-                wire_end_info.termination = "TODO";
+                wire_end_info.device = connector.get_name().into();
+                wire_end_info.pin = pin.get_name().into();
+                wire_end_info.termination = "TODO".into();
             }
         }
         Connection::Device(device,pin) => {
-            wire_end_info.device = device.get_name();
-            wire_end_info.pin = pin.get_name();
-            wire_end_info.termination = "TODO";
+            wire_end_info.device = device.get_name().into();
+            wire_end_info.pin = pin.get_name().into();
+            wire_end_info.termination = "TODO".into();
         }
         Connection::Splice(splice,pin) => {
-            wire_end_info.device = splice.get_name();
-            wire_end_info.pin = pin.get_name();
-            wire_end_info.termination = "TODO";
+            wire_end_info.device = splice.get_name().into();
+            wire_end_info.pin = pin.get_name().into();
+            wire_end_info.termination = "TODO".into();
             // TODO: Read properties of the device to find out which side of the splice wire is meant to 
         }
     }
-    wire_end_info.termination = "TODO";
+    wire_end_info.termination = "TODO".into();
     wire_end_info
 }
 
@@ -360,7 +379,211 @@ fn dfs_traversal<N, E: Copy>(graph: &Graph<N, E, Undirected>, directed_tree: &mu
 //fn build_connectivity_graphs()
 
 
+//fn print_wire_row()
+
+
+struct SheetRegion {
+    first_row: WorksheetRow, 
+    first_col: WorksheetCol, 
+    last_row: WorksheetRow, 
+    last_col: WorksheetCol,
+}
+
+fn outside_border<'a>(base:&Format, 
+    region : &SheetRegion,
+    row : WorksheetRow,
+    col : WorksheetCol) -> Format{
+    let mut format:Format = base.clone();
+    if row == region.first_row {
+        format.set_border_top(FormatBorder::Medium);
+    }
+    if row == region.last_row {
+        format.set_border_bottom(FormatBorder::Medium);
+    }
+    if col == region.first_col {
+        format.set_border_left(FormatBorder::Medium);
+    }
+    if col == region.last_col {
+        format.set_border_right(FormatBorder::Medium);
+    }
+    format
+}
+
+// fn write_string_bordered(
+//     sheet: &mut Worksheet,
+//     row: WorksheetRow,
+//     col: WorksheetCol,
+//     text: &str,
+//     format: &Format,
+//     outside: &SheetRegion) -> Result<(), XlsxError> {
+//     let format = outside_border(&format, outside, row, col);
+//     sheet.write_string(row, col, text, Some(&format))
+// }
+
+// fn write_blank_bordered(
+//     sheet: &mut Worksheet,
+//     row: WorksheetRow,
+//     col: WorksheetCol,
+//     text: &str,
+//     format: &Format,
+//     outside: &SheetRegion) -> Result<(), XlsxError> {
+//     let format = outside_border(&format, outside, row, col);
+//     sheet.write_string(row, col, text, Some(&format))
+// }
+
+
+pub struct WireListXlsxFormatter<'a> {
+    table : XLSXTable,
+    workbook : &'a Workbook,
+    sheet : Worksheet<'a>,
+    current_row: u32
+}
+
+impl WireListXlsxFormatter<'_> {
+    // Column definitions
+    // Wire
+    const WIRE_ITEM: u16 = 0;
+    // From
+    const FROM_DEVICE: u16 = 1;
+    const FROM_DASH: u16 = 2;
+    const FROM_PIN: u16 = 3;
+    // Terminal
+    const FROM_TERM_PARTNO: u16 = 4; // Merge
+    const FROM_TERM_NAME: u16 = 5;   // ^
+    // Wire material
+    const WIRE_PARTNO: u16 = 6; // Merge
+    const WIRE_NAME: u16 = 7;   // ^
+    const WIRE_COLOR: u16 = 8;
+    const WIRE_LEN: u16 = 9;
+    // Terminal
+    const TO_TERM_PARTNO: u16 = 10; // Merge
+    const TO_TERM_NAME: u16 = 11;   // ^
+    // To
+    const TO_DEVICE: u16 = 12;
+    const TO_DASH: u16 = 13;
+    const TO_PIN: u16 = 14;
+    // Margins
+    const LEFT:u16 = 5;
+    const TOP:u32 = 2;
+
+    pub fn new<'a>(workbook: &'a xlsxwriter::Workbook) -> WireListXlsxFormatter<'a> {
+        let mut table = XLSXTable::new();
+        let mut format = Format::new();
+        format.set_align(FormatAlignment::Center);
+        table.set_default_format(format);
+        WireListXlsxFormatter {
+            table : table,
+            workbook : workbook,
+            sheet : workbook.add_worksheet(None).unwrap(),
+            current_row : Self::TOP + 1,
+        }
+    }
+
+    pub fn print_header(&mut self) {
+        let row = Self::TOP;
+        // Wire
+        self.table.set_cell(row, Self::LEFT + Self::WIRE_ITEM, "Wire Item");
+        // From
+        self.table.set_cell(row, Self::LEFT + Self::FROM_DEVICE, "Device");
+        self.table.set_cell(row, Self::LEFT + Self::FROM_DASH, "-");
+        self.table.set_cell(row, Self::LEFT + Self::FROM_PIN, "Pin");
+        // Terminal
+        self.table.set_cell(row, Self::LEFT + Self::FROM_TERM_PARTNO, "Termination");
+        self.table.set_cell(row, Self::LEFT + Self::FROM_TERM_NAME, "");
+        // Wire
+        self.table.set_cell(row, Self::LEFT + Self::WIRE_PARTNO, "Wire");
+        self.table.set_cell(row, Self::LEFT + Self::WIRE_NAME, "");
+        self.table.set_cell(row, Self::LEFT + Self::WIRE_COLOR, "Color");
+        self.table.set_cell(row, Self::LEFT + Self::WIRE_LEN, "Length");
+        // Terminal
+        self.table.set_cell(row, Self::LEFT + Self::TO_TERM_PARTNO, "Termination");
+        self.table.set_cell(row, Self::LEFT + Self::TO_TERM_NAME, "");
+        // To
+        self.table.set_cell(row, Self::LEFT + Self::TO_DEVICE, "Device");
+        self.table.set_cell(row, Self::LEFT + Self::TO_DASH, "-");
+        self.table.set_cell(row, Self::LEFT + Self::TO_PIN, "Pin");
+    }
+
+    pub fn print_entry(&mut self, wire: &WireEntry) {
+        // Wire
+        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_ITEM, &wire.name);
+        // From
+        let left_wire_end = wire.left.clone().unwrap_or_default();
+        self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_DEVICE, &left_wire_end.device);
+        self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_DASH, "-");
+        self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_PIN, &left_wire_end.pin);
+        // Terminal
+        self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_TERM_PARTNO, &left_wire_end.termination);
+        self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_TERM_NAME, &left_wire_end.termination_name);
+        // Wire
+        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_PARTNO, &wire.partno);
+        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_NAME, &(wire.material.to_string() + " " + &wire.spec));
+        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_COLOR, &wire.color);
+        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_LEN, &wire.length.to_string());
+        // Terminal
+        let right_wire_end = wire.right.clone().unwrap_or_default();
+        self.table.set_cell(self.current_row, Self::LEFT + Self::TO_TERM_PARTNO, &right_wire_end.termination);
+        self.table.set_cell(self.current_row, Self::LEFT + Self::TO_TERM_NAME, &right_wire_end.termination_name);
+        // To
+        self.table.set_cell(self.current_row, Self::LEFT + Self::TO_DEVICE, &right_wire_end.device);
+        self.table.set_cell(self.current_row, Self::LEFT + Self::TO_DASH, "-");
+        self.table.set_cell(self.current_row, Self::LEFT + Self::TO_PIN, &right_wire_end.pin);
+        // Increment row
+        self.current_row = self.current_row + 1;
+    }
+}
+
+impl Drop for WireListXlsxFormatter<'_> {
+    fn drop(&mut self) {
+        // Finalize outside border
+        self.table.set_region_border(&XLSXTableRegion {
+            first_row: Self::TOP,
+            first_col: Self::LEFT,
+            last_row: self.current_row - 1,
+            last_col: Self::LEFT + Self::TO_PIN
+        }, FormatBorder::Medium);
+        // Header border
+        let header_region = &XLSXTableRegion {
+            first_row: Self::TOP,
+            first_col: Self::LEFT,
+            last_row: Self::TOP,
+            last_col: Self::LEFT + Self::TO_PIN
+        };
+        self.table.set_region_border(&header_region, FormatBorder::Medium);
+        // Header format
+        self.table.modify_region_format(&header_region, &|format| {
+            format.set_bold();
+        });
+        // Wire item separator
+        self.table.set_region_border_right(&XLSXTableRegion {
+            first_row: Self::TOP,
+            first_col: Self::LEFT,
+            last_row: self.current_row - 1,
+            last_col: Self::LEFT + Self::WIRE_ITEM
+        }, FormatBorder::Dotted);
+        // Left wire end separator
+        self.table.set_region_border_right(&XLSXTableRegion {
+            first_row: Self::TOP,
+            first_col: Self::LEFT,
+            last_row: self.current_row - 1,
+            last_col: Self::LEFT + Self::FROM_TERM_NAME
+        }, FormatBorder::Dotted);
+        // Right wire end separator
+        self.table.set_region_border_right(&XLSXTableRegion {
+            first_row: Self::TOP,
+            first_col: Self::LEFT,
+            last_row: self.current_row - 1,
+            last_col: Self::LEFT + Self::WIRE_LEN
+        }, FormatBorder::Dotted);
+
+        self.table.render_to_worksheet(&mut self.sheet);
+    }
+}
+
 fn main() {
+
+
+   
     colored::control::set_virtual_terminal(true).expect("Failed to set terminal");
     let args = Args::parse();
 
@@ -434,7 +657,7 @@ fn main() {
                             Ok(workbook) => {
                                 println!("{}", "Generating cut list...".bright_yellow());
                                 // connector pin wire color length connector pin
-                                let sheet = workbook.add_worksheet(args.harness.as_deref());
+                                //let sheet = workbook.add_worksheet(args.harness.as_deref());
                                 let mut format_header = Format::new();
                                 format_header.set_align(FormatAlignment::Center)
                                 .set_bold();
@@ -461,8 +684,11 @@ fn main() {
                                 format_input.set_bg_color(FormatColor::Custom(0xf2f2f2));
                                 let mut format_sinking_output = base_format.clone();
                                 format_sinking_output.set_bg_color(FormatColor::Custom(0xc6e0b4));
-                                match sheet {
-                                    Ok(mut sheet) => {
+                                //match sheet {
+                                    //Ok(mut sheet) => {
+
+                                        let table: XLSXTable = XLSXTable::new();
+
                                         let WIRE_NAME = 0;
                                         let WIRE_FROM_DEVICE = 1;
                                         let WIRE_FROM_PIN = 2;
@@ -474,23 +700,27 @@ fn main() {
                                         let WIRE_TO_DEVICE = 8;
                                         let WIRE_TO_PIN = 9;
 
-                                        sheet.write_string(0,WIRE_NAME, "Wire Name", Some(&format_header)); 
-                                        sheet.write_string(0,WIRE_FROM_DEVICE, "Device/Connector", Some(&format_header));
-                                        sheet.write_string(0,WIRE_FROM_PIN, "Pin", Some(&format_header));
-                                        sheet.write_string(0,WIRE_FROM_TERM, "Termination", Some(&format_header));
-                                        sheet.write_string(0,WIRE_TYPE, "Wire", Some(&format_header));
-                                        sheet.write_string(0,WIRE_COLOR, "Color", Some(&format_header));
-                                        sheet.write_string(0,WIRE_LEN, "Length", Some(&format_header));
-                                        sheet.write_string(0,WIRE_TO_TERM, "Termination", Some(&format_header));
-                                        sheet.write_string(0,WIRE_TO_DEVICE, "Device/Connector", Some(&format_header));
-                                        sheet.write_string(0,WIRE_TO_PIN, "Pin", Some(&format_header));
-                                        sheet.set_column(0,9,20.0,None);
+                                        // sheet.write_string(0,WIRE_NAME, "Wire Name", Some(&format_header)); 
+                                        // sheet.write_string(0,WIRE_FROM_DEVICE, "Device/Connector", Some(&format_header));
+                                        // sheet.write_string(0,WIRE_FROM_PIN, "Pin", Some(&format_header));
+                                        // sheet.write_string(0,WIRE_FROM_TERM, "Termination", Some(&format_header));
+                                        // sheet.write_string(0,WIRE_TYPE, "Wire", Some(&format_header));
+                                        // sheet.write_string(0,WIRE_COLOR, "Color", Some(&format_header));
+                                        // sheet.write_string(0,WIRE_LEN, "Length", Some(&format_header));
+                                        // sheet.write_string(0,WIRE_TO_TERM, "Termination", Some(&format_header));
+                                        // sheet.write_string(0,WIRE_TO_DEVICE, "Device/Connector", Some(&format_header));
+                                        // sheet.write_string(0,WIRE_TO_PIN, "Pin", Some(&format_header));
+                                        // sheet.set_column(0,9,20.0,None);
                                         let design = project.get_design(args.design.unwrap().as_ref()).unwrap();
                                         let wires = design.get_wires(args.harness.unwrap().as_ref());
                                         let mut row: u32 = 0;
 
                                         // Graph
                                         let mut graph: Graph<Box<str>, bool, Undirected> = Graph::new_undirected();
+                                        // Wire list
+                                        let mut wire_list: WireList = WireList {
+                                            wires : Vec::new()
+                                        };
 
                                         for wire in wires {
                                             //println!("{}", wire.get_name());
@@ -518,14 +748,14 @@ fn main() {
                                                 current_format = Some(&format_input);
                                             }
 
-                                            sheet.write_string(row,WIRE_NAME,wire.get_name(), current_format);
+                                            // sheet.write_string(row,WIRE_NAME,wire.get_name(), current_format);
 
-                                            let wire_type:String = wire.get_material().to_owned() + " " + wire.get_spec();
-                                            sheet.write_string(row,WIRE_TYPE,&wire_type, current_format);
+                                            // let wire_type:String = wire.get_material().to_owned() + " " + wire.get_spec();
+                                            // sheet.write_string(row,WIRE_TYPE,&wire_type, current_format);
 
-                                            sheet.write_string(row,WIRE_LEN,&wire.get_length().to_string(), current_format);
+                                            // sheet.write_string(row,WIRE_LEN,&wire.get_length().to_string(), current_format);
 
-                                            sheet.write_string(row,WIRE_COLOR,&wire.get_color(), current_format);
+                                            // sheet.write_string(row,WIRE_COLOR,&wire.get_color(), current_format);
 
                                             let connections = wire.get_connections();
                                             let connection_left = connections.get(0);
@@ -534,45 +764,58 @@ fn main() {
                                                 process_connection(connection_left)
                                             });
 
-                                            match left_wire_end {
-                                                Some(ref left_wire_end) => {
+                                            // match left_wire_end {
+                                            //     Some(ref left_wire_end) => {
                                                     
-                                                    sheet.write_string(row,WIRE_FROM_DEVICE,left_wire_end.device, current_format);
-                                                    sheet.write_string(row,WIRE_FROM_PIN,left_wire_end.pin, current_format);
-                                                    sheet.write_string(row,WIRE_FROM_TERM,left_wire_end.termination, current_format);
-                                                }
-                                                None => {
-                                                    sheet.write_blank(row,WIRE_FROM_DEVICE,current_format);
-                                                    sheet.write_blank(row,WIRE_FROM_PIN,current_format);
-                                                    sheet.write_blank(row,WIRE_FROM_TERM,current_format);
-                                                }
-                                            }
+                                            //         sheet.write_string(row,WIRE_FROM_DEVICE,&left_wire_end.device, current_format);
+                                            //         sheet.write_string(row,WIRE_FROM_PIN,&left_wire_end.pin, current_format);
+                                            //         sheet.write_string(row,WIRE_FROM_TERM,&left_wire_end.termination, current_format);
+                                            //     }
+                                            //     None => {
+                                            //         sheet.write_blank(row,WIRE_FROM_DEVICE,current_format);
+                                            //         sheet.write_blank(row,WIRE_FROM_PIN,current_format);
+                                            //         sheet.write_blank(row,WIRE_FROM_TERM,current_format);
+                                            //     }
+                                            // }
 
                                             let connection_right = connections.get(1);
                                             let right_wire_end = connection_right.map(|connection_right| {
                                                 process_connection(connection_right)
                                             });
 
-                                            match right_wire_end {
-                                                Some(ref right_wire_end) => {
+                                            // match right_wire_end {
+                                            //     Some(ref right_wire_end) => {
 
-                                                    sheet.write_string(row,WIRE_TO_DEVICE,right_wire_end.device, current_format);
-                                                    sheet.write_string(row,WIRE_TO_PIN,right_wire_end.pin, current_format);
-                                                    sheet.write_string(row,WIRE_TO_TERM,right_wire_end.termination, current_format);
+                                            //         sheet.write_string(row,WIRE_TO_DEVICE,&right_wire_end.device, current_format);
+                                            //         sheet.write_string(row,WIRE_TO_PIN,&right_wire_end.pin, current_format);
+                                            //         sheet.write_string(row,WIRE_TO_TERM,&right_wire_end.termination, current_format);
+                                            //     }
+                                            //     None => {
+                                            //         sheet.write_blank(row,WIRE_TO_DEVICE,current_format);
+                                            //         sheet.write_blank(row,WIRE_TO_PIN,current_format);
+                                            //         sheet.write_blank(row,WIRE_TO_TERM,current_format);
+                                            //     }
+                                            // }
+
+                                            wire_list.wires.push(
+                                                WireEntry {
+                                                    name : wire.get_name().into(),
+                                                    partno : wire.get_customer_partno().into(),
+                                                    material : wire.get_material().into(),
+                                                    spec : wire.get_spec().into(),
+                                                    color : wire.get_color().into(),
+                                                    length : wire.get_length(),
+                                                    left : left_wire_end.clone(),
+                                                    right : right_wire_end.clone()
                                                 }
-                                                None => {
-                                                    sheet.write_blank(row,WIRE_TO_DEVICE,current_format);
-                                                    sheet.write_blank(row,WIRE_TO_PIN,current_format);
-                                                    sheet.write_blank(row,WIRE_TO_TERM,current_format);
-                                                }
-                                            }
+                                            );
 
                                             // Build a graph of devices and connectors
                                             // Match if both connections exist
                                             match (left_wire_end, right_wire_end) {
                                                 (Some(ref left), Some(ref right)) => {
-                                                    let left_node = find_node_or_add(&mut graph, left.device.into());
-                                                    let right_node = find_node_or_add(&mut graph, right.device.into());
+                                                    let left_node = find_node_or_add(&mut graph, left.device.clone().into());
+                                                    let right_node = find_node_or_add(&mut graph, right.device.clone().into());
                                                     // Chech if edge exists
                                                     match graph.find_edge(left_node, right_node) {
                                                         Some(_) => {}
@@ -587,6 +830,14 @@ fn main() {
                                                 }
                                             }
                                         } // wire loop
+
+
+                                        let mut xlsx_formatter = WireListXlsxFormatter::new(&workbook);
+                                        // Output plane wire list
+                                        xlsx_formatter.print_header();
+                                        for wire in wire_list.wires.iter() {
+                                            xlsx_formatter.print_entry(wire);
+                                        }
 
                                         // Build a Minimum Spaning Tree from connectivity graph. Each node is a reference to original graph.
                                         let mut mst_edges:Vec<EdgeIndex> = Vec::new();
@@ -619,6 +870,24 @@ fn main() {
                                         dfs_traversal(&mst_unidirected_graph, &mut mst_directed_graph, root_node.unwrap(), None, mst_edges.as_slice());
 
                                         // Perform BST traversal of mst_directed_graph
+                                        let mut bfs = Bfs::new(&mst_unidirected_graph, root_node.unwrap());
+                                        let mut current_root = root_node;
+                                        while let (Some(node), level_end) = bfs.next(&mst_unidirected_graph) {
+                                            let parent = mst_directed_graph.neighbors_directed(node, petgraph::Direction::Incoming).next();
+                                            match parent {
+                                                Some(parent) => {
+                                                    println!("{}", graph[parent]);
+                                                }
+                                                None => {}
+                                            }
+                                            println!("    {}", graph[node]);
+
+                                            if level_end {
+                                                println!("{}", "----------");
+                                                //current_node = node
+                                            }
+                                        }
+
 
                                         {
                                         let dot = Dot::with_attr_getters(&graph, &[Config::EdgeNoLabel, Config::NodeNoLabel], &move|_, edge| {
@@ -647,11 +916,11 @@ fn main() {
 
                                         println!("{:?}", dot2);
 
-                                    }
-                                    Err(e) => {
+                                    //}
+                                    //Err(e) => {
 
-                                    }
-                                }
+                                    //}
+                                //}
                             }
                             Err(e) => {
                                 // TODO: xmlwrite is panicing when it can't create thh file, how do I catch it?
@@ -675,4 +944,5 @@ fn main() {
             println!("{}{}", "File read error: ".red(), e.to_string().bright_red())
         }
     }
+
 }

@@ -134,6 +134,8 @@ pub struct XmlWire<'a> {
     pub connection: Vec<XmlConnection<'a>>,
     #[xml(attr = "wirelength")]
     pub wirelength: f32,
+    #[xml(attr = "customerpartnumber")]
+    pub customerpartnumber: Option<Cow<'a, str>>,
     #[xml(attr = "wirespec")]
     pub wirespec: Option<Cow<'a, str>>,
     #[xml(attr = "wirematerial")]

@@ -287,6 +287,17 @@ impl<'a> Wire<'a> {
         }
     }
 
+    pub fn get_customer_partno(&self) -> &'a str {
+        match &self.dom.customerpartnumber {
+            Some(customerpartnumber) => {
+                customerpartnumber.as_ref()
+            }
+            None => {
+                ""
+            }
+        }
+    }
+
     pub fn get_material(&self) -> &'a str {
         match &self.dom.wirematerial {
             Some(wirematerial) => {
