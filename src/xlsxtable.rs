@@ -7,7 +7,8 @@ use xlsxwriter::worksheet::Worksheet;
 /// Generic table representation
 pub struct XLSXTable {
     cells: HashMap<(WorksheetRow, WorksheetCol), XLSXTableCell>,
-    default_format: Format
+    default_format: Format,
+    column_widths: HashMap<WorksheetCol, u32>
 }
 
 struct XLSXTableCell {
@@ -28,7 +29,8 @@ impl XLSXTable {
     pub fn new() -> XLSXTable {
         XLSXTable {
             cells:  HashMap::new(),
-            default_format: Format::new()
+            default_format: Format::new(),
+            column_widths: HashMap::new()
         }
     }
 
@@ -148,5 +150,13 @@ impl XLSXTable {
                 }
             }
         }
+        // Update column width
+        for (col, width) in self.column_widths.iter() {
+            sheet.set_column_pixels(*col, *col, *width, None);
+        }
+    }
+
+    pub fn set_col_width_pixels(&mut self, col: WorksheetCol, width: u32) {
+        self.column_widths.insert(col, width);
     }
 }

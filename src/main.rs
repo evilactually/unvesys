@@ -1,6 +1,4 @@
 
-
-
 use petgraph::visit::EdgeRef;
 extern crate clap;
 
@@ -23,15 +21,20 @@ use std::env::args; //command line arguments
 mod vysisxml;
 use crate::vysisxml::*;
 
+mod vysyslib;
+use crate::vysyslib::*;
+
 mod vysis;
 use crate::vysis::*;
 
-mod vysislibxml;
-use crate::vysislibxml::*;
+mod vysyslibxml;
+use crate::vysyslibxml::*;
 
 use std::cmp::max;
 
 use colored::*;
+
+use std::collections::{HashMap, HashSet};
 
 use petgraph::graph::{Graph, NodeIndex, EdgeIndex};
 use petgraph::dot::{Dot, Config};
@@ -46,6 +49,7 @@ use crate::bfs::*;
 
 use xlsxwriter::worksheet::WorksheetRow;
 use xlsxwriter::worksheet::WorksheetCol;
+use xlsxwriter::worksheet::PaperType;
 
 mod xlsxtable;
 use crate::xlsxtable::*;
@@ -109,6 +113,7 @@ fn show_project_info(project: &Project) {
         let logical_designs = project.get_logical_design_names();
         for design in logical_designs {
             println!("    {} {}", "*".bright_yellow(), design.yellow());
+            show_design_info(&project.dom, design);
         }
     }
     println!("{}", "Harness Designs:".bright_yellow());
@@ -139,7 +144,7 @@ fn lookup_pinref<'a>(design_dom: &XmlLogicalDesign<'a>, pinref_uuid: Cow<str>) -
     unimplemented!()
 }
 
-fn show_design_info(dom: &XmlProject, design_name: &str) {
+fn show_design_info__(dom: &XmlProject, design_name: &str) {
     println!("{} {}", "XmlProject Name:".bright_yellow(), dom.name.yellow());
     let index = dom.designmgr.logicaldesign.iter().position(|design| design.name == design_name);
     match index {
@@ -159,6 +164,29 @@ fn show_design_info(dom: &XmlProject, design_name: &str) {
 
             }
             println!("{}", "OK".bright_green());
+        }
+        None => {
+            println!("{}{}", "Error: ".red(), "Logical design with that name was not found.".to_string().bright_red())
+        }
+    }
+}
+
+fn show_design_info(dom: &XmlProject, design_name: &str) {
+    let index = dom.designmgr.logicaldesign.iter().position(|design| design.name == design_name);
+    match index {
+        Some(index) => {
+            let mut harness_set:HashSet<&str> = HashSet::new();
+            let design_dom = &dom.designmgr.logicaldesign[index];
+            // Collect harnesses
+            for wire in &design_dom.connectivity.wire {
+                if let Some(harness) = &wire.harness {
+                    harness_set.insert(harness.as_ref());
+                }
+            }
+            // Print collected harnesses
+            for harness in harness_set.iter() {
+                println!("        {} {}", "-".bright_yellow(), harness.yellow());
+            }
         }
         None => {
             println!("{}{}", "Error: ".red(), "Logical design with that name was not found.".to_string().bright_red())
@@ -198,7 +226,8 @@ pub struct WireEntry {
     pub partno: Box<str>,
     pub material: Box<str>,
     pub spec: Box<str>,
-    pub color: Box<str>,
+    pub color_code: Box<str>,
+    pub color_description: Box<str>,
     pub length: f32,
     pub left: Option<WireEndEntry>,
     pub right: Option<WireEndEntry>
@@ -213,10 +242,10 @@ pub struct WireEndEntry{
     pub termination_name : Box<str>
 }
 
-fn process_connection<'a>(connection:&'a  Connection<'a>) -> WireEndEntry {
+fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a str>), library: &Library ) -> WireEndEntry {
     let mut wire_end_info : WireEndEntry = Default::default();
     match connection {
-        Connection::Connector(connector,pin) => {
+        (Connection::Connector(connector,pin), _) => {
             if connector.is_ring() {
                 // If ring is connected to some device, find that device
                 let ring_connection = connector.get_ring_connection();
@@ -238,6 +267,8 @@ fn process_connection<'a>(connection:&'a  Connection<'a>) -> WireEndEntry {
                 // Ring is not connected anywhere, leave device empty
                 // Show ring as termination
                 wire_end_info.termination = connector.get_customer_partno().into();
+                let partno = connector.get_partno();
+                wire_end_info.termination_name = library.lookup_terminal_short_name(partno).unwrap_or_default().into();
             } else
             {
                 //println!("{}", connector.get_name());
@@ -246,19 +277,24 @@ fn process_connection<'a>(connection:&'a  Connection<'a>) -> WireEndEntry {
                 wire_end_info.termination = "TODO".into();
             }
         }
-        Connection::Device(device,pin) => {
+        (Connection::Device(device,pin), termination) => {
             wire_end_info.device = device.get_name().into();
             wire_end_info.pin = pin.get_name().into();
             wire_end_info.termination = "TODO".into();
+            if let Some(termination) = termination {
+                let terminal_partnumber = library.lookup_customer_partnumber(*termination);
+                wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
+                wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+            }
         }
-        Connection::Splice(splice,pin) => {
+        (Connection::Splice(splice,pin), _) => {
             wire_end_info.device = splice.get_name().into();
             wire_end_info.pin = pin.get_name().into();
             wire_end_info.termination = "TODO".into();
             // TODO: Read properties of the device to find out which side of the splice wire is meant to 
         }
     }
-    wire_end_info.termination = "TODO".into();
+    //wire_end_info.termination = "TODO".into();
     wire_end_info
 }
 
@@ -382,32 +418,32 @@ fn dfs_traversal<N, E: Copy>(graph: &Graph<N, E, Undirected>, directed_tree: &mu
 //fn print_wire_row()
 
 
-struct SheetRegion {
-    first_row: WorksheetRow, 
-    first_col: WorksheetCol, 
-    last_row: WorksheetRow, 
-    last_col: WorksheetCol,
-}
+// struct SheetRegion {
+//     first_row: WorksheetRow, 
+//     first_col: WorksheetCol, 
+//     last_row: WorksheetRow, 
+//     last_col: WorksheetCol,
+// }
 
-fn outside_border<'a>(base:&Format, 
-    region : &SheetRegion,
-    row : WorksheetRow,
-    col : WorksheetCol) -> Format{
-    let mut format:Format = base.clone();
-    if row == region.first_row {
-        format.set_border_top(FormatBorder::Medium);
-    }
-    if row == region.last_row {
-        format.set_border_bottom(FormatBorder::Medium);
-    }
-    if col == region.first_col {
-        format.set_border_left(FormatBorder::Medium);
-    }
-    if col == region.last_col {
-        format.set_border_right(FormatBorder::Medium);
-    }
-    format
-}
+// fn outside_border<'a>(base:&Format, 
+//     region : &SheetRegion,
+//     row : WorksheetRow,
+//     col : WorksheetCol) -> Format{
+//     let mut format:Format = base.clone();
+//     if row == region.first_row {
+//         format.set_border_top(FormatBorder::Medium);
+//     }
+//     if row == region.last_row {
+//         format.set_border_bottom(FormatBorder::Medium);
+//     }
+//     if col == region.first_col {
+//         format.set_border_left(FormatBorder::Medium);
+//     }
+//     if col == region.last_col {
+//         format.set_border_right(FormatBorder::Medium);
+//     }
+//     format
+// }
 
 // fn write_string_bordered(
 //     sheet: &mut Worksheet,
@@ -432,11 +468,13 @@ fn outside_border<'a>(base:&Format,
 // }
 
 
+
 pub struct WireListXlsxFormatter<'a> {
     table : XLSXTable,
     workbook : &'a Workbook,
     sheet : Worksheet<'a>,
-    current_row: u32
+    current_row: u32,
+    bg_colormap: &'a HashMap<&'a str, FormatColor>
 }
 
 impl WireListXlsxFormatter<'_> {
@@ -463,10 +501,10 @@ impl WireListXlsxFormatter<'_> {
     const TO_DASH: u16 = 13;
     const TO_PIN: u16 = 14;
     // Margins
-    const LEFT:u16 = 5;
-    const TOP:u32 = 2;
+    const LEFT:u16 = 1;
+    const TOP:u32 = 1;
 
-    pub fn new<'a>(workbook: &'a xlsxwriter::Workbook) -> WireListXlsxFormatter<'a> {
+    pub fn new<'a>(workbook: &'a xlsxwriter::Workbook, bg_colormap: &'a HashMap<&str, xlsxwriter::format::FormatColor>) -> WireListXlsxFormatter<'a> {
         let mut table = XLSXTable::new();
         let mut format = Format::new();
         format.set_align(FormatAlignment::Center);
@@ -476,6 +514,7 @@ impl WireListXlsxFormatter<'_> {
             workbook : workbook,
             sheet : workbook.add_worksheet(None).unwrap(),
             current_row : Self::TOP + 1,
+            bg_colormap : bg_colormap
         }
     }
 
@@ -483,24 +522,32 @@ impl WireListXlsxFormatter<'_> {
         let row = Self::TOP;
         // Wire
         self.table.set_cell(row, Self::LEFT + Self::WIRE_ITEM, "Wire Item");
+        self.table.set_col_width_pixels(Self::LEFT + Self::WIRE_ITEM, 150);
         // From
         self.table.set_cell(row, Self::LEFT + Self::FROM_DEVICE, "Device");
         self.table.set_cell(row, Self::LEFT + Self::FROM_DASH, "-");
+        self.table.set_col_width_pixels(Self::LEFT + Self::FROM_DASH, 20);
         self.table.set_cell(row, Self::LEFT + Self::FROM_PIN, "Pin");
         // Terminal
         self.table.set_cell(row, Self::LEFT + Self::FROM_TERM_PARTNO, "Termination");
+        self.table.set_col_width_pixels(Self::LEFT + Self::FROM_TERM_PARTNO, 125);
         self.table.set_cell(row, Self::LEFT + Self::FROM_TERM_NAME, "");
+        self.table.set_col_width_pixels(Self::LEFT + Self::FROM_TERM_NAME, 125);
         // Wire
         self.table.set_cell(row, Self::LEFT + Self::WIRE_PARTNO, "Wire");
+        self.table.set_col_width_pixels(Self::LEFT + Self::WIRE_PARTNO, 125);
         self.table.set_cell(row, Self::LEFT + Self::WIRE_NAME, "");
         self.table.set_cell(row, Self::LEFT + Self::WIRE_COLOR, "Color");
         self.table.set_cell(row, Self::LEFT + Self::WIRE_LEN, "Length");
         // Terminal
         self.table.set_cell(row, Self::LEFT + Self::TO_TERM_PARTNO, "Termination");
+        self.table.set_col_width_pixels(Self::LEFT + Self::TO_TERM_PARTNO, 125);
         self.table.set_cell(row, Self::LEFT + Self::TO_TERM_NAME, "");
+        self.table.set_col_width_pixels(Self::LEFT + Self::TO_TERM_NAME, 125);
         // To
         self.table.set_cell(row, Self::LEFT + Self::TO_DEVICE, "Device");
         self.table.set_cell(row, Self::LEFT + Self::TO_DASH, "-");
+        self.table.set_col_width_pixels(Self::LEFT + Self::TO_DASH, 20);
         self.table.set_cell(row, Self::LEFT + Self::TO_PIN, "Pin");
     }
 
@@ -518,7 +565,7 @@ impl WireListXlsxFormatter<'_> {
         // Wire
         self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_PARTNO, &wire.partno);
         self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_NAME, &(wire.material.to_string() + " " + &wire.spec));
-        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_COLOR, &wire.color);
+        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_COLOR, &wire.color_description);
         self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_LEN, &wire.length.to_string());
         // Terminal
         let right_wire_end = wire.right.clone().unwrap_or_default();
@@ -528,6 +575,16 @@ impl WireListXlsxFormatter<'_> {
         self.table.set_cell(self.current_row, Self::LEFT + Self::TO_DEVICE, &right_wire_end.device);
         self.table.set_cell(self.current_row, Self::LEFT + Self::TO_DASH, "-");
         self.table.set_cell(self.current_row, Self::LEFT + Self::TO_PIN, &right_wire_end.pin);
+        // Set row bg color
+        self.table.modify_region_format(&XLSXTableRegion {
+            first_row: self.current_row,
+            first_col: Self::LEFT,
+            last_row: self.current_row,
+            last_col: Self::LEFT + Self::TO_PIN
+        }, &|format| {
+            let color_code_upper:String = wire.color_code.to_string().to_uppercase();
+            format.set_bg_color(*self.bg_colormap.get(&color_code_upper.as_ref()).unwrap_or(&FormatColor::White));
+        });
         // Increment row
         self.current_row = self.current_row + 1;
     }
@@ -575,14 +632,82 @@ impl Drop for WireListXlsxFormatter<'_> {
             last_row: self.current_row - 1,
             last_col: Self::LEFT + Self::WIRE_LEN
         }, FormatBorder::Dotted);
+        // Right align FROM device column
+         self.table.modify_region_format(&XLSXTableRegion {
+            first_row: Self::TOP,
+            first_col: Self::LEFT + Self::FROM_DEVICE,
+            last_row: self.current_row - 1,
+            last_col: Self::LEFT + Self::FROM_DEVICE
+        }, &|format| {
+            format.set_align(FormatAlignment::Right);
+        });
+        // Left align FROM pin column
+         self.table.modify_region_format(&XLSXTableRegion {
+            first_row: Self::TOP,
+            first_col: Self::LEFT + Self::FROM_PIN,
+            last_row: self.current_row - 1,
+            last_col: Self::LEFT + Self::FROM_PIN
+        }, &|format| {
+            format.set_align(FormatAlignment::Left);
+        });
+        // Right align TO device column
+         self.table.modify_region_format(&XLSXTableRegion {
+            first_row: Self::TOP,
+            first_col: Self::LEFT + Self::TO_DEVICE,
+            last_row: self.current_row - 1,
+            last_col: Self::LEFT + Self::TO_DEVICE
+        }, &|format| {
+            format.set_align(FormatAlignment::Right);
+        });
+        // Left align TO pin column
+         self.table.modify_region_format(&XLSXTableRegion {
+            first_row: Self::TOP,
+            first_col: Self::LEFT + Self::TO_PIN,
+            last_row: self.current_row - 1,
+            last_col: Self::LEFT + Self::TO_PIN
+        }, &|format| {
+            format.set_align(FormatAlignment::Left);
+        });
+        // Set paper
+        self.sheet.set_paper(PaperType::Tabloid);
+        // Set orientation
+        self.sheet.set_landscape();
 
         self.table.render_to_worksheet(&mut self.sheet);
     }
 }
 
 fn main() {
+    // Map of row background colors for each wire color
+    let mut bg_color_map: HashMap<&str, FormatColor> = HashMap::new();
+    bg_color_map.insert("PK", FormatColor::Custom(0xffccff)); // 5v format
+    bg_color_map.insert("RD", FormatColor::Custom(0xff9999)); // 12v format
+    bg_color_map.insert("BN", FormatColor::Custom(0xd3a77b)); // 24v format
+    bg_color_map.insert("OR", FormatColor::Custom(0xfff2cc)); // 48v format
+    bg_color_map.insert("BL", FormatColor::Custom(0xddebf7)); // GND format
+    bg_color_map.insert("YL", FormatColor::Custom(0xffffd1)); // Analog/Bat+ format
+    bg_color_map.insert("TN", FormatColor::Custom(0xead5c0)); // 24v DO
+    bg_color_map.insert("BK", FormatColor::Custom(0xf2f2f2)); // 24v DI
+    bg_color_map.insert("GN", FormatColor::Custom(0xc6e0b4)); // Sinking output
 
-
+    // let mut format_5v = base_format.clone();
+    // format_5v.set_bg_color(FormatColor::Custom(0xffccff));
+    // let mut format_12v = base_format.clone();
+    // format_12v.set_bg_color(FormatColor::Custom(0xff9999));
+    // let mut format_24v = base_format.clone();
+    // format_24v.set_bg_color(FormatColor::Custom(0xd3a77b));
+    // let mut format_48v = base_format.clone();
+    // format_48v.set_bg_color(FormatColor::Custom(0xfff2cc));
+    // let mut format_rtn = base_format.clone();
+    // format_rtn.set_bg_color(FormatColor::Custom(0xddebf7));
+    // let mut format_analog = base_format.clone();
+    // format_analog.set_bg_color(FormatColor::Custom(0xffffd1));
+    // let mut format_24V_sourcing = base_format.clone();
+    // format_24V_sourcing.set_bg_color(FormatColor::Custom(0xead5c0));
+    // let mut format_input = base_format.clone();
+    // format_input.set_bg_color(FormatColor::Custom(0xf2f2f2));
+    // let mut format_sinking_output = base_format.clone();
+    // format_sinking_output.set_bg_color(FormatColor::Custom(0xc6e0b4));
    
     colored::control::set_virtual_terminal(true).expect("Failed to set terminal");
     let args = Args::parse();
@@ -612,40 +737,23 @@ fn main() {
     //     Err(e) => println!("{}{}", "Error: ".red(), e.to_string().bright_red()),
     // }
 
-    // match read_file(&"Library.xml") {
-    //     Ok(xml) => {
-    //         let library = XmlChssystem::from_str(&xml);
-    //         match library {
-    //             Ok(library) => {
-    //                 for devicepart in &library.devicepart {
-    //                     println!("{}", devicepart.partnumber.bright_yellow());
-    //                 }
-    //             }
-    //             Err(e) => {
-
-    //             }
-    //         }
-    //     }
-    //     Err(e) => {
-
-    //     }
-    // }
-
-    // return;
+   
 
 
-    match read_file(&args.project) {
-        Ok(xml) => {
-            let project = Project::new(&xml);
-            match project {
-                // Project parsed successfuly 
-                Ok(project) => {
+    match (read_file(&args.project), read_file("Library.xml")) {
+        // Project xml file and Library files were read successfully
+        (Ok(xml_project), Ok(xml_library)) => {
+            let project = Project::new(&xml_project);
+            let library = Library::new(&xml_library);
+            match (project, library) {
+                // Project and Library parsed successfuly 
+                (Ok(project), Ok(library)) => {
                     let no_outputs_specified = args.labels.is_none()
                                                && args.bom.is_none()
                                                && args.cutlist.is_none()
                                                && args.index.is_none();
                     // No design specified, show project info
-                    if args.design.is_none() && args.harness.is_none() {
+                    if args.design.is_none() || args.harness.is_none() {
                         println!("{}", "Showing project info...".bright_yellow());
                         show_project_info(&project);
                     }
@@ -711,8 +819,9 @@ fn main() {
                                         // sheet.write_string(0,WIRE_TO_DEVICE, "Device/Connector", Some(&format_header));
                                         // sheet.write_string(0,WIRE_TO_PIN, "Pin", Some(&format_header));
                                         // sheet.set_column(0,9,20.0,None);
+                                        let harness = args.harness.unwrap();
                                         let design = project.get_design(args.design.unwrap().as_ref()).unwrap();
-                                        let wires = design.get_wires(args.harness.unwrap().as_ref());
+                                        let wires = design.get_wires(&harness);
                                         let mut row: u32 = 0;
 
                                         // Graph
@@ -760,8 +869,15 @@ fn main() {
                                             let connections = wire.get_connections();
                                             let connection_left = connections.get(0);
 
-                                            let left_wire_end = connection_left.map(|connection_left| {
-                                                process_connection(connection_left)
+                                            let left_wire_end = connection_left.map(|(connection_left, termination)| {
+                                                let mut left_wire_end = process_connection((connection_left, termination), &library);
+                                                //if let Some(termination) = termination {
+                                                //    let terminal_partnumber = library.lookup_customer_partnumber(*termination);
+                                                //    left_wire_end.termination = terminal_partnumber.unwrap_or_default().into();
+                                                    //println!("{}{}", *termination, left_wire_end.termination_name);
+                                                //}
+                                                //left_wire_end.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+                                                left_wire_end
                                             });
 
                                             // match left_wire_end {
@@ -779,8 +895,14 @@ fn main() {
                                             // }
 
                                             let connection_right = connections.get(1);
-                                            let right_wire_end = connection_right.map(|connection_right| {
-                                                process_connection(connection_right)
+                                            let right_wire_end = connection_right.map(|(connection_right, termination)| {
+                                                let mut right_wire_end = process_connection((connection_right, termination), &library);
+                                                //if let Some(termination) = termination {
+                                                //    let terminal_partnumber = library.lookup_customer_partnumber(*termination);
+                                                //    right_wire_end.termination = terminal_partnumber.unwrap_or_default().into();
+                                                    //right_wire_end.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+                                                //}
+                                                right_wire_end
                                             });
 
                                             // match right_wire_end {
@@ -803,7 +925,8 @@ fn main() {
                                                     partno : wire.get_customer_partno().into(),
                                                     material : wire.get_material().into(),
                                                     spec : wire.get_spec().into(),
-                                                    color : wire.get_color().into(),
+                                                    color_code : wire.get_color().into(),
+                                                    color_description: library.get_color_description(wire.get_color()).unwrap_or_default().into(),
                                                     length : wire.get_length(),
                                                     left : left_wire_end.clone(),
                                                     right : right_wire_end.clone()
@@ -832,7 +955,7 @@ fn main() {
                                         } // wire loop
 
 
-                                        let mut xlsx_formatter = WireListXlsxFormatter::new(&workbook);
+                                        let mut xlsx_formatter = WireListXlsxFormatter::new(&workbook, &bg_color_map);
                                         // Output plane wire list
                                         xlsx_formatter.print_header();
                                         for wire in wire_list.wires.iter() {
@@ -876,14 +999,14 @@ fn main() {
                                             let parent = mst_directed_graph.neighbors_directed(node, petgraph::Direction::Incoming).next();
                                             match parent {
                                                 Some(parent) => {
-                                                    println!("{}", graph[parent]);
+                                                    //println!("{}", graph[parent]);
                                                 }
                                                 None => {}
                                             }
-                                            println!("    {}", graph[node]);
+                                            //println!("    {}", graph[node]);
 
                                             if level_end {
-                                                println!("{}", "----------");
+                                                //println!("{}", "----------");
                                                 //current_node = node
                                             }
                                         }
@@ -903,7 +1026,7 @@ fn main() {
                                         });
 
                                         // Print the DOT representation
-                                        println!("{:?}", dot);
+                                        //println!("{:?}", dot);
                                         }
 
 
@@ -914,13 +1037,15 @@ fn main() {
                                             format!("label=\"{:?}\"", name)
                                         });
 
-                                        println!("{:?}", dot2);
+                                        //println!("{:?}", dot2);
 
                                     //}
                                     //Err(e) => {
 
                                     //}
                                 //}
+                                        println!("{} {} {} {} {}", "Harness".yellow(), &harness.yellow(), "contains".yellow(), wire_list.wires.iter().len().to_string().yellow(), "wires.".yellow());
+                                        println!("{}", "OK".bright_green());
                             }
                             Err(e) => {
                                 // TODO: xmlwrite is panicing when it can't create thh file, how do I catch it?
@@ -933,14 +1058,21 @@ fn main() {
                         // end points
                         // connectors
                         //show_project_info(&project);
+
                     }
                 }
-                Err(e) => {
+                (Err(e), _) => {
+                    println!("{}{}", "Xml error: ".red(), e.to_string().bright_red())
+                }
+                (_,Err(e)) => {
                     println!("{}{}", "Xml error: ".red(), e.to_string().bright_red())
                 }
             }
         }
-        Err(e) => {
+        (Err(e), _) => {
+            println!("{}{}", "File read error: ".red(), e.to_string().bright_red())
+        }
+        (_,Err(e)) => {
             println!("{}{}", "File read error: ".red(), e.to_string().bright_red())
         }
     }

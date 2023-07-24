@@ -10,7 +10,7 @@ pub use hard_xml::{XmlError};
 
 pub struct Project<'a> {
     //xml: Box<str>,
-    dom: XmlProject<'a>
+    pub dom: XmlProject<'a>
 }
 
 fn read_file(filename:&str) -> std::io::Result<String> {
@@ -246,6 +246,11 @@ impl<'a> Connector<'a> {
         self.dom.connectorusage.as_ref() == "RingTerminal"
     }
 
+
+    pub fn get_partno(&'a self) -> &'a str {
+        self.dom.partnumber.as_ref()
+    }
+
     pub fn get_customer_partno(&'a self) -> &'a str {
         self.dom.customerpartnumber.as_ref()
     }
@@ -320,12 +325,33 @@ impl<'a> Wire<'a> {
         }
     }
 
-    pub fn get_connections(&self) -> Vec<Connection> {
-        let mut connections: Vec<Connection> = Vec::new(); 
-        for connection in &self.dom.connection {
-            let connection = self.design.get_connection_by_pinref(connection.pinref.as_ref());
+    /// Look-up wire terminal end associated with wire connection pinref
+    pub fn get_wire_end_by_pinref(&self, pinref: &str) -> Option<&str> {
+        // If wire has terminal ends it must have startpinref marking first connection
+        match &self.dom.startpinref {
+            Some(startpinref) => {
+                // Return first wire end
+                if pinref == startpinref {
+                    // Option<Cow<'a, str>> -> Option<&Cow<'a, str>> -> Option<&str>
+                    self.dom.terminalpartspecend1.as_ref().map(Cow::as_ref)
+                } else {
+                    // Option<Cow<'a, str>> -> Option<&Cow<'a, str>> -> Option<&str>
+                    self.dom.terminalpartspecend2.as_ref().map(Cow::as_ref)
+                }
+            }
+            // If there's no startpinref than there's nothing I can do to help you determine wire end
+            None => {None}
+        }
+    } 
+
+    /// Get wire connections and associated wire terminal ends
+    pub fn get_connections(&self) -> Vec<(Connection, Option<&str>)> {
+        let mut connections: Vec<(Connection, Option<&str>)> = Vec::new(); 
+        for connection_dom in &self.dom.connection {
+            let connection = self.design.get_connection_by_pinref(connection_dom.pinref.as_ref());
+            let wire_end = self.get_wire_end_by_pinref(connection_dom.pinref.as_ref());
             if connection.is_some() {
-                connections.push(connection.unwrap())
+                connections.push((connection.unwrap(), wire_end))
             }
         }
         return connections;

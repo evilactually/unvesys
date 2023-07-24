@@ -141,7 +141,13 @@ pub struct XmlWire<'a> {
     #[xml(attr = "wirematerial")]
     pub wirematerial: Option<Cow<'a, str>>,
     #[xml(attr = "wirecolor")]
-    pub wirecolor: Option<Cow<'a, str>>,
+    pub wirecolor: Option<Cow<'a, str>>, 
+    #[xml(attr = "startpinref")]
+    pub startpinref: Option<Cow<'a, str>>,
+    #[xml(attr = "terminalpartspecend1")]
+    pub terminalpartspecend1: Option<Cow<'a, str>>,
+    #[xml(attr = "terminalpartspecend2")]
+    pub terminalpartspecend2: Option<Cow<'a, str>>,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
