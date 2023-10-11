@@ -1,16 +1,19 @@
 
 //mod vysisxml;
+use std::rc::Rc;
+use std::sync::Arc;
 use std::io::Error;
 use crate::vysisxml::*;
 
 use std::fs::File;
 use std::io::prelude::*;
 
+use std::collections::{HashSet};
+
 pub use hard_xml::{XmlError};
 
 pub struct Project<'a> {
-    //xml: Box<str>,
-    pub dom: XmlProject<'a>
+    pub dom: XmlProject<'a>,
 }
 
 fn read_file(filename:&str) -> std::io::Result<String> {
@@ -29,8 +32,8 @@ fn read_file(filename:&str) -> std::io::Result<String> {
 
 impl<'a> Project<'a> {
 
-    pub fn new(xml:&'a str) -> Result<Project, XmlError> {
-        XmlProject::from_str(xml).map(|dom| {
+    pub fn new(xml: &'a str) -> Result<Project<'a>, XmlError> {
+        XmlProject::from_str(&xml).map(|dom| {
             Project {
                 dom : dom
             }
@@ -90,14 +93,41 @@ impl<'a> Project<'a> {
         }
         names
     }
+
+    pub fn get_logical_design_iter(&self) -> LogicalDesignIter<'_> {
+        LogicalDesignIter { project: self, logicaldesign_iter: self.dom.designmgr.logicaldesign.iter() }
+    }
+}
+
+pub struct LogicalDesignIter<'a> {
+    project:&'a Project<'a>,
+    logicaldesign_iter: std::slice::Iter<'a, XmlLogicalDesign<'a>>
+}
+
+impl<'a> Iterator for LogicalDesignIter<'a> {
+    type Item = LogicalDesign<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.logicaldesign_iter.next().map(|logicaldesignxml| {
+            LogicalDesign {
+                project: self.project,
+                dom: logicaldesignxml
+            }
+        })
+    }
 }
 
 pub struct LogicalDesign<'a> {
-    project: &'a Project<'a>,
-    dom: &'a XmlLogicalDesign<'a>
+    pub project: &'a Project<'a>,
+    pub dom: &'a XmlLogicalDesign<'a>
 }
 
 impl<'a> LogicalDesign<'a> {
+
+    pub fn get_name(&'a self) -> &'a str {
+        self.dom.name.as_ref()
+    }
+
     pub fn get_connection_by_pinref(&'a self, pinref: &str) -> Option<Connection<'a>> {
          // search connectors
         for connector_dom in &self.dom.connectivity.connector {
@@ -169,6 +199,30 @@ impl<'a> LogicalDesign<'a> {
             }
         }
         wires
+    }
+
+    /// Returns a list of unique harness attributes in logical design
+    pub fn get_harness_names(&self) -> Vec<&'a str> {
+        let dom = &self.project.dom;
+        let design_name = self.get_name();
+        let index = dom.designmgr.logicaldesign.iter().position(|design| design.name == design_name);
+        match index {
+            Some(index) => {
+                let mut harness_set:HashSet<&str> = HashSet::new();
+                let design_dom = &dom.designmgr.logicaldesign[index];
+                // Collect harnesses
+                for wire in &design_dom.connectivity.wire {
+                    if let Some(harness) = &wire.harness {
+                        harness_set.insert(harness.as_ref());
+                    }
+                }
+                // Print collected harnesses
+                return harness_set.into_iter().collect();
+            }
+            None => {
+                return Vec::new();
+            }
+        }
     }
 }
 

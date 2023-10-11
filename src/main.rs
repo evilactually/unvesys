@@ -1,4 +1,14 @@
 
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+use serde_json::Value;
+use std::rc::Rc;
+use egui::Ui;
+use eframe::egui;
+use egui::menu;
+
+use rand::Rng;
+use std::sync::{Arc, Mutex};
+
 use petgraph::visit::EdgeRef;
 extern crate clap;
 
@@ -30,6 +40,12 @@ use crate::vysis::*;
 mod vysyslibxml;
 use crate::vysyslibxml::*;
 
+mod json;
+use crate::json::*;
+
+mod outline;
+use crate::outline::*;
+
 use std::cmp::max;
 
 use colored::*;
@@ -53,6 +69,8 @@ use xlsxwriter::worksheet::PaperType;
 
 mod xlsxtable;
 use crate::xlsxtable::*;
+
+
 
 /// VeSys XML project post-processor 
 #[derive(Parser, Debug)]
@@ -105,6 +123,7 @@ struct Args {
 //     println!("{}", "OK".bright_green());
 // }
 
+
 fn show_project_info(project: &Project) {
     println!("{} {}", "XmlProject Name:".bright_yellow(), project.get_name().yellow());
     println!("{}", "Logical Designs:".bright_yellow());
@@ -126,6 +145,9 @@ fn show_project_info(project: &Project) {
     }
     println!("{}", "OK".bright_green());
 }
+
+
+
 
 fn print_field_opt(fieldname:&str, field_opt: &Option<Cow<str>>) {
     field_opt.as_ref().map(|field|
@@ -677,7 +699,273 @@ impl Drop for WireListXlsxFormatter<'_> {
     }
 }
 
+fn show_project_info_gui(project: &Project, ui : &mut Ui) {
+    println!("{} {}", "XmlProject Name:".bright_yellow(), project.get_name().yellow());
+    println!("{}", "Logical Designs:".bright_yellow());
+    // List logical design names
+    {
+        //let logical_designs = project.get_logical_design_names();
+        for design in project.get_logical_design_iter() {
+            ui.label(design.get_name());
+            //println!("    {} {}", "*".bright_yellow(), design.yellow());
+            //show_design_info(&project.dom, design);
+        }
+    }
+    // println!("{}", "Harness Designs:".bright_yellow());
+    // // List harness design names
+    // {
+    //     let harness_designs = project.get_harness_design_names();
+    //     for design in harness_designs {
+    //         println!("    {} {}", "*".bright_yellow(), design.yellow());
+    //     }
+    // }
+    // println!("{}", "OK".bright_green());
+}
+
+
+
+fn slow_process(state_clone: Arc<Mutex<State>>) {
+    // loop {
+    //     let duration = rand::thread_rng().gen_range(1000..3000);
+    //     println!("going to sleep for {}ms", duration);
+    //     std::thread::sleep(std::time::Duration::from_millis(duration));
+    //     state_clone.lock().unwrap().duration = duration;
+    //     let ctx = &state_clone.lock().unwrap().ctx;
+    //     match ctx {
+    //         Some(x) => x.request_repaint(),
+    //         None => panic!("error in Option<>"),
+    //     }
+    // }
+}
+
+struct State {
+    duration: u64,
+    ctx: Option<egui::Context>,
+    project_outline: Option<ProjectOutline>
+}
+
+impl State {
+    pub fn new() -> Self {
+        Self {
+            duration: 0,
+            ctx: None,
+            project_outline: None
+        }
+    }
+}
+
+pub struct App {
+    state: Arc<Mutex<State>>,
+}
+
+impl App {
+    pub fn new(cc: &eframe::CreationContext) -> Self {
+        let state = Arc::new(Mutex::new(State::new()));
+        state.lock().unwrap().ctx = Some(cc.egui_ctx.clone());
+        let state_clone = state.clone();
+        // std::thread::spawn(move || {
+        //     slow_process(state_clone);
+        // });
+        Self {
+            state
+        }
+    }
+}
+
+// pub fn example() -> Option<XmlProject<'static>>  {
+//     let xml = read_file("123").unwrap();
+//     if let Ok(xml) = XmlProject::from_str(&xml) {
+//         Some(xml)
+//     } else {
+//         None
+//     }
+// }
+
+impl<'a> eframe::App for App {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+            egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
+                egui::menu::bar(ui, |ui| {
+                    menu::bar(ui, |ui| {
+                        ui.menu_button("File", |ui| {
+                            if ui.button("Open").clicked() {
+                                if let Some(path) = rfd::FileDialog::new().pick_file() {
+                                    
+                                    // Clone Arc to avoid using self inside closure
+                                    let state_clone = self.state.clone();
+
+                                    // Wrap slow loading code in a thread
+                                    std::thread::spawn(move || { // state_clone and path are moved
+                                        let xmlpath = path.display().to_string();
+                                        let xml = read_file(&xmlpath);
+                                        if let Ok(xml) = xml {
+                                            let project = Project::new(&xml);
+                                            if let Ok(project) = project {
+                                                state_clone.lock().unwrap().project_outline = Some(ProjectOutline::new(&project));
+                                            }
+                                        }
+                                    });
+                                }
+                                ui.close_menu(); // close menu so it doesn't stay opened
+                            }
+                        });
+                    });
+                });
+
+
+            ui.label(format!("woke up after {}ms", self.state.lock().unwrap().duration));
+        });
+
+        egui::CentralPanel::default().show(ctx, |ui| {
+                if let Some(outline) = &self.state.lock().unwrap().project_outline {
+                    ui.label(&outline.name);
+                } else {
+                    println!("locked");
+                }
+            //} else {
+            //    println!("lock");
+            //}
+        });
+        
+    }
+}
+
+// fn main() {
+//     let native_options = eframe::NativeOptions::default();
+    
+//     let mut xml_project : Option<String> = None;
+//     let mut project : Option<XmlProject> = None;
+
+//     eframe::run_simple_native("UnVeSys", native_options,  |ctx, _frame| {
+//         egui::CentralPanel::default().show(ctx, |ui| {
+//             if ui.button("Open").clicked() {
+//                 // set file path
+//                 if let Some(path) = rfd::FileDialog::new().pick_file() {
+//                     xml_project = Some(read_file(&path.display().to_string()).unwrap());
+//                     //project = Some(Project::new(&xml_project.unwrap()).unwrap());
+//                     XmlProject::from_str(&xml_project.unwrap()).map(|dom| {
+//                         project = Some(dom);
+//                     });
+//                 }
+//             }
+//         });
+
+//     });
+// }
+
+
 fn main() {
+    let native_options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "eframe template",
+        native_options,
+        Box::new(|cc| Box::new(App::new(cc))),
+    );
+}
+
+fn main_____________() -> Result<(), eframe::Error> {
+    env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
+
+    let options = eframe::NativeOptions {
+        initial_window_size: Some(egui::vec2(320.0, 240.0)),
+        ..Default::default()
+    };
+
+    // Our application state:
+    let mut name = "Arthur".to_owned();
+    let mut age = 42;
+    let mut projectPath: Option<String> = None;
+    let mut projectXml: Option<std::io::Result<String>> = None;
+
+    let mut c = 0;
+    
+    let mut closure = || {
+        // This will not compile because `outside_variable` is immutable inside the closure.
+        c = c + 1;
+        println!("in the closure, c={}", c);
+    };
+    
+    closure();
+    closure();  
+    closure();  
+    closure();     
+
+    println!("Outside closure: {}", c);
+
+    // Main GUI loop
+    eframe::run_simple_native("UnVeSys", options,  move |ctx, _frame| {
+        //println!("{}", "1")
+
+    let mut project: Option<Result<Project, XmlError>> = None;
+    let xml = "123".to_owned();
+        // Menu bar
+        egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
+        egui::menu::bar(ui, |ui| {
+                menu::bar(ui, |ui| {
+                    ui.menu_button("File", |ui| {
+                        if ui.button("Open").clicked() {
+                            if let Some(path) = rfd::FileDialog::new().pick_file() {
+                                //projectPath = Some(path.display().to_string());
+                                
+                                ui.close_menu(); // close menu so it doesn't stay opened
+                            }
+                            // projectPath.as_ref().map(|path| {
+                            //     projectXml = Some(read_file(path));
+                            //     // projectXml.as_ref().map(|xml| {
+                            //     //     xml.as_ref().map(|xml| {
+                            //     //         project = Some(Project::new(xml)); 
+                            //     //     });
+                            //     // });
+                            //     // if let Some(Ok(xml)) = &projectXml {
+                            //     //     project = Some(Project::new(&xml)); 
+                            //     // }
+                            // });
+
+                            //project = Some(Project::new(&xml));
+                            // projectXml.as_ref().map(|xml| {
+                            //     xml.as_ref().map(|xml| {
+                            //         project = Some(Project::new(&xml));
+                            //         //project = Some(Project::new(xml)); 
+                            //     });
+                            // });
+                        }
+                    });
+                });
+            });
+        });
+        // End Menu bar
+
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("My egui Application");
+            ui.horizontal(|ui| {
+                if let Some(path) = &projectPath {
+                    ui.label(path);
+                }
+                let name_label = ui.label("Your name: ");
+                ui.text_edit_singleline(&mut name)
+                    .labelled_by(name_label.id);
+            });
+            ui.add(egui::Slider::new(&mut age, 0..=120).text("age"));
+            if ui.button("Click each year").clicked() {
+                age += 1;
+            }
+            if ui.button("Open file…").clicked() {
+                if let Some(path) = rfd::FileDialog::new().pick_file() {
+                    //self.picked_path = Some(path.display().to_string());
+                }
+            }
+
+            // if let Some(projectPath) = projectPath {
+
+            // }
+
+            
+            ui.label(format!("Hello '{name}', age {age}"));
+        });
+    })
+}
+
+
+fn main____________() {
     // Map of row background colors for each wire color
     let mut bg_color_map: HashMap<&str, FormatColor> = HashMap::new();
     bg_color_map.insert("PK", FormatColor::Custom(0xffccff)); // 5v format
@@ -748,6 +1036,8 @@ fn main() {
             match (project, library) {
                 // Project and Library parsed successfuly 
                 (Ok(project), Ok(library)) => {
+                    let json = project_outline_json(&project);
+                    println!("{}", json.to_string());
                     let no_outputs_specified = args.labels.is_none()
                                                && args.bom.is_none()
                                                && args.cutlist.is_none()
@@ -1078,3 +1368,4 @@ fn main() {
     }
 
 }
+
