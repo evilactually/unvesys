@@ -1,11 +1,17 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+use egui::Sense;
+use egui::Label;
+use egui::RichText;
+use crate::egui::Button;
+use crate::egui::Margin;
+use crate::egui::CollapsingHeader;
 use serde_json::Value;
 use std::rc::Rc;
 use egui::Ui;
 use eframe::egui;
 use egui::menu;
-
+use ecolor::{Color32};
 use rand::Rng;
 use std::sync::{Arc, Mutex};
 
@@ -724,24 +730,15 @@ fn show_project_info_gui(project: &Project, ui : &mut Ui) {
 
 
 
-fn slow_process(state_clone: Arc<Mutex<State>>) {
-    // loop {
-    //     let duration = rand::thread_rng().gen_range(1000..3000);
-    //     println!("going to sleep for {}ms", duration);
-    //     std::thread::sleep(std::time::Duration::from_millis(duration));
-    //     state_clone.lock().unwrap().duration = duration;
-    //     let ctx = &state_clone.lock().unwrap().ctx;
-    //     match ctx {
-    //         Some(x) => x.request_repaint(),
-    //         None => panic!("error in Option<>"),
-    //     }
-    // }
+fn startup_worker(state_clone: Arc<Mutex<State>>) {
+    // Any slow start-up work goes here
 }
 
 struct State {
     duration: u64,
     ctx: Option<egui::Context>,
-    project_outline: Option<ProjectOutline>
+    project_outline: Option<ProjectOutline>,
+
 }
 
 impl State {
@@ -763,23 +760,15 @@ impl App {
         let state = Arc::new(Mutex::new(State::new()));
         state.lock().unwrap().ctx = Some(cc.egui_ctx.clone());
         let state_clone = state.clone();
-        // std::thread::spawn(move || {
-        //     slow_process(state_clone);
-        // });
+        // Any slow start-up work goes here
+        std::thread::spawn(move || {
+            startup_worker(state_clone);
+        });
         Self {
             state
         }
     }
 }
-
-// pub fn example() -> Option<XmlProject<'static>>  {
-//     let xml = read_file("123").unwrap();
-//     if let Ok(xml) = XmlProject::from_str(&xml) {
-//         Some(xml)
-//     } else {
-//         None
-//     }
-// }
 
 impl<'a> eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
@@ -810,48 +799,54 @@ impl<'a> eframe::App for App {
                         });
                     });
                 });
-
-
-            ui.label(format!("woke up after {}ms", self.state.lock().unwrap().duration));
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
+            egui::ScrollArea::vertical()
+            .max_width(f32::INFINITY)
+            .auto_shrink([false, true])
+            .show(ui, |ui| {
                 if let Some(outline) = &self.state.lock().unwrap().project_outline {
-                    ui.label(&outline.name);
-                } else {
-                    println!("locked");
-                }
-            //} else {
-            //    println!("lock");
-            //}
+                    CollapsingHeader::new(&outline.name)
+                    .default_open(true)
+                    .selectable(true)
+                    .show(ui, |ui| {
+                        CollapsingHeader::new("Logical Designs")
+                        .show(ui, |ui| {
+                            for design in outline.designs.iter() {
+                                CollapsingHeader::new(&design.name)
+                                .default_open(true)
+                                .show(ui, |ui| {
+                                    for harness in design.harnesses.iter() {
+                                        let harness_entry = ui.add(Label::new(harness).sense(Sense::hover())) // Enable hover event
+                                        .context_menu(|ui| {
+                                            if ui.button("Generate wire list").clicked() {
+                                                println!("Generating wire list for {}, {}", &design.name, harness);
+                                                ui.close_menu();
+                                            }
+                                            ui.button("Generate label data");
+                                        });
+                                        // Highlight on hover
+                                        if harness_entry.hovered() {
+                                            harness_entry.highlight();
+                                        }
+                                    }
+                                })
+                                .header_response.context_menu(|ui| {
+                                    if ui.button("Generate wire list").clicked() {
+                                        println!("Generating wire list for {}", &design.name);
+                                        ui.close_menu();
+                                    }
+                                    ui.button("Generate label data");
+                                });
+                            }
+                        });
+                    });
+                } // else state locked by worker thread
+            });
         });
-        
     }
 }
-
-// fn main() {
-//     let native_options = eframe::NativeOptions::default();
-    
-//     let mut xml_project : Option<String> = None;
-//     let mut project : Option<XmlProject> = None;
-
-//     eframe::run_simple_native("UnVeSys", native_options,  |ctx, _frame| {
-//         egui::CentralPanel::default().show(ctx, |ui| {
-//             if ui.button("Open").clicked() {
-//                 // set file path
-//                 if let Some(path) = rfd::FileDialog::new().pick_file() {
-//                     xml_project = Some(read_file(&path.display().to_string()).unwrap());
-//                     //project = Some(Project::new(&xml_project.unwrap()).unwrap());
-//                     XmlProject::from_str(&xml_project.unwrap()).map(|dom| {
-//                         project = Some(dom);
-//                     });
-//                 }
-//             }
-//         });
-
-//     });
-// }
-
 
 fn main() {
     let native_options = eframe::NativeOptions::default();

@@ -912,6 +912,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ecolor"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfdf4e52dbbb615cfd30cf5a5265335c217b5fd8d669593cea74a517d9c605af"
+
+[[package]]
 name = "eframe"
 version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1043,7 +1049,7 @@ dependencies = [
  "ahash",
  "atomic_refcell",
  "bytemuck",
- "ecolor",
+ "ecolor 0.22.0",
  "emath",
  "log",
  "nohash-hasher",
@@ -2817,6 +2823,7 @@ dependencies = [
  "clap",
  "colored",
  "csv",
+ "ecolor 0.23.0",
  "eframe",
  "egui",
  "env_logger",
