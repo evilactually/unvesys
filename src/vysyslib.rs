@@ -55,7 +55,7 @@ impl<'a> Library<'a> {
     pub fn lookup_terminal_short_name(&self, partno: &str) -> Option<&str> {
         let part = self.dom.terminalpart.iter().find(|part| part.partnumber == partno);
         part.and_then(|part| {
-            let property_id = self.lookup_user_property_id("TERMINAL_NAME").unwrap();
+            let property_id = self.lookup_user_property_id("TERMINAL_NAME").unwrap_or("N/A");
             //println!("{}", property_id);
             part.chsuserpropertypart.iter().find(|property| property.chsuserproperty_id == property_id)
         }).and_then(|property| {

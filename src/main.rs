@@ -1,16 +1,22 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
-use egui::Sense;
-use egui::Label;
-use egui::RichText;
-use crate::egui::Button;
-use crate::egui::Margin;
-use crate::egui::CollapsingHeader;
-use serde_json::Value;
-use std::rc::Rc;
-use egui::Ui;
+use crate::cutlist::output_cutlist;
+
+use std::path::PathBuf;
+use crate::cutlist::process_connection;
+use crate::cutlist::WireList;
+use crate::cutlist::WireEntry;
+use ::egui::Sense;
+use ::egui::Label;
+
+
+
+use ::egui::CollapsingHeader;
+
+
+use ::egui::Ui;
 use eframe::egui;
-use egui::menu;
+use ::egui::menu;
 use ecolor::{Color32};
 use rand::Rng;
 use std::sync::{Arc, Mutex};
@@ -76,7 +82,10 @@ use xlsxwriter::worksheet::PaperType;
 mod xlsxtable;
 use crate::xlsxtable::*;
 
+mod cutlist;
+use crate::cutlist::WireListXlsxFormatter;
 
+use process_path;
 
 /// VeSys XML project post-processor 
 #[derive(Parser, Debug)]
@@ -245,86 +254,86 @@ fn show_device_info(dom: &XmlChssystem, partno: &str) {
 
 // Main connectors: N, 
 
-pub struct WireList {
-    pub wires:Vec<WireEntry>,
-}
+// pub struct WireList {
+//     pub wires:Vec<WireEntry>,
+// }
 
-pub struct WireEntry {
-    pub name: Box<str>,
-    pub partno: Box<str>,
-    pub material: Box<str>,
-    pub spec: Box<str>,
-    pub color_code: Box<str>,
-    pub color_description: Box<str>,
-    pub length: f32,
-    pub left: Option<WireEndEntry>,
-    pub right: Option<WireEndEntry>
-}
+// pub struct WireEntry {
+//     pub name: Box<str>,
+//     pub partno: Box<str>,
+//     pub material: Box<str>,
+//     pub spec: Box<str>,
+//     pub color_code: Box<str>,
+//     pub color_description: Box<str>,
+//     pub length: f32,
+//     pub left: Option<WireEndEntry>,
+//     pub right: Option<WireEndEntry>
+// }
 
-#[derive(Default)]
-#[derive(Clone)]
-pub struct WireEndEntry{
-    pub device : Box<str>,
-    pub pin : Box<str>,
-    pub termination : Box<str>,
-    pub termination_name : Box<str>
-}
+// #[derive(Default)]
+// #[derive(Clone)]
+// pub struct WireEndEntry{
+//     pub device : Box<str>,
+//     pub pin : Box<str>,
+//     pub termination : Box<str>,
+//     pub termination_name : Box<str>
+// }
 
-fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a str>), library: &Library ) -> WireEndEntry {
-    let mut wire_end_info : WireEndEntry = Default::default();
-    match connection {
-        (Connection::Connector(connector,pin), _) => {
-            if connector.is_ring() {
-                // If ring is connected to some device, find that device
-                let ring_connection = connector.get_ring_connection();
-                match ring_connection {
-                    Some(ring_connection) => {
-                        match ring_connection {
-                            Connection::Device(mated_device,mated_pin) => {
-                                wire_end_info.device = mated_device.get_name().into();
-                                wire_end_info.pin = mated_pin.get_name().into();
-                            }
-                            // TODO: add grounddevice
-                            _ => {
-                                println!("{}{}", "Ring may only be connected to device pin: ".red(), connector.get_name().to_string().bright_red());
-                            }
-                        }
-                    }
-                    None => {}
-                }
-                // Ring is not connected anywhere, leave device empty
-                // Show ring as termination
-                wire_end_info.termination = connector.get_customer_partno().into();
-                let partno = connector.get_partno();
-                wire_end_info.termination_name = library.lookup_terminal_short_name(partno).unwrap_or_default().into();
-            } else
-            {
-                //println!("{}", connector.get_name());
-                wire_end_info.device = connector.get_name().into();
-                wire_end_info.pin = pin.get_name().into();
-                wire_end_info.termination = "TODO".into();
-            }
-        }
-        (Connection::Device(device,pin), termination) => {
-            wire_end_info.device = device.get_name().into();
-            wire_end_info.pin = pin.get_name().into();
-            wire_end_info.termination = "TODO".into();
-            if let Some(termination) = termination {
-                let terminal_partnumber = library.lookup_customer_partnumber(*termination);
-                wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
-                wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
-            }
-        }
-        (Connection::Splice(splice,pin), _) => {
-            wire_end_info.device = splice.get_name().into();
-            wire_end_info.pin = pin.get_name().into();
-            wire_end_info.termination = "TODO".into();
-            // TODO: Read properties of the device to find out which side of the splice wire is meant to 
-        }
-    }
-    //wire_end_info.termination = "TODO".into();
-    wire_end_info
-}
+// fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a str>), library: &Library ) -> WireEndEntry {
+//     let mut wire_end_info : WireEndEntry = Default::default();
+//     match connection {
+//         (Connection::Connector(connector,pin), _) => {
+//             if connector.is_ring() {
+//                 // If ring is connected to some device, find that device
+//                 let ring_connection = connector.get_ring_connection();
+//                 match ring_connection {
+//                     Some(ring_connection) => {
+//                         match ring_connection {
+//                             Connection::Device(mated_device,mated_pin) => {
+//                                 wire_end_info.device = mated_device.get_name().into();
+//                                 wire_end_info.pin = mated_pin.get_name().into();
+//                             }
+//                             // TODO: add grounddevice
+//                             _ => {
+//                                 println!("{}{}", "Ring may only be connected to device pin: ".red(), connector.get_name().to_string().bright_red());
+//                             }
+//                         }
+//                     }
+//                     None => {}
+//                 }
+//                 // Ring is not connected anywhere, leave device empty
+//                 // Show ring as termination
+//                 wire_end_info.termination = connector.get_customer_partno().into();
+//                 let partno = connector.get_partno();
+//                 wire_end_info.termination_name = library.lookup_terminal_short_name(partno).unwrap_or_default().into();
+//             } else
+//             {
+//                 //println!("{}", connector.get_name());
+//                 wire_end_info.device = connector.get_name().into();
+//                 wire_end_info.pin = pin.get_name().into();
+//                 wire_end_info.termination = "TODO".into();
+//             }
+//         }
+//         (Connection::Device(device,pin), termination) => {
+//             wire_end_info.device = device.get_name().into();
+//             wire_end_info.pin = pin.get_name().into();
+//             wire_end_info.termination = "TODO".into();
+//             if let Some(termination) = termination {
+//                 let terminal_partnumber = library.lookup_customer_partnumber(*termination);
+//                 wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
+//                 wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+//             }
+//         }
+//         (Connection::Splice(splice,pin), _) => {
+//             wire_end_info.device = splice.get_name().into();
+//             wire_end_info.pin = pin.get_name().into();
+//             wire_end_info.termination = "TODO".into();
+//             // TODO: Read properties of the device to find out which side of the splice wire is meant to 
+//         }
+//     }
+//     //wire_end_info.termination = "TODO".into();
+//     wire_end_info
+// }
 
 //let left_node = graph.add_node(left.device.to_owned().into_boxed_str());
                                                     // let found_left_node = graph
@@ -497,213 +506,6 @@ fn dfs_traversal<N, E: Copy>(graph: &Graph<N, E, Undirected>, directed_tree: &mu
 
 
 
-pub struct WireListXlsxFormatter<'a> {
-    table : XLSXTable,
-    workbook : &'a Workbook,
-    sheet : Worksheet<'a>,
-    current_row: u32,
-    bg_colormap: &'a HashMap<&'a str, FormatColor>
-}
-
-impl WireListXlsxFormatter<'_> {
-    // Column definitions
-    // Wire
-    const WIRE_ITEM: u16 = 0;
-    // From
-    const FROM_DEVICE: u16 = 1;
-    const FROM_DASH: u16 = 2;
-    const FROM_PIN: u16 = 3;
-    // Terminal
-    const FROM_TERM_PARTNO: u16 = 4; // Merge
-    const FROM_TERM_NAME: u16 = 5;   // ^
-    // Wire material
-    const WIRE_PARTNO: u16 = 6; // Merge
-    const WIRE_NAME: u16 = 7;   // ^
-    const WIRE_COLOR: u16 = 8;
-    const WIRE_LEN: u16 = 9;
-    // Terminal
-    const TO_TERM_PARTNO: u16 = 10; // Merge
-    const TO_TERM_NAME: u16 = 11;   // ^
-    // To
-    const TO_DEVICE: u16 = 12;
-    const TO_DASH: u16 = 13;
-    const TO_PIN: u16 = 14;
-    // Margins
-    const LEFT:u16 = 1;
-    const TOP:u32 = 1;
-
-    pub fn new<'a>(workbook: &'a xlsxwriter::Workbook, bg_colormap: &'a HashMap<&str, xlsxwriter::format::FormatColor>) -> WireListXlsxFormatter<'a> {
-        let mut table = XLSXTable::new();
-        let mut format = Format::new();
-        format.set_align(FormatAlignment::Center);
-        table.set_default_format(format);
-        WireListXlsxFormatter {
-            table : table,
-            workbook : workbook,
-            sheet : workbook.add_worksheet(None).unwrap(),
-            current_row : Self::TOP + 1,
-            bg_colormap : bg_colormap
-        }
-    }
-
-    pub fn print_header(&mut self) {
-        let row = Self::TOP;
-        // Wire
-        self.table.set_cell(row, Self::LEFT + Self::WIRE_ITEM, "Wire Item");
-        self.table.set_col_width_pixels(Self::LEFT + Self::WIRE_ITEM, 150);
-        // From
-        self.table.set_cell(row, Self::LEFT + Self::FROM_DEVICE, "Device");
-        self.table.set_cell(row, Self::LEFT + Self::FROM_DASH, "-");
-        self.table.set_col_width_pixels(Self::LEFT + Self::FROM_DASH, 20);
-        self.table.set_cell(row, Self::LEFT + Self::FROM_PIN, "Pin");
-        // Terminal
-        self.table.set_cell(row, Self::LEFT + Self::FROM_TERM_PARTNO, "Termination");
-        self.table.set_col_width_pixels(Self::LEFT + Self::FROM_TERM_PARTNO, 125);
-        self.table.set_cell(row, Self::LEFT + Self::FROM_TERM_NAME, "");
-        self.table.set_col_width_pixels(Self::LEFT + Self::FROM_TERM_NAME, 125);
-        // Wire
-        self.table.set_cell(row, Self::LEFT + Self::WIRE_PARTNO, "Wire");
-        self.table.set_col_width_pixels(Self::LEFT + Self::WIRE_PARTNO, 125);
-        self.table.set_cell(row, Self::LEFT + Self::WIRE_NAME, "");
-        self.table.set_cell(row, Self::LEFT + Self::WIRE_COLOR, "Color");
-        self.table.set_cell(row, Self::LEFT + Self::WIRE_LEN, "Length");
-        // Terminal
-        self.table.set_cell(row, Self::LEFT + Self::TO_TERM_PARTNO, "Termination");
-        self.table.set_col_width_pixels(Self::LEFT + Self::TO_TERM_PARTNO, 125);
-        self.table.set_cell(row, Self::LEFT + Self::TO_TERM_NAME, "");
-        self.table.set_col_width_pixels(Self::LEFT + Self::TO_TERM_NAME, 125);
-        // To
-        self.table.set_cell(row, Self::LEFT + Self::TO_DEVICE, "Device");
-        self.table.set_cell(row, Self::LEFT + Self::TO_DASH, "-");
-        self.table.set_col_width_pixels(Self::LEFT + Self::TO_DASH, 20);
-        self.table.set_cell(row, Self::LEFT + Self::TO_PIN, "Pin");
-    }
-
-    pub fn print_entry(&mut self, wire: &WireEntry) {
-        // Wire
-        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_ITEM, &wire.name);
-        // From
-        let left_wire_end = wire.left.clone().unwrap_or_default();
-        self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_DEVICE, &left_wire_end.device);
-        self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_DASH, "-");
-        self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_PIN, &left_wire_end.pin);
-        // Terminal
-        self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_TERM_PARTNO, &left_wire_end.termination);
-        self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_TERM_NAME, &left_wire_end.termination_name);
-        // Wire
-        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_PARTNO, &wire.partno);
-        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_NAME, &(wire.material.to_string() + " " + &wire.spec));
-        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_COLOR, &wire.color_description);
-        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_LEN, &wire.length.to_string());
-        // Terminal
-        let right_wire_end = wire.right.clone().unwrap_or_default();
-        self.table.set_cell(self.current_row, Self::LEFT + Self::TO_TERM_PARTNO, &right_wire_end.termination);
-        self.table.set_cell(self.current_row, Self::LEFT + Self::TO_TERM_NAME, &right_wire_end.termination_name);
-        // To
-        self.table.set_cell(self.current_row, Self::LEFT + Self::TO_DEVICE, &right_wire_end.device);
-        self.table.set_cell(self.current_row, Self::LEFT + Self::TO_DASH, "-");
-        self.table.set_cell(self.current_row, Self::LEFT + Self::TO_PIN, &right_wire_end.pin);
-        // Set row bg color
-        self.table.modify_region_format(&XLSXTableRegion {
-            first_row: self.current_row,
-            first_col: Self::LEFT,
-            last_row: self.current_row,
-            last_col: Self::LEFT + Self::TO_PIN
-        }, &|format| {
-            let color_code_upper:String = wire.color_code.to_string().to_uppercase();
-            format.set_bg_color(*self.bg_colormap.get(&color_code_upper.as_ref()).unwrap_or(&FormatColor::White));
-        });
-        // Increment row
-        self.current_row = self.current_row + 1;
-    }
-}
-
-impl Drop for WireListXlsxFormatter<'_> {
-    fn drop(&mut self) {
-        // Finalize outside border
-        self.table.set_region_border(&XLSXTableRegion {
-            first_row: Self::TOP,
-            first_col: Self::LEFT,
-            last_row: self.current_row - 1,
-            last_col: Self::LEFT + Self::TO_PIN
-        }, FormatBorder::Medium);
-        // Header border
-        let header_region = &XLSXTableRegion {
-            first_row: Self::TOP,
-            first_col: Self::LEFT,
-            last_row: Self::TOP,
-            last_col: Self::LEFT + Self::TO_PIN
-        };
-        self.table.set_region_border(&header_region, FormatBorder::Medium);
-        // Header format
-        self.table.modify_region_format(&header_region, &|format| {
-            format.set_bold();
-        });
-        // Wire item separator
-        self.table.set_region_border_right(&XLSXTableRegion {
-            first_row: Self::TOP,
-            first_col: Self::LEFT,
-            last_row: self.current_row - 1,
-            last_col: Self::LEFT + Self::WIRE_ITEM
-        }, FormatBorder::Dotted);
-        // Left wire end separator
-        self.table.set_region_border_right(&XLSXTableRegion {
-            first_row: Self::TOP,
-            first_col: Self::LEFT,
-            last_row: self.current_row - 1,
-            last_col: Self::LEFT + Self::FROM_TERM_NAME
-        }, FormatBorder::Dotted);
-        // Right wire end separator
-        self.table.set_region_border_right(&XLSXTableRegion {
-            first_row: Self::TOP,
-            first_col: Self::LEFT,
-            last_row: self.current_row - 1,
-            last_col: Self::LEFT + Self::WIRE_LEN
-        }, FormatBorder::Dotted);
-        // Right align FROM device column
-         self.table.modify_region_format(&XLSXTableRegion {
-            first_row: Self::TOP,
-            first_col: Self::LEFT + Self::FROM_DEVICE,
-            last_row: self.current_row - 1,
-            last_col: Self::LEFT + Self::FROM_DEVICE
-        }, &|format| {
-            format.set_align(FormatAlignment::Right);
-        });
-        // Left align FROM pin column
-         self.table.modify_region_format(&XLSXTableRegion {
-            first_row: Self::TOP,
-            first_col: Self::LEFT + Self::FROM_PIN,
-            last_row: self.current_row - 1,
-            last_col: Self::LEFT + Self::FROM_PIN
-        }, &|format| {
-            format.set_align(FormatAlignment::Left);
-        });
-        // Right align TO device column
-         self.table.modify_region_format(&XLSXTableRegion {
-            first_row: Self::TOP,
-            first_col: Self::LEFT + Self::TO_DEVICE,
-            last_row: self.current_row - 1,
-            last_col: Self::LEFT + Self::TO_DEVICE
-        }, &|format| {
-            format.set_align(FormatAlignment::Right);
-        });
-        // Left align TO pin column
-         self.table.modify_region_format(&XLSXTableRegion {
-            first_row: Self::TOP,
-            first_col: Self::LEFT + Self::TO_PIN,
-            last_row: self.current_row - 1,
-            last_col: Self::LEFT + Self::TO_PIN
-        }, &|format| {
-            format.set_align(FormatAlignment::Left);
-        });
-        // Set paper
-        self.sheet.set_paper(PaperType::Tabloid);
-        // Set orientation
-        self.sheet.set_landscape();
-
-        self.table.render_to_worksheet(&mut self.sheet);
-    }
-}
 
 fn show_project_info_gui(project: &Project, ui : &mut Ui) {
     println!("{} {}", "XmlProject Name:".bright_yellow(), project.get_name().yellow());
@@ -737,7 +539,10 @@ fn startup_worker(state_clone: Arc<Mutex<State>>) {
 struct State {
     duration: u64,
     ctx: Option<egui::Context>,
+    project_xml: Option<String>,
+    library_xml: Option<String>,
     project_outline: Option<ProjectOutline>,
+    output_dir: String
 
 }
 
@@ -746,7 +551,10 @@ impl State {
         Self {
             duration: 0,
             ctx: None,
-            project_outline: None
+            project_xml: None,
+            library_xml: None,
+            project_outline: None,
+            output_dir: Default::default()
         }
     }
 }
@@ -762,6 +570,26 @@ impl App {
         let state_clone = state.clone();
         // Any slow start-up work goes here
         std::thread::spawn(move || {
+            let path = process_path::get_executable_path();
+            match path {
+                None => {}
+                Some(mut path) => { 
+                    path.set_file_name("Library.xml");
+                    let library_xml = read_file(&path.display().to_string());
+                    match library_xml {
+                        Ok(library_xml) => {
+                            //println!("{}", &library_xml);
+                            state_clone.lock().unwrap().library_xml = Some(library_xml);
+                        }
+                        _ => {
+                            // indicate error reading library.
+                        }
+                    }
+                    //println!("Path: {:?}", path)
+                },
+            }
+            //let xml = read_file(&xmlpath);
+
             startup_worker(state_clone);
         });
         Self {
@@ -772,33 +600,65 @@ impl App {
 
 impl<'a> eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-            egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
-                egui::menu::bar(ui, |ui| {
-                    menu::bar(ui, |ui| {
-                        ui.menu_button("File", |ui| {
-                            if ui.button("Open").clicked() {
-                                if let Some(path) = rfd::FileDialog::new().pick_file() {
-                                    
-                                    // Clone Arc to avoid using self inside closure
-                                    let state_clone = self.state.clone();
 
-                                    // Wrap slow loading code in a thread
-                                    std::thread::spawn(move || { // state_clone and path are moved
-                                        let xmlpath = path.display().to_string();
-                                        let xml = read_file(&xmlpath);
-                                        if let Ok(xml) = xml {
-                                            let project = Project::new(&xml);
-                                            if let Ok(project) = project {
-                                                state_clone.lock().unwrap().project_outline = Some(ProjectOutline::new(&project));
-                                            }
+        // Draw menu
+        egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
+            egui::menu::bar(ui, |ui| {
+                menu::bar(ui, |ui| {
+                    ui.menu_button("File", |ui| {
+                        if ui.button("Open").clicked() {
+                            if let Some(path) = rfd::FileDialog::new()
+                                .add_filter("VeSys XML Project", &["xml"])
+                                .pick_file() {
+                                
+                                // Clone Arc to avoid using self inside closure
+                                let state_clone = self.state.clone();
+
+                                // Wrap slow loading code in a thread
+                                std::thread::spawn(move || { // state_clone and path are moved
+                                    let xmlpath = path.display().to_string();
+                                    let xml = read_file(&xmlpath);
+                                    if let Ok(xml) = xml {
+                                        let project = Project::new(&xml);
+                                        if let Ok(project) = project {
+                                            state_clone.lock().unwrap().project_outline = Some(ProjectOutline::new(&project));
+                                            state_clone.lock().unwrap().project_xml = Some(xml); // store XML for later use
+                                        } else {
+                                            project.map_err(|e| {
+                                                panic!("Project could not be parsed: {:?}", e);
+                                            });
                                         }
-                                    });
-                                }
-                                ui.close_menu(); // close menu so it doesn't stay opened
+                                    }
+                                });
                             }
-                        });
+                            ui.close_menu(); // close menu so it doesn't stay opened
+                        }
                     });
                 });
+            });
+        });
+
+        // Draw bottom panel first, so CentralPanel knows how much space it gets
+        egui::TopBottomPanel::bottom("bottom_panel")
+        .show_separator_line(false)
+        .resizable(false)
+        //.min_height(100.0)
+        .show(ctx, |ui| {
+            ui.vertical_centered(|ui| {
+                let output_dir = &mut self.state.lock().unwrap().output_dir;
+                ui.horizontal(|ui| {
+                    ui.label("Output Folder:");
+                    ui.add_sized(ui.available_size()-egui::vec2(75.0,0.0),egui::TextEdit::singleline(output_dir)
+                    .hint_text("Write something here"));
+                    if ui.add(egui::Button::new("Browse").min_size(ui.available_size())).clicked() {
+                        if let Some(path) = rfd::FileDialog::new().pick_folder() {
+                            println!("{}", &path.display().to_string());
+                            *output_dir = path.display().to_string();
+                        }
+                    }
+                    ui.end_row();
+                });
+            });
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -812,6 +672,7 @@ impl<'a> eframe::App for App {
                     .selectable(true)
                     .show(ui, |ui| {
                         CollapsingHeader::new("Logical Designs")
+                        .default_open(true)
                         .show(ui, |ui| {
                             for design in outline.designs.iter() {
                                 CollapsingHeader::new(&design.name)
@@ -822,6 +683,36 @@ impl<'a> eframe::App for App {
                                         .context_menu(|ui| {
                                             if ui.button("Generate wire list").clicked() {
                                                 println!("Generating wire list for {}, {}", &design.name, harness);
+
+                                                // Clone Arc to avoid using self inside closure
+                                                let state_clone = self.state.clone();
+                                                let design_name = design.name.to_string();
+                                                let design_name = design.name.to_string();
+                                                let harness = harness.to_string();
+
+                                                std::thread::spawn(move || { // state_clone and path are moved
+                                                    // SIGNAL RUNNING JOB
+                                                    let state_clone = &state_clone.lock().unwrap();
+                                                    if let Some(library_xml)=&state_clone.library_xml {
+                                                        if let Some(project_xml)=&state_clone.project_xml {
+                                                            let project = Project::new(&project_xml);
+                                                            if let Ok(project) = project {
+                                                                let library = Library::new(&library_xml);
+                                                                if let Ok(library) = library {
+                                                                    let mut filepath = PathBuf::from(state_clone.output_dir.clone());
+                                                                    filepath.push(harness.to_owned() + ".xlsx");
+                                                                    println!("{}", filepath.display().to_string());
+                                                                    output_cutlist(&project, &library, &design_name, &harness, &filepath.display().to_string());
+                                                                }
+                                                            }
+                                                        } else {
+                                                            panic!("{:?}", "Project XML was not loaded.");
+                                                        }
+                                                    } else {
+                                                        panic!("{:?}", "Library XML was not loaded.");
+                                                    }
+                                                });
+
                                                 ui.close_menu();
                                             }
                                             ui.button("Generate label data");
@@ -845,13 +736,29 @@ impl<'a> eframe::App for App {
                 } // else state locked by worker thread
             });
         });
+
+         // egui::TopBottomPanel::top("top_panel")
+         //    .resizable(true)
+         //    .min_height(32.0)
+         //    .show(ctx, |ui| {
+         //        egui::ScrollArea::vertical().show(ui, |ui| {
+         //            ui.vertical_centered(|ui| {
+         //                ui.heading("Expandable Upper Panel");
+         //            });
+         //            ui.label("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
+         //        });
+         //    });
+
+        
+
     }
 }
 
 fn main() {
-    let native_options = eframe::NativeOptions::default();
+    let mut native_options = eframe::NativeOptions::default();
+    native_options.initial_window_size = Some(egui::vec2(410.0, 600.0));
     eframe::run_native(
-        "eframe template",
+        "Vesys project post-processor",
         native_options,
         Box::new(|cc| Box::new(App::new(cc))),
     );
@@ -962,16 +869,16 @@ fn main_____________() -> Result<(), eframe::Error> {
 
 fn main____________() {
     // Map of row background colors for each wire color
-    let mut bg_color_map: HashMap<&str, FormatColor> = HashMap::new();
-    bg_color_map.insert("PK", FormatColor::Custom(0xffccff)); // 5v format
-    bg_color_map.insert("RD", FormatColor::Custom(0xff9999)); // 12v format
-    bg_color_map.insert("BN", FormatColor::Custom(0xd3a77b)); // 24v format
-    bg_color_map.insert("OR", FormatColor::Custom(0xfff2cc)); // 48v format
-    bg_color_map.insert("BL", FormatColor::Custom(0xddebf7)); // GND format
-    bg_color_map.insert("YL", FormatColor::Custom(0xffffd1)); // Analog/Bat+ format
-    bg_color_map.insert("TN", FormatColor::Custom(0xead5c0)); // 24v DO
-    bg_color_map.insert("BK", FormatColor::Custom(0xf2f2f2)); // 24v DI
-    bg_color_map.insert("GN", FormatColor::Custom(0xc6e0b4)); // Sinking output
+    let mut bg_color_map: HashMap<String, FormatColor> = HashMap::new();
+    bg_color_map.insert("PK".to_string(), FormatColor::Custom(0xffccff)); // 5v format
+    bg_color_map.insert("RD".to_string(), FormatColor::Custom(0xff9999)); // 12v format
+    bg_color_map.insert("BN".to_string(), FormatColor::Custom(0xd3a77b)); // 24v format
+    bg_color_map.insert("OR".to_string(), FormatColor::Custom(0xfff2cc)); // 48v format
+    bg_color_map.insert("BL".to_string(), FormatColor::Custom(0xddebf7)); // GND format
+    bg_color_map.insert("YL".to_string(), FormatColor::Custom(0xffffd1)); // Analog/Bat+ format
+    bg_color_map.insert("TN".to_string(), FormatColor::Custom(0xead5c0)); // 24v DO
+    bg_color_map.insert("BK".to_string(), FormatColor::Custom(0xf2f2f2)); // 24v DI
+    bg_color_map.insert("GN".to_string(), FormatColor::Custom(0xc6e0b4)); // Sinking output
 
     // let mut format_5v = base_format.clone();
     // format_5v.set_bg_color(FormatColor::Custom(0xffccff));
