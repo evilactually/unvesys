@@ -1,3 +1,4 @@
+use petgraph::dot::{Dot, Config};
 use crate::Connection;
 //use crate::WireList;
 use crate::Project;
@@ -11,6 +12,10 @@ use xlsxwriter::format::*;
 use xlsxwriter::worksheet::WorksheetRow;
 use xlsxwriter::worksheet::WorksheetCol;
 use xlsxwriter::worksheet::PaperType;
+
+use crate::wirelist::*;
+
+use crate::traverse::*;
 
 pub struct WireListXlsxFormatter<'a> {
     table : XLSXTable,
@@ -131,6 +136,15 @@ impl WireListXlsxFormatter<'_> {
         // Increment row
         self.current_row = self.current_row + 1;
     }
+
+    pub fn bar(&mut self) {
+        self.table.set_region_border_bottom(&XLSXTableRegion {
+            first_row: self.current_row - 1,
+            first_col: Self::LEFT,
+            last_row: self.current_row - 1,
+            last_col: Self::LEFT + Self::TO_PIN
+        }, FormatBorder::Medium);
+    }
 }
 
 impl Drop for WireListXlsxFormatter<'_> {
@@ -235,30 +249,6 @@ pub fn color_map() -> Box<HashMap<String, FormatColor>> {
 }
 
 
-pub struct WireList {
-    pub wires:Vec<WireEntry>,
-}
-
-pub struct WireEntry {
-    pub name: Box<str>,
-    pub partno: Box<str>,
-    pub material: Box<str>,
-    pub spec: Box<str>,
-    pub color_code: Box<str>,
-    pub color_description: Box<str>,
-    pub length: f32,
-    pub left: Option<WireEndEntry>,
-    pub right: Option<WireEndEntry>
-}
-
-#[derive(Default)]
-#[derive(Clone)]
-pub struct WireEndEntry{
-    pub device : Box<str>,
-    pub pin : Box<str>,
-    pub termination : Box<str>,
-    pub termination_name : Box<str>
-}
 
 pub fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a str>), library: &Library ) -> WireEndEntry {
     let mut wire_end_info : WireEndEntry = Default::default();
@@ -324,9 +314,7 @@ pub fn output_cutlist(project: &Project, library: &Library, design_name: &str, h
             let wires = design.get_wires(&harness);
 
             // Processed wire list
-            let mut wire_list: WireList = WireList {
-                wires : Vec::new()
-            };
+            let mut wire_list: WireList = WireList::new();
 
             for wire in wires {
                 println!("{}", wire.get_name());
@@ -346,7 +334,7 @@ pub fn output_cutlist(project: &Project, library: &Library, design_name: &str, h
                     right_wire_end
                 });
 
-                wire_list.wires.push(
+                wire_list.wires.insert(
                     WireEntry {
                         name : wire.get_name().into(),
                         partno : wire.get_customer_partno().into(),
@@ -361,12 +349,65 @@ pub fn output_cutlist(project: &Project, library: &Library, design_name: &str, h
                 );
             }
 
+            let wiregroups = traverse(&wire_list);
+
+            // for group in wiregroups {
+            //     println!("{}", "BEGIN GROUP");
+            //     for wireentry in group.wires {
+            //         println!("  {}", wireentry.name);
+            //     }
+            //     println!("{}", "END GROUP")
+            // }
+
+            // let g = build_graph_from_wirelist(&wire_list);
+            // let c = find_weakly_connected_components(&g);
+
+            // println!("{:?}", c);
+
+            // let graphs = build_graphs_from_components(&g,c);
+
+            // for graph in graphs {
+            
+            //     {
+            //     let dot = Dot::with_attr_getters(&graph, &[Config::EdgeNoLabel, Config::NodeNoLabel], &move|_, edge| {
+            //         //let is_mst_edge = mst_directed_graph.find_edge(edge.source(), edge.target()).is_some();
+            //         if  true {
+            //             format!("color=\"{}\"", "red")
+            //         } else {
+            //             "".to_string()
+            //         }
+            //     },
+            //     &|_, (id,name)| {
+            //         format!("label=\"{}\"", name)
+            //     });
+
+            //     // Print the DOT representation
+            //     println!("{:?}", dot);
+            //     }
+
+            // }
+
+            
+
+
             let mut xlsx_formatter = WireListXlsxFormatter::new(&workbook, &colormap);
             // Output plain wire list
             xlsx_formatter.print_header();
-            for wire in wire_list.wires.iter() {
-                xlsx_formatter.print_entry(wire);
+            // for wire in wire_list.wires.iter() {
+            //     xlsx_formatter.print_entry(wire);
+            //     //xlsx_formatter.bar();
+            // }
+
+            for group in wiregroups {
+                //println!("{}", "BEGIN GROUP");
+                for wireentry in group.wires {
+                    //println!("  {}", wireentry.name);
+                    xlsx_formatter.print_entry(&wireentry);
+                }
+                xlsx_formatter.bar();
+                //println!("{}", "END GROUP")
             }
+
         } else {
             // can't open path
             // return

@@ -4,11 +4,10 @@ use crate::cutlist::output_cutlist;
 
 use std::path::PathBuf;
 use crate::cutlist::process_connection;
-use crate::cutlist::WireList;
-use crate::cutlist::WireEntry;
 use ::egui::Sense;
 use ::egui::Label;
 
+use eframe::Theme;
 
 
 use ::egui::CollapsingHeader;
@@ -62,6 +61,8 @@ use std::cmp::max;
 
 use colored::*;
 
+mod graphs;
+
 use std::collections::{HashMap, HashSet};
 
 use petgraph::graph::{Graph, NodeIndex, EdgeIndex};
@@ -86,6 +87,11 @@ mod cutlist;
 use crate::cutlist::WireListXlsxFormatter;
 
 use process_path;
+
+mod wirelist;
+use crate::wirelist::*;
+
+mod traverse;
 
 /// VeSys XML project post-processor 
 #[derive(Parser, Debug)]
@@ -649,7 +655,7 @@ impl<'a> eframe::App for App {
                 ui.horizontal(|ui| {
                     ui.label("Output Folder:");
                     ui.add_sized(ui.available_size()-egui::vec2(75.0,0.0),egui::TextEdit::singleline(output_dir)
-                    .hint_text("Write something here"));
+                    .hint_text("Where do you want it?"));
                     if ui.add(egui::Button::new("Browse").min_size(ui.available_size())).clicked() {
                         if let Some(path) = rfd::FileDialog::new().pick_folder() {
                             println!("{}", &path.display().to_string());
@@ -733,7 +739,43 @@ impl<'a> eframe::App for App {
                             }
                         });
                     });
-                } // else state locked by worker thread
+                } else { // else state locked by worker thread
+
+                    ui.horizontal_centered(|ui| {
+                    let mut dino =
+r"
+                                          
+                                             
+                        ██████████████    
+                      ████░░████████████ 
+                      ██████████████████
+                      ██████████████████
+                      ██████████████████
+                      ████████                   
+                      ██████████████░█  
+                      ██████                   
+  ██              ██████████            
+  ██▒▒        ▒▒▒▒██████████▒▒▒▒        
+  ████▓▓      ██████████████  ▒▒        
+  ██████▒▒▒▒████████████████            
+  ██████████████████████████            
+    ██████████████████████              
+        ██████████████████              
+        ▒▒██████████████                
+          ▒▒██████▒▒██▓▓                
+            ████      ▓▓                
+            ██▒▒      ▓▓                
+            ██        ██
+
+            
+    I don't have anything to show :(
+  
+
+";
+                        ui.monospace(*&mut dino);
+                    });
+                    
+                }
             });
         });
 
@@ -757,6 +799,9 @@ impl<'a> eframe::App for App {
 fn main() {
     let mut native_options = eframe::NativeOptions::default();
     native_options.initial_window_size = Some(egui::vec2(410.0, 600.0));
+    native_options.default_theme = Theme::Dark;
+    native_options.follow_system_theme = false;
+
     eframe::run_native(
         "Vesys project post-processor",
         native_options,
@@ -1019,9 +1064,7 @@ fn main____________() {
                                         // Graph
                                         let mut graph: Graph<Box<str>, bool, Undirected> = Graph::new_undirected();
                                         // Wire list
-                                        let mut wire_list: WireList = WireList {
-                                            wires : Vec::new()
-                                        };
+                                        let mut wire_list: WireList = WireList::new();
 
                                         for wire in wires {
                                             //println!("{}", wire.get_name());
@@ -1111,7 +1154,7 @@ fn main____________() {
                                             //     }
                                             // }
 
-                                            wire_list.wires.push(
+                                            wire_list.wires.insert(
                                                 WireEntry {
                                                     name : wire.get_name().into(),
                                                     partno : wire.get_customer_partno().into(),
