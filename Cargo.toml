@@ -5,6 +5,9 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[build-dependencies]
+winres = "0.1"
+
 [dependencies]
 clap = { version = "4.3.4", features = ["derive"] }
 colored = "2.0.0"
@@ -30,3 +33,7 @@ serde = { version = "1.0.174", features = ["derive"]}
 serde_json = "1.0.104"
 serde_yaml = "0.9.25"
 xlsxwriter = "0.6.0"
+
+winreg = "0.51"
+
+

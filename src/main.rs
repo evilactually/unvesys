@@ -1,5 +1,6 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+use winreg::enums::HKEY_CURRENT_USER;
 use egui::RichText;
 use crate::cutlist::output_cutlist;
 
@@ -10,14 +11,12 @@ use ::egui::Label;
 
 use eframe::Theme;
 
-
 use ::egui::CollapsingHeader;
-
 
 use ::egui::Ui;
 use eframe::egui;
 use ::egui::menu;
-use ecolor::{Color32};
+use egui::{Color32};
 use rand::Rng;
 use std::sync::{Arc, Mutex};
 
@@ -93,6 +92,10 @@ mod wirelist;
 use crate::wirelist::*;
 
 mod traverse;
+
+use winreg::*;
+
+use std::io;
 
 /// VeSys XML project post-processor 
 #[derive(Parser, Debug)]
@@ -539,8 +542,14 @@ fn show_project_info_gui(project: &Project, ui : &mut Ui) {
 
 
 
-fn startup_worker(state_clone: Arc<Mutex<State>>) {
-    // Any slow start-up work goes here
+fn startup_worker(state_clone: Arc<Mutex<State>>) -> io::Result<()> {
+    // Restore output directory from registry
+    let hklu = RegKey::predef(HKEY_CURRENT_USER);
+    let unvesys_key = hklu.open_subkey("SOFTWARE\\Unvesys")?;
+    let output_dir = &mut state_clone.lock().unwrap().output_dir;
+    *output_dir = unvesys_key.get_value("output_dir")?;
+    return Ok(());
+
 }
 
 struct State {
@@ -549,8 +558,8 @@ struct State {
     project_xml: Option<String>,
     library_xml: Option<String>,
     project_outline: Option<ProjectOutline>,
-    output_dir: String
-
+    output_dir: String,
+    log: Vec::<RichText>
 }
 
 impl State {
@@ -561,7 +570,8 @@ impl State {
             project_xml: None,
             library_xml: None,
             project_outline: None,
-            output_dir: Default::default()
+            output_dir: Default::default(),
+            log: Vec::<RichText>::new()
         }
     }
 }
@@ -577,6 +587,7 @@ impl App {
         let state_clone = state.clone();
         // Any slow start-up work goes here
         std::thread::spawn(move || {
+            state_clone.lock().unwrap().log.push(RichText::new("Loading library").color(Color32::YELLOW));
             let path = process_path::get_executable_path();
             match path {
                 None => {}
@@ -597,7 +608,8 @@ impl App {
             }
             //let xml = read_file(&xmlpath);
 
-            startup_worker(state_clone);
+            startup_worker(state_clone.clone());
+            state_clone.lock().unwrap().log.push(RichText::new("Library loaded").color(Color32::GREEN));
         });
         Self {
             state
@@ -623,6 +635,7 @@ impl<'a> eframe::App for App {
 
                                 // Wrap slow loading code in a thread
                                 std::thread::spawn(move || { // state_clone and path are moved
+                                    state_clone.lock().unwrap().log.push(RichText::new("Loading project").color(Color32::YELLOW));
                                     let xmlpath = path.display().to_string();
                                     let xml = read_file(&xmlpath);
                                     if let Ok(xml) = xml {
@@ -636,6 +649,7 @@ impl<'a> eframe::App for App {
                                             });
                                         }
                                     }
+                                    state_clone.lock().unwrap().log.push(RichText::new("Project loaded").color(Color32::GREEN));
                                 });
                             }
                             ui.close_menu(); // close menu so it doesn't stay opened
@@ -652,21 +666,29 @@ impl<'a> eframe::App for App {
         //.min_height(100.0)
         .show(ctx, |ui| {
             ui.vertical_centered(|ui| {
-                let output_dir = &mut self.state.lock().unwrap().output_dir;
-                ui.horizontal(|ui| {
-                    ui.label("Output Folder:");
-                    ui.add_sized(ui.available_size()-egui::vec2(75.0,0.0),egui::TextEdit::singleline(output_dir)
-                    .hint_text("Where do you want it?"));
-                    if ui.add(egui::Button::new("Browse").min_size(ui.available_size())).clicked() {
-                        if let Some(path) = rfd::FileDialog::new().pick_folder() {
-                            println!("{}", &path.display().to_string());
-                            *output_dir = path.display().to_string();
+                {
+                    let output_dir = &mut self.state.lock().unwrap().output_dir;
+                    ui.horizontal(|ui| {
+                        ui.label("Output Folder:");
+                        ui.add_sized(ui.available_size()-egui::vec2(75.0,0.0),egui::TextEdit::singleline(output_dir)
+                        .hint_text("Where do you want it?"));
+                        if ui.add(egui::Button::new("Browse").min_size(ui.available_size())).clicked() {
+                            if let Some(path) = rfd::FileDialog::new().pick_folder() {
+                                println!("{}", &path.display().to_string());
+                                *output_dir = path.display().to_string();
+                            }
                         }
+                        ui.end_row();
+                    });
+                }
+                {
+                    // Show status
+                    if let Some(status) = self.state.lock().unwrap().log.last() {
+                        ui.label(status.clone());    
+                    } else {
+                        ui.label("");
                     }
-                    ui.end_row();
-                });
-                let mut t = RichText::new("Plain");
-                ui.label(t);
+                }
             });
         });
 
@@ -700,31 +722,41 @@ impl<'a> eframe::App for App {
                                                 let harness = harness.to_string();
 
                                                 std::thread::spawn(move || { // state_clone and path are moved
-                                                    // SIGNAL RUNNING JOB
-                                                    let state_clone = &state_clone.lock().unwrap();
-                                                    if let Some(library_xml)=&state_clone.library_xml {
-                                                        if let Some(project_xml)=&state_clone.project_xml {
-                                                            let project = Project::new(&project_xml);
-                                                            if let Ok(project) = project {
-                                                                let library = Library::new(&library_xml);
-                                                                if let Ok(library) = library {
-                                                                    let mut filepath = PathBuf::from(state_clone.output_dir.clone());
-                                                                    filepath.push(harness.to_owned() + ".xlsx");
-                                                                    println!("{}", filepath.display().to_string());
-                                                                    output_cutlist(&project, &library, &design_name, &harness, &filepath.display().to_string());
+
+                                                    state_clone.lock().unwrap().log.push(RichText::new("Generating cutlist").color(Color32::YELLOW));
+
+                                                    {
+                                                        // SIGNAL RUNNING JOB
+                                                        let state = &mut state_clone.lock().unwrap();
+                                                        //state.log.push(RichText::new("Generating cutlist").color(Color32::YELLOW));
+
+                                                        if let Some(library_xml)=&state.library_xml {
+                                                            if let Some(project_xml)=&state.project_xml {
+                                                                let project = Project::new(&project_xml);
+                                                                if let Ok(project) = project {
+                                                                    let library = Library::new(&library_xml);
+                                                                    if let Ok(library) = library {
+                                                                        let mut filepath = PathBuf::from(state.output_dir.clone());
+                                                                        filepath.push(harness.to_owned() + ".xlsx");
+                                                                        println!("{}", filepath.display().to_string());
+                                                                        output_cutlist(&project, &library, &design_name, &harness, &filepath.display().to_string());
+                                                                    }
                                                                 }
+                                                            } else {
+                                                                panic!("{:?}", "Project XML was not loaded.");
                                                             }
                                                         } else {
-                                                            panic!("{:?}", "Project XML was not loaded.");
+                                                            panic!("{:?}", "Library XML was not loaded.");
                                                         }
-                                                    } else {
-                                                        panic!("{:?}", "Library XML was not loaded.");
+
                                                     }
+
+                                                    state_clone.lock().unwrap().log.push(RichText::new("Cutlist done").color(Color32::GREEN));
                                                 });
 
                                                 ui.close_menu();
                                             }
-                                            ui.button("Generate label data");
+                                            //ui.button("Generate label data");
                                         });
                                         // Highlight on hover
                                         if harness_entry.hovered() {
@@ -797,6 +829,15 @@ r"
         
 
     }
+
+    fn on_exit(&mut self, ctx: Option<&eframe::glow::Context>) {
+        // Save output directory to registry
+        let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+        if let Ok((key, disp)) = hkcu.create_subkey("SOFTWARE\\Unvesys") {
+            key.set_value("output_dir", &self.state.lock().unwrap().output_dir);    
+        }
+    }
+
 }
 
 fn main() {
@@ -810,108 +851,6 @@ fn main() {
         native_options,
         Box::new(|cc| Box::new(App::new(cc))),
     );
-}
-
-fn main_____________() -> Result<(), eframe::Error> {
-    env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
-
-    let options = eframe::NativeOptions {
-        initial_window_size: Some(egui::vec2(320.0, 240.0)),
-        ..Default::default()
-    };
-
-    // Our application state:
-    let mut name = "Arthur".to_owned();
-    let mut age = 42;
-    let mut projectPath: Option<String> = None;
-    let mut projectXml: Option<std::io::Result<String>> = None;
-
-    let mut c = 0;
-    
-    let mut closure = || {
-        // This will not compile because `outside_variable` is immutable inside the closure.
-        c = c + 1;
-        println!("in the closure, c={}", c);
-    };
-    
-    closure();
-    closure();  
-    closure();  
-    closure();     
-
-    println!("Outside closure: {}", c);
-
-    // Main GUI loop
-    eframe::run_simple_native("UnVeSys", options,  move |ctx, _frame| {
-        //println!("{}", "1")
-
-    let mut project: Option<Result<Project, XmlError>> = None;
-    let xml = "123".to_owned();
-        // Menu bar
-        egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
-        egui::menu::bar(ui, |ui| {
-                menu::bar(ui, |ui| {
-                    ui.menu_button("File", |ui| {
-                        if ui.button("Open").clicked() {
-                            if let Some(path) = rfd::FileDialog::new().pick_file() {
-                                //projectPath = Some(path.display().to_string());
-                                
-                                ui.close_menu(); // close menu so it doesn't stay opened
-                            }
-                            // projectPath.as_ref().map(|path| {
-                            //     projectXml = Some(read_file(path));
-                            //     // projectXml.as_ref().map(|xml| {
-                            //     //     xml.as_ref().map(|xml| {
-                            //     //         project = Some(Project::new(xml)); 
-                            //     //     });
-                            //     // });
-                            //     // if let Some(Ok(xml)) = &projectXml {
-                            //     //     project = Some(Project::new(&xml)); 
-                            //     // }
-                            // });
-
-                            //project = Some(Project::new(&xml));
-                            // projectXml.as_ref().map(|xml| {
-                            //     xml.as_ref().map(|xml| {
-                            //         project = Some(Project::new(&xml));
-                            //         //project = Some(Project::new(xml)); 
-                            //     });
-                            // });
-                        }
-                    });
-                });
-            });
-        });
-        // End Menu bar
-
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("My egui Application");
-            ui.horizontal(|ui| {
-                if let Some(path) = &projectPath {
-                    ui.label(path);
-                }
-                let name_label = ui.label("Your name: ");
-                ui.text_edit_singleline(&mut name)
-                    .labelled_by(name_label.id);
-            });
-            ui.add(egui::Slider::new(&mut age, 0..=120).text("age"));
-            if ui.button("Click each year").clicked() {
-                age += 1;
-            }
-            if ui.button("Open file…").clicked() {
-                if let Some(path) = rfd::FileDialog::new().pick_file() {
-                    //self.picked_path = Some(path.display().to_string());
-                }
-            }
-
-            // if let Some(projectPath) = projectPath {
-
-            // }
-
-            
-            ui.label(format!("Hello '{name}', age {age}"));
-        });
-    })
 }
 
 

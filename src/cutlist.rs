@@ -253,7 +253,7 @@ pub fn color_map() -> Box<HashMap<String, FormatColor>> {
 pub fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a str>), library: &Library ) -> WireEndEntry {
     let mut wire_end_info : WireEndEntry = Default::default();
     match connection {
-        (Connection::Connector(connector,pin), _) => {
+        (Connection::Connector(connector,pin), termination) => {
             if connector.is_ring() {
                 // If ring is connected to some device, find that device
                 let ring_connection = connector.get_ring_connection();
@@ -280,9 +280,19 @@ pub fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a s
             } else
             {
                 //println!("{}", connector.get_name());
+                // wire_end_info.device = connector.get_name().into();
+                // wire_end_info.pin = pin.get_name().into();
+                // wire_end_info.termination = "TODO".into();
+
+                // Same as devices
                 wire_end_info.device = connector.get_name().into();
                 wire_end_info.pin = pin.get_name().into();
                 wire_end_info.termination = "TODO".into();
+                if let Some(termination) = termination {
+                    let terminal_partnumber = library.lookup_customer_partnumber(*termination);
+                    wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
+                    wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+                }
             }
         }
         (Connection::Device(device,pin), termination) => {
