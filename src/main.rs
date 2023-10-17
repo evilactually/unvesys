@@ -1,5 +1,6 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+use egui::RichText;
 use crate::cutlist::output_cutlist;
 
 use std::path::PathBuf;
@@ -664,6 +665,8 @@ impl<'a> eframe::App for App {
                     }
                     ui.end_row();
                 });
+                let mut t = RichText::new("Plain");
+                ui.label(t);
             });
         });
 
@@ -944,7 +947,7 @@ fn main____________() {
     // let mut format_sinking_output = base_format.clone();
     // format_sinking_output.set_bg_color(FormatColor::Custom(0xc6e0b4));
    
-    colored::control::set_virtual_terminal(true).expect("Failed to set terminal");
+    //colored::control::set_virtual_terminal(true).expect("Failed to set terminal");
     let args = Args::parse();
 
     let msg = format!("Reading {}...", args.project );

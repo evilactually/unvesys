@@ -285,7 +285,7 @@ pub fn traverse(wirelist: &WireList) -> Vec<WireList> {
         // iterator give next item and tells if level ended(for visual separators)
         while let (Some(node), level_end) = bfs.next(&mst_unidirected_graph) { 
             let current_group = wireGroups.last_mut().unwrap();
-            for neighbor in graph.neighbors(node) {
+            for neighbor in graph.neighbors(node) { // this will intentionally pick up non-mst edges of the node too
                 let device_wire_entries = wirelist.get_wires_between_devices(&graph[node], &graph[neighbor]);
                 for wire_entry in device_wire_entries {
                     let extracted_entries = wirelist_copy.wires.take(&wire_entry);
