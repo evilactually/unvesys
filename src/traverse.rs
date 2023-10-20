@@ -258,10 +258,10 @@ where
 
 
 // produce groups
-pub fn traverse(wirelist: &WireList) -> Vec<WireList> {
+pub fn traverse(wirelist: &WireList) -> Vec<Vec<WireEntry>> {
 
-    let mut wireGroups: Vec<WireList> = Vec::new();
-    wireGroups.push(WireList::new()); // Create initial wire group
+    let mut wireGroups: Vec<Vec<WireEntry>> = Vec::new();
+    wireGroups.push(Vec::new()); // Create initial wire group
 
     // Create a copy of wire list so we can take out wires as we go
     let mut wirelist_copy: WireList = wirelist.clone();
@@ -296,14 +296,14 @@ pub fn traverse(wirelist: &WireList) -> Vec<WireList> {
                         if entry.left.as_ref().unwrap().device != graph[node] {
                             entry_reconciled.swap();
                         }
-                        current_group.wires.insert(entry_reconciled.clone());
+                        current_group.push(entry_reconciled.clone());
                     }
                 }
             }
 
             if level_end {
                 // Create new group at the end of minimum spanning tree level during breadth-first traversal
-                wireGroups.push(WireList::new());
+                wireGroups.push(Vec::new());
             }
         }
 
@@ -352,10 +352,28 @@ pub fn traverse(wirelist: &WireList) -> Vec<WireList> {
     // }
 
     // All wires must be sorted into groups by now!
-    assert_eq!(wirelist_copy.wires.len(), 0);
+    //assert_eq!(wirelist_copy.wires.len(), 0);
+
+    // Dump remaining wires into last group
+    if (wirelist_copy.wires.len() > 0) {
+        for wire in wirelist_copy.wires {
+            let mut struggler_group = Vec::new();
+            struggler_group.push(wire);
+            wireGroups.push(struggler_group);
+        }
+    }
+    
 
     // Clean empty groups
-    wireGroups.retain(|group| group.wires.len() > 0);
+    wireGroups.retain(|group| group.len() > 0);
 
     return wireGroups;
 }
+
+// pub fn sort_wirelist_by_left_device_pin(wirelist: &mut WireList) {
+//     wirelist.wires.sort_by(|a,b| {
+//         if let Some(left_end) = a.left {
+
+//         }
+//     }
+// }

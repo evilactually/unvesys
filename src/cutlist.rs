@@ -359,7 +359,7 @@ pub fn output_cutlist(project: &Project, library: &Library, design_name: &str, h
                 );
             }
 
-            let wiregroups = traverse(&wire_list);
+            let mut wiregroups = traverse(&wire_list);
 
             // for group in wiregroups {
             //     println!("{}", "BEGIN GROUP");
@@ -408,9 +408,11 @@ pub fn output_cutlist(project: &Project, library: &Library, design_name: &str, h
             //     //xlsx_formatter.bar();
             // }
 
-            for group in wiregroups {
+            for mut group in wiregroups {
+                // Sort wire group
+                sort_wirelist_by_left_device_pin(&mut group);
                 //println!("{}", "BEGIN GROUP");
-                for wireentry in group.wires {
+                for wireentry in group {
                     //println!("  {}", wireentry.name);
                     xlsx_formatter.print_entry(&wireentry);
                 }

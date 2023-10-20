@@ -2,6 +2,7 @@
 use std::hash::Hasher;
 use std::hash::Hash;
 use crate::HashSet;
+use std::cmp::Ordering::*;
 
 #[derive(Clone)]
 pub struct WireList {
@@ -94,4 +95,29 @@ impl WireList {
         return result;
     }
 
+}
+
+pub fn sort_wirelist_by_left_device_pin(wirelist: &mut Vec<WireEntry>) {
+    wirelist.sort_by(|a,b| {
+        match (&a.left, &b.left) {
+            (Some(left_end_a), Some(left_end_b)) => {
+                let device_cmp = left_end_a.device.cmp(&left_end_b.device);
+                let pin_number_a_opt = left_end_a.pin.parse::<i32>();
+                let pin_number_b_opt = left_end_b.pin.parse::<i32>();
+                // If same device name, compare by pin
+                if (device_cmp == Equal) {
+                    match (pin_number_a_opt, pin_number_b_opt) {
+                        (Ok(pin_num_a), Ok(pin_num_b)) => {
+                            pin_num_a.cmp(&pin_num_b)
+                        }
+                        _ =>device_cmp
+                    }
+                } else {
+                    device_cmp
+                }
+            }
+            _ => Equal
+        }
+
+    });
 }
