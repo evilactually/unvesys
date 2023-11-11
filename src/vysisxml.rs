@@ -53,6 +53,8 @@ pub struct XmlConnectivity<'a> {
     pub wire: Vec<XmlWire<'a>>,
     #[xml(child = "multicore")]
     pub multicore: Vec<XmlMulticore<'a>>,
+    #[xml(child = "grounddevice")]
+    pub grounddevice: Vec<XmlGroundDevice<'a>>,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
@@ -155,6 +157,15 @@ pub struct XmlWire<'a> {
 pub struct XmlMulticore<'a> {
     #[xml(attr = "name")]
     pub name: Cow<'a, str>,
+}
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "grounddevice")]
+pub struct XmlGroundDevice<'a> {
+    #[xml(attr = "name")]
+    pub name: Cow<'a, str>,
+    #[xml(child = "pin")]
+    pub pin: Vec<XmlPin<'a>>,
 }
 
 

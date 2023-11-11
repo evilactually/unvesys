@@ -184,6 +184,25 @@ impl<'a> LogicalDesign<'a> {
             }
         }
 
+        // ground device
+        for grounddevice_dom in &self.dom.connectivity.grounddevice {
+            let pin_dom = grounddevice_dom.pin.iter().find(|pin_dom| pin_dom.id == pinref);
+            match pin_dom {
+                Some(pin_dom) => {
+                    let device = GroundDevice {
+                        design : self,
+                        dom : grounddevice_dom
+                    };
+                    let pin = Pin {
+                        design : self,
+                        dom : pin_dom
+                    };
+                    return Some(Connection::GroundDevice(device, pin));
+                }
+                None => {}
+            }
+        }
+
         // TODO: splices, ground devices, other?
         return None;
     }
@@ -228,6 +247,7 @@ impl<'a> LogicalDesign<'a> {
 
 pub enum Connection<'a> {
     Device(Device<'a>, Pin<'a>),
+    GroundDevice(GroundDevice<'a>, Pin<'a>),
     Connector(Connector<'a>, Pin<'a>),
     Splice(Splice<'a>, Pin<'a>)
 }
@@ -316,6 +336,17 @@ pub struct Device<'a> {
 }
 
 impl<'a> Device<'a> {
+    pub fn get_name(&self) -> &'a str { // Note that function takes &self NOT &'a self! In &'a str we are declaring the lifetime of returned reference to be different 
+        self.dom.name.as_ref()          // from the lifetime of containing struct Device to allow returned reference to outlive the struct.
+    }                                   // This is important for passing those references around later on.
+}
+
+pub struct GroundDevice<'a> {
+    design: &'a LogicalDesign<'a>,
+    dom: &'a XmlGroundDevice<'a>
+}
+
+impl<'a> GroundDevice<'a> {
     pub fn get_name(&self) -> &'a str { // Note that function takes &self NOT &'a self! In &'a str we are declaring the lifetime of returned reference to be different 
         self.dom.name.as_ref()          // from the lifetime of containing struct Device to allow returned reference to outlive the struct.
     }                                   // This is important for passing those references around later on.

@@ -264,9 +264,12 @@ pub fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a s
                                 wire_end_info.device = mated_device.get_name().into();
                                 wire_end_info.pin = mated_pin.get_name().into();
                             }
-                            // TODO: add grounddevice
+                            Connection::GroundDevice(mated_device,mated_pin) => {
+                                wire_end_info.device = mated_device.get_name().into();
+                                wire_end_info.pin = mated_pin.get_name().into();
+                            }
                             _ => {
-                                //println!("{}{}", "Ring may only be connected to device pin: ".red(), connector.get_name().to_string().bright_red());
+                                println!("Ring can't connect to device {}", connector.get_name().to_string());
                             }
                         }
                     }
@@ -305,10 +308,20 @@ pub fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a s
                 wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
             }
         }
+        (Connection::GroundDevice(device,pin), termination) => {
+            wire_end_info.device = device.get_name().into();
+            wire_end_info.pin = pin.get_name().into();
+            wire_end_info.termination = "TODO".into();
+            if let Some(termination) = termination {
+                let terminal_partnumber = library.lookup_customer_partnumber(*termination);
+                wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
+                wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+            }
+        }
         (Connection::Splice(splice,pin), _) => {
             wire_end_info.device = splice.get_name().into();
             wire_end_info.pin = pin.get_name().into();
-            wire_end_info.termination = "TODO".into();
+            wire_end_info.termination = "".into();
             // TODO: Read properties of the device to find out which side of the splice wire is meant to 
         }
     }

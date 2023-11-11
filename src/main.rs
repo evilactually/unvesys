@@ -1,5 +1,6 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+use std::time::Duration;
 use winreg::enums::HKEY_CURRENT_USER;
 use egui::RichText;
 use crate::cutlist::output_cutlist;
@@ -619,7 +620,7 @@ impl App {
 
 impl<'a> eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-
+        //ctx.request_repaint_after(Duration::from_secs(10));
         // Draw menu
         egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
@@ -653,6 +654,14 @@ impl<'a> eframe::App for App {
                                 });
                             }
                             ui.close_menu(); // close menu so it doesn't stay opened
+                        }
+                        if ui.button("Open2").clicked() {
+                            std::thread::spawn(move || {
+                                rfd::FileDialog::new()
+                                    .add_filter("VeSys XML Project", &["xml"])
+                                    .set_parent(_frame)
+                                    .pick_file();
+                                });
                         }
                     });
                 });
@@ -802,8 +811,10 @@ r"
             ██▒▒      ▓▓                
             ██        ██
 
-            
-    I don't have anything to show :(
+
+
+Click on File -> Open to load a VeSys project file...
+    
   
 
 ";
@@ -813,6 +824,8 @@ r"
                 }
             });
         });
+
+        
 
          // egui::TopBottomPanel::top("top_panel")
          //    .resizable(true)
@@ -826,6 +839,7 @@ r"
          //        });
          //    });
 
+        //ctx.end_frame();
         
 
     }
