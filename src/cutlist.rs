@@ -29,27 +29,29 @@ impl WireListXlsxFormatter<'_> {
     // Column definitions
     // Wire
     const WIRE_ITEM: u16 = 0;
+    // Wire
+    const SHORT_DESCR: u16 = 1;
     // From
-    const FROM_DEVICE: u16 = 1;
-    const FROM_DASH: u16 = 2;
-    const FROM_PIN: u16 = 3;
+    const FROM_DEVICE: u16 = 2;
+    const FROM_DASH: u16 = 3;
+    const FROM_PIN: u16 = 4;
     // Terminal
-    const FROM_TERM_PARTNO: u16 = 4; // Merge
-    const FROM_TERM_NAME: u16 = 5;   // ^
+    const FROM_TERM_PARTNO: u16 = 5; // Merge
+    const FROM_TERM_NAME: u16 = 6;   // ^
     // Wire material
-    const WIRE_PARTNO: u16 = 6; // Merge
-    const WIRE_NAME: u16 = 7;   // ^
-    const WIRE_COLOR: u16 = 8;
-    const WIRE_LEN: u16 = 9;
+    const WIRE_PARTNO: u16 = 7; // Merge
+    const WIRE_NAME: u16 = 8;   // ^
+    const WIRE_COLOR: u16 = 9;
+    const WIRE_LEN: u16 = 10;
     // Terminal
-    const TO_TERM_PARTNO: u16 = 10; // Merge
-    const TO_TERM_NAME: u16 = 11;   // ^
+    const TO_TERM_PARTNO: u16 = 11; // Merge
+    const TO_TERM_NAME: u16 = 12;   // ^
     // To
-    const TO_DEVICE: u16 = 12;
-    const TO_DASH: u16 = 13;
-    const TO_PIN: u16 = 14;
+    const TO_DEVICE: u16 = 13;
+    const TO_DASH: u16 = 14;
+    const TO_PIN: u16 = 15;
     // Margins
-    const LEFT:u16 = 1;
+    const LEFT:u16 = 0;
     const TOP:u32 = 1;
 
     pub fn new<'a>(workbook: &'a xlsxwriter::Workbook, bg_colormap: &'a HashMap<std::string::String, xlsxwriter::format::FormatColor>) -> WireListXlsxFormatter<'a> {
@@ -71,6 +73,9 @@ impl WireListXlsxFormatter<'_> {
         // Wire
         self.table.set_cell(row, Self::LEFT + Self::WIRE_ITEM, "Wire Item");
         self.table.set_col_width_pixels(Self::LEFT + Self::WIRE_ITEM, 150);
+        // Short Descr
+        self.table.set_cell(row, Self::LEFT + Self::SHORT_DESCR, "Description");
+        self.table.set_col_width_pixels(Self::LEFT + Self::SHORT_DESCR, 150);
         // From
         self.table.set_cell(row, Self::LEFT + Self::FROM_DEVICE, "Device");
         self.table.set_cell(row, Self::LEFT + Self::FROM_DASH, "-");
@@ -102,6 +107,8 @@ impl WireListXlsxFormatter<'_> {
     pub fn print_entry(&mut self, wire: &WireEntry) {
         // Wire
         self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_ITEM, &wire.name);
+        // Short Descr
+        self.table.set_cell(self.current_row, Self::LEFT + Self::SHORT_DESCR, &wire.descr);
         // From
         let left_wire_end = wire.left.clone().unwrap_or_default();
         self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_DEVICE, &left_wire_end.device);
@@ -189,6 +196,15 @@ impl Drop for WireListXlsxFormatter<'_> {
             last_row: self.current_row - 1,
             last_col: Self::LEFT + Self::WIRE_LEN
         }, FormatBorder::Dotted);
+        // Left align Description column
+         self.table.modify_region_format(&XLSXTableRegion {
+            first_row: Self::TOP,
+            first_col: Self::LEFT + Self::SHORT_DESCR,
+            last_row: self.current_row - 1,
+            last_col: Self::LEFT + Self::SHORT_DESCR
+        }, &|format| {
+            format.set_align(FormatAlignment::Left);
+        });
         // Right align FROM device column
          self.table.modify_region_format(&XLSXTableRegion {
             first_row: Self::TOP,
@@ -360,6 +376,7 @@ pub fn output_cutlist(project: &Project, library: &Library, design_name: &str, h
                 wire_list.wires.insert(
                     WireEntry {
                         name : wire.get_name().into(),
+                        descr : wire.get_short_descr().into(),
                         partno : wire.get_customer_partno().into(),
                         material : wire.get_material().into(),
                         spec : wire.get_spec().into(),

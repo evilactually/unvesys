@@ -12,6 +12,7 @@ pub struct WireList {
 #[derive(Clone)]
 pub struct WireEntry {
     pub name: Box<str>,
+    pub descr: Box<str>,
     pub partno: Box<str>,
     pub material: Box<str>,
     pub spec: Box<str>,

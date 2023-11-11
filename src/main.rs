@@ -655,14 +655,6 @@ impl<'a> eframe::App for App {
                             }
                             ui.close_menu(); // close menu so it doesn't stay opened
                         }
-                        if ui.button("Open2").clicked() {
-                            std::thread::spawn(move || {
-                                rfd::FileDialog::new()
-                                    .add_filter("VeSys XML Project", &["xml"])
-                                    .set_parent(_frame)
-                                    .pick_file();
-                                });
-                        }
                     });
                 });
             });
@@ -868,405 +860,405 @@ fn main() {
 }
 
 
-fn main____________() {
-    // Map of row background colors for each wire color
-    let mut bg_color_map: HashMap<String, FormatColor> = HashMap::new();
-    bg_color_map.insert("PK".to_string(), FormatColor::Custom(0xffccff)); // 5v format
-    bg_color_map.insert("RD".to_string(), FormatColor::Custom(0xff9999)); // 12v format
-    bg_color_map.insert("BN".to_string(), FormatColor::Custom(0xd3a77b)); // 24v format
-    bg_color_map.insert("OR".to_string(), FormatColor::Custom(0xfff2cc)); // 48v format
-    bg_color_map.insert("BL".to_string(), FormatColor::Custom(0xddebf7)); // GND format
-    bg_color_map.insert("YL".to_string(), FormatColor::Custom(0xffffd1)); // Analog/Bat+ format
-    bg_color_map.insert("TN".to_string(), FormatColor::Custom(0xead5c0)); // 24v DO
-    bg_color_map.insert("BK".to_string(), FormatColor::Custom(0xf2f2f2)); // 24v DI
-    bg_color_map.insert("GN".to_string(), FormatColor::Custom(0xc6e0b4)); // Sinking output
+// fn main____________() {
+//     // Map of row background colors for each wire color
+//     let mut bg_color_map: HashMap<String, FormatColor> = HashMap::new();
+//     bg_color_map.insert("PK".to_string(), FormatColor::Custom(0xffccff)); // 5v format
+//     bg_color_map.insert("RD".to_string(), FormatColor::Custom(0xff9999)); // 12v format
+//     bg_color_map.insert("BN".to_string(), FormatColor::Custom(0xd3a77b)); // 24v format
+//     bg_color_map.insert("OR".to_string(), FormatColor::Custom(0xfff2cc)); // 48v format
+//     bg_color_map.insert("BL".to_string(), FormatColor::Custom(0xddebf7)); // GND format
+//     bg_color_map.insert("YL".to_string(), FormatColor::Custom(0xffffd1)); // Analog/Bat+ format
+//     bg_color_map.insert("TN".to_string(), FormatColor::Custom(0xead5c0)); // 24v DO
+//     bg_color_map.insert("BK".to_string(), FormatColor::Custom(0xf2f2f2)); // 24v DI
+//     bg_color_map.insert("GN".to_string(), FormatColor::Custom(0xc6e0b4)); // Sinking output
 
-    // let mut format_5v = base_format.clone();
-    // format_5v.set_bg_color(FormatColor::Custom(0xffccff));
-    // let mut format_12v = base_format.clone();
-    // format_12v.set_bg_color(FormatColor::Custom(0xff9999));
-    // let mut format_24v = base_format.clone();
-    // format_24v.set_bg_color(FormatColor::Custom(0xd3a77b));
-    // let mut format_48v = base_format.clone();
-    // format_48v.set_bg_color(FormatColor::Custom(0xfff2cc));
-    // let mut format_rtn = base_format.clone();
-    // format_rtn.set_bg_color(FormatColor::Custom(0xddebf7));
-    // let mut format_analog = base_format.clone();
-    // format_analog.set_bg_color(FormatColor::Custom(0xffffd1));
-    // let mut format_24V_sourcing = base_format.clone();
-    // format_24V_sourcing.set_bg_color(FormatColor::Custom(0xead5c0));
-    // let mut format_input = base_format.clone();
-    // format_input.set_bg_color(FormatColor::Custom(0xf2f2f2));
-    // let mut format_sinking_output = base_format.clone();
-    // format_sinking_output.set_bg_color(FormatColor::Custom(0xc6e0b4));
+//     // let mut format_5v = base_format.clone();
+//     // format_5v.set_bg_color(FormatColor::Custom(0xffccff));
+//     // let mut format_12v = base_format.clone();
+//     // format_12v.set_bg_color(FormatColor::Custom(0xff9999));
+//     // let mut format_24v = base_format.clone();
+//     // format_24v.set_bg_color(FormatColor::Custom(0xd3a77b));
+//     // let mut format_48v = base_format.clone();
+//     // format_48v.set_bg_color(FormatColor::Custom(0xfff2cc));
+//     // let mut format_rtn = base_format.clone();
+//     // format_rtn.set_bg_color(FormatColor::Custom(0xddebf7));
+//     // let mut format_analog = base_format.clone();
+//     // format_analog.set_bg_color(FormatColor::Custom(0xffffd1));
+//     // let mut format_24V_sourcing = base_format.clone();
+//     // format_24V_sourcing.set_bg_color(FormatColor::Custom(0xead5c0));
+//     // let mut format_input = base_format.clone();
+//     // format_input.set_bg_color(FormatColor::Custom(0xf2f2f2));
+//     // let mut format_sinking_output = base_format.clone();
+//     // format_sinking_output.set_bg_color(FormatColor::Custom(0xc6e0b4));
    
-    //colored::control::set_virtual_terminal(true).expect("Failed to set terminal");
-    let args = Args::parse();
+//     //colored::control::set_virtual_terminal(true).expect("Failed to set terminal");
+//     let args = Args::parse();
 
-    let msg = format!("Reading {}...", args.project );
-    println!("{}", msg.bright_yellow());
+//     let msg = format!("Reading {}...", args.project );
+//     println!("{}", msg.bright_yellow());
 
-    // match read_file(&args.project) {
-    //     Ok(xml) => {
-    //         let dom = XmlProject::from_str(&xml).unwrap();
+//     // match read_file(&args.project) {
+//     //     Ok(xml) => {
+//     //         let dom = XmlProject::from_str(&xml).unwrap();
 
-    //         let no_outputs_specified = args.labels.is_none()
-    //                                    && args.bom.is_none()
-    //                                    && args.cutlist.is_none()
-    //                                    && args.index.is_none();
+//     //         let no_outputs_specified = args.labels.is_none()
+//     //                                    && args.bom.is_none()
+//     //                                    && args.cutlist.is_none()
+//     //                                    && args.index.is_none();
 
-    //         // No design specified, show project info
-    //         if args.design.is_none() && args.harness.is_none() {
-    //             println!("{}", "Showing project info...".bright_yellow());
-    //             show_project_info(&dom);
-    //         // Logical design specified, but no outputs. Show design info 
-    //         } else if args.design.is_some() && no_outputs_specified {
-    //             println!("{}", "Showing logical design info...".bright_yellow());
-    //             show_design_info(&dom, &args.design.unwrap());
-    //         }
-    //     },
-    //     Err(e) => println!("{}{}", "Error: ".red(), e.to_string().bright_red()),
-    // }
+//     //         // No design specified, show project info
+//     //         if args.design.is_none() && args.harness.is_none() {
+//     //             println!("{}", "Showing project info...".bright_yellow());
+//     //             show_project_info(&dom);
+//     //         // Logical design specified, but no outputs. Show design info 
+//     //         } else if args.design.is_some() && no_outputs_specified {
+//     //             println!("{}", "Showing logical design info...".bright_yellow());
+//     //             show_design_info(&dom, &args.design.unwrap());
+//     //         }
+//     //     },
+//     //     Err(e) => println!("{}{}", "Error: ".red(), e.to_string().bright_red()),
+//     // }
 
    
 
 
-    match (read_file(&args.project), read_file("Library.xml")) {
-        // Project xml file and Library files were read successfully
-        (Ok(xml_project), Ok(xml_library)) => {
-            let project = Project::new(&xml_project);
-            let library = Library::new(&xml_library);
-            match (project, library) {
-                // Project and Library parsed successfuly 
-                (Ok(project), Ok(library)) => {
-                    let json = project_outline_json(&project);
-                    println!("{}", json.to_string());
-                    let no_outputs_specified = args.labels.is_none()
-                                               && args.bom.is_none()
-                                               && args.cutlist.is_none()
-                                               && args.index.is_none();
-                    // No design specified, show project info
-                    if args.design.is_none() || args.harness.is_none() {
-                        println!("{}", "Showing project info...".bright_yellow());
-                        show_project_info(&project);
-                    }
-                    if args.design.is_some() 
-                       && args.harness.is_some() 
-                       && args.cutlist.is_some() {
-                        let workbook = Workbook::new(args.cutlist.unwrap().as_ref());
-                        match workbook {
-                            Ok(workbook) => {
-                                println!("{}", "Generating cut list...".bright_yellow());
-                                // connector pin wire color length connector pin
-                                //let sheet = workbook.add_worksheet(args.harness.as_deref());
-                                let mut format_header = Format::new();
-                                format_header.set_align(FormatAlignment::Center)
-                                .set_bold();
+//     match (read_file(&args.project), read_file("Library.xml")) {
+//         // Project xml file and Library files were read successfully
+//         (Ok(xml_project), Ok(xml_library)) => {
+//             let project = Project::new(&xml_project);
+//             let library = Library::new(&xml_library);
+//             match (project, library) {
+//                 // Project and Library parsed successfuly 
+//                 (Ok(project), Ok(library)) => {
+//                     let json = project_outline_json(&project);
+//                     println!("{}", json.to_string());
+//                     let no_outputs_specified = args.labels.is_none()
+//                                                && args.bom.is_none()
+//                                                && args.cutlist.is_none()
+//                                                && args.index.is_none();
+//                     // No design specified, show project info
+//                     if args.design.is_none() || args.harness.is_none() {
+//                         println!("{}", "Showing project info...".bright_yellow());
+//                         show_project_info(&project);
+//                     }
+//                     if args.design.is_some() 
+//                        && args.harness.is_some() 
+//                        && args.cutlist.is_some() {
+//                         let workbook = Workbook::new(args.cutlist.unwrap().as_ref());
+//                         match workbook {
+//                             Ok(workbook) => {
+//                                 println!("{}", "Generating cut list...".bright_yellow());
+//                                 // connector pin wire color length connector pin
+//                                 //let sheet = workbook.add_worksheet(args.harness.as_deref());
+//                                 let mut format_header = Format::new();
+//                                 format_header.set_align(FormatAlignment::Center)
+//                                 .set_bold();
 
-                                let mut base_format : Format = Format::new();
-                                base_format.set_align(FormatAlignment::Center);
+//                                 let mut base_format : Format = Format::new();
+//                                 base_format.set_align(FormatAlignment::Center);
 
                                 
-                                let mut format_5v = base_format.clone();
-                                format_5v.set_bg_color(FormatColor::Custom(0xffccff));
-                                let mut format_12v = base_format.clone();
-                                format_12v.set_bg_color(FormatColor::Custom(0xff9999));
-                                let mut format_24v = base_format.clone();
-                                format_24v.set_bg_color(FormatColor::Custom(0xd3a77b));
-                                let mut format_48v = base_format.clone();
-                                format_48v.set_bg_color(FormatColor::Custom(0xfff2cc));
-                                let mut format_rtn = base_format.clone();
-                                format_rtn.set_bg_color(FormatColor::Custom(0xddebf7));
-                                let mut format_analog = base_format.clone();
-                                format_analog.set_bg_color(FormatColor::Custom(0xffffd1));
-                                let mut format_24V_sourcing = base_format.clone();
-                                format_24V_sourcing.set_bg_color(FormatColor::Custom(0xead5c0));
-                                let mut format_input = base_format.clone();
-                                format_input.set_bg_color(FormatColor::Custom(0xf2f2f2));
-                                let mut format_sinking_output = base_format.clone();
-                                format_sinking_output.set_bg_color(FormatColor::Custom(0xc6e0b4));
-                                //match sheet {
-                                    //Ok(mut sheet) => {
+//                                 let mut format_5v = base_format.clone();
+//                                 format_5v.set_bg_color(FormatColor::Custom(0xffccff));
+//                                 let mut format_12v = base_format.clone();
+//                                 format_12v.set_bg_color(FormatColor::Custom(0xff9999));
+//                                 let mut format_24v = base_format.clone();
+//                                 format_24v.set_bg_color(FormatColor::Custom(0xd3a77b));
+//                                 let mut format_48v = base_format.clone();
+//                                 format_48v.set_bg_color(FormatColor::Custom(0xfff2cc));
+//                                 let mut format_rtn = base_format.clone();
+//                                 format_rtn.set_bg_color(FormatColor::Custom(0xddebf7));
+//                                 let mut format_analog = base_format.clone();
+//                                 format_analog.set_bg_color(FormatColor::Custom(0xffffd1));
+//                                 let mut format_24V_sourcing = base_format.clone();
+//                                 format_24V_sourcing.set_bg_color(FormatColor::Custom(0xead5c0));
+//                                 let mut format_input = base_format.clone();
+//                                 format_input.set_bg_color(FormatColor::Custom(0xf2f2f2));
+//                                 let mut format_sinking_output = base_format.clone();
+//                                 format_sinking_output.set_bg_color(FormatColor::Custom(0xc6e0b4));
+//                                 //match sheet {
+//                                     //Ok(mut sheet) => {
 
-                                        let table: XLSXTable = XLSXTable::new();
+//                                         let table: XLSXTable = XLSXTable::new();
 
-                                        let WIRE_NAME = 0;
-                                        let WIRE_FROM_DEVICE = 1;
-                                        let WIRE_FROM_PIN = 2;
-                                        let WIRE_FROM_TERM = 3;
-                                        let WIRE_TYPE = 4;
-                                        let WIRE_COLOR = 5;
-                                        let WIRE_LEN = 6;
-                                        let WIRE_TO_TERM = 7;
-                                        let WIRE_TO_DEVICE = 8;
-                                        let WIRE_TO_PIN = 9;
+//                                         let WIRE_NAME = 0;
+//                                         let WIRE_FROM_DEVICE = 1;
+//                                         let WIRE_FROM_PIN = 2;
+//                                         let WIRE_FROM_TERM = 3;
+//                                         let WIRE_TYPE = 4;
+//                                         let WIRE_COLOR = 5;
+//                                         let WIRE_LEN = 6;
+//                                         let WIRE_TO_TERM = 7;
+//                                         let WIRE_TO_DEVICE = 8;
+//                                         let WIRE_TO_PIN = 9;
 
-                                        // sheet.write_string(0,WIRE_NAME, "Wire Name", Some(&format_header)); 
-                                        // sheet.write_string(0,WIRE_FROM_DEVICE, "Device/Connector", Some(&format_header));
-                                        // sheet.write_string(0,WIRE_FROM_PIN, "Pin", Some(&format_header));
-                                        // sheet.write_string(0,WIRE_FROM_TERM, "Termination", Some(&format_header));
-                                        // sheet.write_string(0,WIRE_TYPE, "Wire", Some(&format_header));
-                                        // sheet.write_string(0,WIRE_COLOR, "Color", Some(&format_header));
-                                        // sheet.write_string(0,WIRE_LEN, "Length", Some(&format_header));
-                                        // sheet.write_string(0,WIRE_TO_TERM, "Termination", Some(&format_header));
-                                        // sheet.write_string(0,WIRE_TO_DEVICE, "Device/Connector", Some(&format_header));
-                                        // sheet.write_string(0,WIRE_TO_PIN, "Pin", Some(&format_header));
-                                        // sheet.set_column(0,9,20.0,None);
-                                        let harness = args.harness.unwrap();
-                                        let design = project.get_design(args.design.unwrap().as_ref()).unwrap();
-                                        let wires = design.get_wires(&harness);
-                                        let mut row: u32 = 0;
+//                                         // sheet.write_string(0,WIRE_NAME, "Wire Name", Some(&format_header)); 
+//                                         // sheet.write_string(0,WIRE_FROM_DEVICE, "Device/Connector", Some(&format_header));
+//                                         // sheet.write_string(0,WIRE_FROM_PIN, "Pin", Some(&format_header));
+//                                         // sheet.write_string(0,WIRE_FROM_TERM, "Termination", Some(&format_header));
+//                                         // sheet.write_string(0,WIRE_TYPE, "Wire", Some(&format_header));
+//                                         // sheet.write_string(0,WIRE_COLOR, "Color", Some(&format_header));
+//                                         // sheet.write_string(0,WIRE_LEN, "Length", Some(&format_header));
+//                                         // sheet.write_string(0,WIRE_TO_TERM, "Termination", Some(&format_header));
+//                                         // sheet.write_string(0,WIRE_TO_DEVICE, "Device/Connector", Some(&format_header));
+//                                         // sheet.write_string(0,WIRE_TO_PIN, "Pin", Some(&format_header));
+//                                         // sheet.set_column(0,9,20.0,None);
+//                                         let harness = args.harness.unwrap();
+//                                         let design = project.get_design(args.design.unwrap().as_ref()).unwrap();
+//                                         let wires = design.get_wires(&harness);
+//                                         let mut row: u32 = 0;
 
-                                        // Graph
-                                        let mut graph: Graph<Box<str>, bool, Undirected> = Graph::new_undirected();
-                                        // Wire list
-                                        let mut wire_list: WireList = WireList::new();
+//                                         // Graph
+//                                         let mut graph: Graph<Box<str>, bool, Undirected> = Graph::new_undirected();
+//                                         // Wire list
+//                                         let mut wire_list: WireList = WireList::new();
 
-                                        for wire in wires {
-                                            //println!("{}", wire.get_name());
-                                            row += 1;
-                                            let mut current_format = None;
-                                            if wire.get_color().to_uppercase() == "PK" {
-                                                current_format = Some(&format_5v);
-                                            }
-                                            if wire.get_color().to_uppercase() == "BL" {
-                                                current_format = Some(&format_rtn);
-                                            }
-                                            if wire.get_color().to_uppercase() == "OR" {
-                                                current_format = Some(&format_48v);
-                                            }
-                                            if wire.get_color().to_uppercase() == "BN" {
-                                                current_format = Some(&format_24v);
-                                            }
-                                            if wire.get_color().to_uppercase() == "RD" {
-                                                current_format = Some(&format_12v);
-                                            }
-                                            if wire.get_color().to_uppercase() == "YL" {
-                                                current_format = Some(&format_analog);
-                                            }
-                                            if wire.get_color().to_uppercase() == "BK" {
-                                                current_format = Some(&format_input);
-                                            }
+//                                         for wire in wires {
+//                                             //println!("{}", wire.get_name());
+//                                             row += 1;
+//                                             let mut current_format = None;
+//                                             if wire.get_color().to_uppercase() == "PK" {
+//                                                 current_format = Some(&format_5v);
+//                                             }
+//                                             if wire.get_color().to_uppercase() == "BL" {
+//                                                 current_format = Some(&format_rtn);
+//                                             }
+//                                             if wire.get_color().to_uppercase() == "OR" {
+//                                                 current_format = Some(&format_48v);
+//                                             }
+//                                             if wire.get_color().to_uppercase() == "BN" {
+//                                                 current_format = Some(&format_24v);
+//                                             }
+//                                             if wire.get_color().to_uppercase() == "RD" {
+//                                                 current_format = Some(&format_12v);
+//                                             }
+//                                             if wire.get_color().to_uppercase() == "YL" {
+//                                                 current_format = Some(&format_analog);
+//                                             }
+//                                             if wire.get_color().to_uppercase() == "BK" {
+//                                                 current_format = Some(&format_input);
+//                                             }
 
-                                            // sheet.write_string(row,WIRE_NAME,wire.get_name(), current_format);
+//                                             // sheet.write_string(row,WIRE_NAME,wire.get_name(), current_format);
 
-                                            // let wire_type:String = wire.get_material().to_owned() + " " + wire.get_spec();
-                                            // sheet.write_string(row,WIRE_TYPE,&wire_type, current_format);
+//                                             // let wire_type:String = wire.get_material().to_owned() + " " + wire.get_spec();
+//                                             // sheet.write_string(row,WIRE_TYPE,&wire_type, current_format);
 
-                                            // sheet.write_string(row,WIRE_LEN,&wire.get_length().to_string(), current_format);
+//                                             // sheet.write_string(row,WIRE_LEN,&wire.get_length().to_string(), current_format);
 
-                                            // sheet.write_string(row,WIRE_COLOR,&wire.get_color(), current_format);
+//                                             // sheet.write_string(row,WIRE_COLOR,&wire.get_color(), current_format);
 
-                                            let connections = wire.get_connections();
-                                            let connection_left = connections.get(0);
+//                                             let connections = wire.get_connections();
+//                                             let connection_left = connections.get(0);
 
-                                            let left_wire_end = connection_left.map(|(connection_left, termination)| {
-                                                let mut left_wire_end = process_connection((connection_left, termination), &library);
-                                                //if let Some(termination) = termination {
-                                                //    let terminal_partnumber = library.lookup_customer_partnumber(*termination);
-                                                //    left_wire_end.termination = terminal_partnumber.unwrap_or_default().into();
-                                                    //println!("{}{}", *termination, left_wire_end.termination_name);
-                                                //}
-                                                //left_wire_end.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
-                                                left_wire_end
-                                            });
+//                                             let left_wire_end = connection_left.map(|(connection_left, termination)| {
+//                                                 let mut left_wire_end = process_connection((connection_left, termination), &library);
+//                                                 //if let Some(termination) = termination {
+//                                                 //    let terminal_partnumber = library.lookup_customer_partnumber(*termination);
+//                                                 //    left_wire_end.termination = terminal_partnumber.unwrap_or_default().into();
+//                                                     //println!("{}{}", *termination, left_wire_end.termination_name);
+//                                                 //}
+//                                                 //left_wire_end.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+//                                                 left_wire_end
+//                                             });
 
-                                            // match left_wire_end {
-                                            //     Some(ref left_wire_end) => {
+//                                             // match left_wire_end {
+//                                             //     Some(ref left_wire_end) => {
                                                     
-                                            //         sheet.write_string(row,WIRE_FROM_DEVICE,&left_wire_end.device, current_format);
-                                            //         sheet.write_string(row,WIRE_FROM_PIN,&left_wire_end.pin, current_format);
-                                            //         sheet.write_string(row,WIRE_FROM_TERM,&left_wire_end.termination, current_format);
-                                            //     }
-                                            //     None => {
-                                            //         sheet.write_blank(row,WIRE_FROM_DEVICE,current_format);
-                                            //         sheet.write_blank(row,WIRE_FROM_PIN,current_format);
-                                            //         sheet.write_blank(row,WIRE_FROM_TERM,current_format);
-                                            //     }
-                                            // }
+//                                             //         sheet.write_string(row,WIRE_FROM_DEVICE,&left_wire_end.device, current_format);
+//                                             //         sheet.write_string(row,WIRE_FROM_PIN,&left_wire_end.pin, current_format);
+//                                             //         sheet.write_string(row,WIRE_FROM_TERM,&left_wire_end.termination, current_format);
+//                                             //     }
+//                                             //     None => {
+//                                             //         sheet.write_blank(row,WIRE_FROM_DEVICE,current_format);
+//                                             //         sheet.write_blank(row,WIRE_FROM_PIN,current_format);
+//                                             //         sheet.write_blank(row,WIRE_FROM_TERM,current_format);
+//                                             //     }
+//                                             // }
 
-                                            let connection_right = connections.get(1);
-                                            let right_wire_end = connection_right.map(|(connection_right, termination)| {
-                                                let mut right_wire_end = process_connection((connection_right, termination), &library);
-                                                //if let Some(termination) = termination {
-                                                //    let terminal_partnumber = library.lookup_customer_partnumber(*termination);
-                                                //    right_wire_end.termination = terminal_partnumber.unwrap_or_default().into();
-                                                    //right_wire_end.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
-                                                //}
-                                                right_wire_end
-                                            });
+//                                             let connection_right = connections.get(1);
+//                                             let right_wire_end = connection_right.map(|(connection_right, termination)| {
+//                                                 let mut right_wire_end = process_connection((connection_right, termination), &library);
+//                                                 //if let Some(termination) = termination {
+//                                                 //    let terminal_partnumber = library.lookup_customer_partnumber(*termination);
+//                                                 //    right_wire_end.termination = terminal_partnumber.unwrap_or_default().into();
+//                                                     //right_wire_end.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+//                                                 //}
+//                                                 right_wire_end
+//                                             });
 
-                                            // match right_wire_end {
-                                            //     Some(ref right_wire_end) => {
+//                                             // match right_wire_end {
+//                                             //     Some(ref right_wire_end) => {
 
-                                            //         sheet.write_string(row,WIRE_TO_DEVICE,&right_wire_end.device, current_format);
-                                            //         sheet.write_string(row,WIRE_TO_PIN,&right_wire_end.pin, current_format);
-                                            //         sheet.write_string(row,WIRE_TO_TERM,&right_wire_end.termination, current_format);
-                                            //     }
-                                            //     None => {
-                                            //         sheet.write_blank(row,WIRE_TO_DEVICE,current_format);
-                                            //         sheet.write_blank(row,WIRE_TO_PIN,current_format);
-                                            //         sheet.write_blank(row,WIRE_TO_TERM,current_format);
-                                            //     }
-                                            // }
+//                                             //         sheet.write_string(row,WIRE_TO_DEVICE,&right_wire_end.device, current_format);
+//                                             //         sheet.write_string(row,WIRE_TO_PIN,&right_wire_end.pin, current_format);
+//                                             //         sheet.write_string(row,WIRE_TO_TERM,&right_wire_end.termination, current_format);
+//                                             //     }
+//                                             //     None => {
+//                                             //         sheet.write_blank(row,WIRE_TO_DEVICE,current_format);
+//                                             //         sheet.write_blank(row,WIRE_TO_PIN,current_format);
+//                                             //         sheet.write_blank(row,WIRE_TO_TERM,current_format);
+//                                             //     }
+//                                             // }
 
-                                            wire_list.wires.insert(
-                                                WireEntry {
-                                                    name : wire.get_name().into(),
-                                                    partno : wire.get_customer_partno().into(),
-                                                    material : wire.get_material().into(),
-                                                    spec : wire.get_spec().into(),
-                                                    color_code : wire.get_color().into(),
-                                                    color_description: library.get_color_description(wire.get_color()).unwrap_or_default().into(),
-                                                    length : wire.get_length(),
-                                                    left : left_wire_end.clone(),
-                                                    right : right_wire_end.clone()
-                                                }
-                                            );
+//                                             wire_list.wires.insert(
+//                                                 WireEntry {
+//                                                     name : wire.get_name().into(),
+//                                                     partno : wire.get_customer_partno().into(),
+//                                                     material : wire.get_material().into(),
+//                                                     spec : wire.get_spec().into(),
+//                                                     color_code : wire.get_color().into(),
+//                                                     color_description: library.get_color_description(wire.get_color()).unwrap_or_default().into(),
+//                                                     length : wire.get_length(),
+//                                                     left : left_wire_end.clone(),
+//                                                     right : right_wire_end.clone()
+//                                                 }
+//                                             );
 
-                                            // Build a graph of devices and connectors
-                                            // Match if both connections exist
-                                            match (left_wire_end, right_wire_end) {
-                                                (Some(ref left), Some(ref right)) => {
-                                                    let left_node = find_node_or_add(&mut graph, left.device.clone().into());
-                                                    let right_node = find_node_or_add(&mut graph, right.device.clone().into());
-                                                    // Chech if edge exists
-                                                    match graph.find_edge(left_node, right_node) {
-                                                        Some(_) => {}
-                                                        None => {
-                                                            // Add edges only once
-                                                            graph.add_edge(left_node, right_node, false);
-                                                        }
-                                                    }
-                                                }
-                                                _ => {
+//                                             // Build a graph of devices and connectors
+//                                             // Match if both connections exist
+//                                             match (left_wire_end, right_wire_end) {
+//                                                 (Some(ref left), Some(ref right)) => {
+//                                                     let left_node = find_node_or_add(&mut graph, left.device.clone().into());
+//                                                     let right_node = find_node_or_add(&mut graph, right.device.clone().into());
+//                                                     // Chech if edge exists
+//                                                     match graph.find_edge(left_node, right_node) {
+//                                                         Some(_) => {}
+//                                                         None => {
+//                                                             // Add edges only once
+//                                                             graph.add_edge(left_node, right_node, false);
+//                                                         }
+//                                                     }
+//                                                 }
+//                                                 _ => {
 
-                                                }
-                                            }
-                                        } // wire loop
-
-
-                                        let mut xlsx_formatter = WireListXlsxFormatter::new(&workbook, &bg_color_map);
-                                        // Output plane wire list
-                                        xlsx_formatter.print_header();
-                                        for wire in wire_list.wires.iter() {
-                                            xlsx_formatter.print_entry(wire);
-                                        }
-
-                                        // Build a Minimum Spaning Tree from connectivity graph. Each node is a reference to original graph.
-                                        let mut mst_edges:Vec<EdgeIndex> = Vec::new();
-                                        let mut mst_unidirected_graph: Graph<NodeIndex, (), Undirected> = Graph::new_undirected();
-                                        {
-                                            let mut mst = min_spanning_tree(&graph);
-                                            for i in 0..mst.clone().count() {
-                                                let element = mst.next().unwrap();
-                                                match element {
-                                                    Element::Node{weight} => {
-                                                        mst_unidirected_graph.add_node(NodeIndex::new(i));
-                                                    }
-                                                    Element::Edge{source, target, ..} => {
-                                                        let out_source = find_node_or_add(&mut mst_unidirected_graph, NodeIndex::new(source));
-                                                        let out_target = find_node_or_add(&mut mst_unidirected_graph, NodeIndex::new(target));
-                                                        let edge = mst_unidirected_graph.add_edge(out_source, out_target, ());
-                                                        mst_edges.push(edge);
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        let mut mst_directed_graph: Graph<NodeIndex, ()> = Graph::new();
-                                        // Add nodes to the directed tree
-                                        for node in mst_unidirected_graph.node_indices() {
-                                            mst_directed_graph.add_node(node);
-                                        }
-                                        // Pick the root of MST
-                                        let root_node = find_max_neighbor_node(&graph);
-                                        dfs_traversal(&mst_unidirected_graph, &mut mst_directed_graph, root_node.unwrap(), None, mst_edges.as_slice());
-
-                                        // Perform BST traversal of mst_directed_graph
-                                        let mut bfs = Bfs::new(&mst_unidirected_graph, root_node.unwrap());
-                                        let mut current_root = root_node;
-                                        while let (Some(node), level_end) = bfs.next(&mst_unidirected_graph) {
-                                            let parent = mst_directed_graph.neighbors_directed(node, petgraph::Direction::Incoming).next();
-                                            match parent {
-                                                Some(parent) => {
-                                                    //println!("{}", graph[parent]);
-                                                }
-                                                None => {}
-                                            }
-                                            //println!("    {}", graph[node]);
-
-                                            if level_end {
-                                                //println!("{}", "----------");
-                                                //current_node = node
-                                            }
-                                        }
+//                                                 }
+//                                             }
+//                                         } // wire loop
 
 
-                                        {
-                                        let dot = Dot::with_attr_getters(&graph, &[Config::EdgeNoLabel, Config::NodeNoLabel], &move|_, edge| {
-                                            //let is_mst_edge = mst_directed_graph.find_edge(edge.source(), edge.target()).is_some();
-                                            if  true {
-                                                format!("color=\"{}\"", "red")
-                                            } else {
-                                                "".to_string()
-                                            }
-                                        },
-                                        &|_, (id,name)| {
-                                            format!("label=\"{}\"", name)
-                                        });
+//                                         let mut xlsx_formatter = WireListXlsxFormatter::new(&workbook, &bg_color_map);
+//                                         // Output plane wire list
+//                                         xlsx_formatter.print_header();
+//                                         for wire in wire_list.wires.iter() {
+//                                             xlsx_formatter.print_entry(wire);
+//                                         }
 
-                                        // Print the DOT representation
-                                        //println!("{:?}", dot);
-                                        }
+//                                         // Build a Minimum Spaning Tree from connectivity graph. Each node is a reference to original graph.
+//                                         let mut mst_edges:Vec<EdgeIndex> = Vec::new();
+//                                         let mut mst_unidirected_graph: Graph<NodeIndex, (), Undirected> = Graph::new_undirected();
+//                                         {
+//                                             let mut mst = min_spanning_tree(&graph);
+//                                             for i in 0..mst.clone().count() {
+//                                                 let element = mst.next().unwrap();
+//                                                 match element {
+//                                                     Element::Node{weight} => {
+//                                                         mst_unidirected_graph.add_node(NodeIndex::new(i));
+//                                                     }
+//                                                     Element::Edge{source, target, ..} => {
+//                                                         let out_source = find_node_or_add(&mut mst_unidirected_graph, NodeIndex::new(source));
+//                                                         let out_target = find_node_or_add(&mut mst_unidirected_graph, NodeIndex::new(target));
+//                                                         let edge = mst_unidirected_graph.add_edge(out_source, out_target, ());
+//                                                         mst_edges.push(edge);
+//                                                     }
+//                                                 }
+//                                             }
+//                                         }
+
+//                                         let mut mst_directed_graph: Graph<NodeIndex, ()> = Graph::new();
+//                                         // Add nodes to the directed tree
+//                                         for node in mst_unidirected_graph.node_indices() {
+//                                             mst_directed_graph.add_node(node);
+//                                         }
+//                                         // Pick the root of MST
+//                                         let root_node = find_max_neighbor_node(&graph);
+//                                         dfs_traversal(&mst_unidirected_graph, &mut mst_directed_graph, root_node.unwrap(), None, mst_edges.as_slice());
+
+//                                         // Perform BST traversal of mst_directed_graph
+//                                         let mut bfs = Bfs::new(&mst_unidirected_graph, root_node.unwrap());
+//                                         let mut current_root = root_node;
+//                                         while let (Some(node), level_end) = bfs.next(&mst_unidirected_graph) {
+//                                             let parent = mst_directed_graph.neighbors_directed(node, petgraph::Direction::Incoming).next();
+//                                             match parent {
+//                                                 Some(parent) => {
+//                                                     //println!("{}", graph[parent]);
+//                                                 }
+//                                                 None => {}
+//                                             }
+//                                             //println!("    {}", graph[node]);
+
+//                                             if level_end {
+//                                                 //println!("{}", "----------");
+//                                                 //current_node = node
+//                                             }
+//                                         }
 
 
-                                        let dot2 = Dot::with_attr_getters(&mst_directed_graph, &[Config::EdgeNoLabel, Config::NodeNoLabel], &|_, edge| {
-                                            "".to_string()
-                                        },
-                                        &|_, (id,name)| {
-                                            format!("label=\"{:?}\"", name)
-                                        });
+//                                         {
+//                                         let dot = Dot::with_attr_getters(&graph, &[Config::EdgeNoLabel, Config::NodeNoLabel], &move|_, edge| {
+//                                             //let is_mst_edge = mst_directed_graph.find_edge(edge.source(), edge.target()).is_some();
+//                                             if  true {
+//                                                 format!("color=\"{}\"", "red")
+//                                             } else {
+//                                                 "".to_string()
+//                                             }
+//                                         },
+//                                         &|_, (id,name)| {
+//                                             format!("label=\"{}\"", name)
+//                                         });
 
-                                        //println!("{:?}", dot2);
+//                                         // Print the DOT representation
+//                                         //println!("{:?}", dot);
+//                                         }
 
-                                    //}
-                                    //Err(e) => {
 
-                                    //}
-                                //}
-                                        println!("{} {} {} {} {}", "Harness".yellow(), &harness.yellow(), "contains".yellow(), wire_list.wires.iter().len().to_string().yellow(), "wires.".yellow());
-                                        println!("{}", "OK".bright_green());
-                            }
-                            Err(e) => {
-                                // TODO: xmlwrite is panicing when it can't create thh file, how do I catch it?
-                                println!("{}{}", "Could not create workbook: ".red(), e.to_string().bright_red())
-                            }
-                        }
-                        //design.unwrap().get_wires("");
-                        //design.unwrap().get_wires("");
-                        // get wires in harness
-                        // end points
-                        // connectors
-                        //show_project_info(&project);
+//                                         let dot2 = Dot::with_attr_getters(&mst_directed_graph, &[Config::EdgeNoLabel, Config::NodeNoLabel], &|_, edge| {
+//                                             "".to_string()
+//                                         },
+//                                         &|_, (id,name)| {
+//                                             format!("label=\"{:?}\"", name)
+//                                         });
 
-                    }
-                }
-                (Err(e), _) => {
-                    println!("{}{}", "Xml error: ".red(), e.to_string().bright_red())
-                }
-                (_,Err(e)) => {
-                    println!("{}{}", "Xml error: ".red(), e.to_string().bright_red())
-                }
-            }
-        }
-        (Err(e), _) => {
-            println!("{}{}", "File read error: ".red(), e.to_string().bright_red())
-        }
-        (_,Err(e)) => {
-            println!("{}{}", "File read error: ".red(), e.to_string().bright_red())
-        }
-    }
+//                                         //println!("{:?}", dot2);
 
-}
+//                                     //}
+//                                     //Err(e) => {
+
+//                                     //}
+//                                 //}
+//                                         println!("{} {} {} {} {}", "Harness".yellow(), &harness.yellow(), "contains".yellow(), wire_list.wires.iter().len().to_string().yellow(), "wires.".yellow());
+//                                         println!("{}", "OK".bright_green());
+//                             }
+//                             Err(e) => {
+//                                 // TODO: xmlwrite is panicing when it can't create thh file, how do I catch it?
+//                                 println!("{}{}", "Could not create workbook: ".red(), e.to_string().bright_red())
+//                             }
+//                         }
+//                         //design.unwrap().get_wires("");
+//                         //design.unwrap().get_wires("");
+//                         // get wires in harness
+//                         // end points
+//                         // connectors
+//                         //show_project_info(&project);
+
+//                     }
+//                 }
+//                 (Err(e), _) => {
+//                     println!("{}{}", "Xml error: ".red(), e.to_string().bright_red())
+//                 }
+//                 (_,Err(e)) => {
+//                     println!("{}{}", "Xml error: ".red(), e.to_string().bright_red())
+//                 }
+//             }
+//         }
+//         (Err(e), _) => {
+//             println!("{}{}", "File read error: ".red(), e.to_string().bright_red())
+//         }
+//         (_,Err(e)) => {
+//             println!("{}{}", "File read error: ".red(), e.to_string().bright_red())
+//         }
+//     }
+
+// }
 

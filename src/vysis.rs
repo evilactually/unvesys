@@ -362,6 +362,19 @@ impl<'a> Wire<'a> {
         self.dom.name.as_ref()
     }
 
+
+    pub fn get_short_descr(&self) -> &'a str {
+        match &self.dom.shortdescription {
+            Some(shortdescription) => {
+                shortdescription.as_ref()
+            }
+            None => {
+                ""
+            }
+        }
+    }
+
+
     pub fn get_length(&self) -> f32 {
         self.dom.wirelength
     }

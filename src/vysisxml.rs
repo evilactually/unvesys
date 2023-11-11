@@ -150,6 +150,9 @@ pub struct XmlWire<'a> {
     pub terminalpartspecend1: Option<Cow<'a, str>>,
     #[xml(attr = "terminalpartspecend2")]
     pub terminalpartspecend2: Option<Cow<'a, str>>,
+    #[xml(attr = "shortdescription")]
+    pub shortdescription: Option<Cow<'a, str>>,
+
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
