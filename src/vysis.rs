@@ -235,8 +235,15 @@ impl<'a> LogicalDesign<'a> {
                         harness_set.insert(harness.as_ref());
                     }
                 }
+               
                 // Print collected harnesses
-                return harness_set.into_iter().collect();
+                
+                let mut harness_vec: Vec<_> = harness_set.into_iter().collect();
+
+                harness_vec.sort_by(|a,b| {
+                    a.cmp(&b)
+                });
+                return harness_vec; 
             }
             None => {
                 return Vec::new();
