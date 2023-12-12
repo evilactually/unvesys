@@ -20,7 +20,8 @@ pub struct WireEntry {
     pub color_description: Box<str>,
     pub length: f32,
     pub left: Option<WireEndEntry>,
-    pub right: Option<WireEndEntry>
+    pub right: Option<WireEndEntry>,
+    pub twisted_with: Option<Box<str>>
 }
 
 impl PartialEq for WireEntry {

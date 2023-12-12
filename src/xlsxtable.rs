@@ -78,6 +78,7 @@ impl XLSXTable {
     pub fn modify_region_format(&mut self, region: &XLSXTableRegion, f: &dyn Fn (&mut Format)  ) {
         for row in region.first_row ..=region.last_row {
             for col in region.first_col ..=region.last_col {
+                //println!("({}, {})", row, col);
                 self.modify_cell_format(row, col, f);
             }
         }

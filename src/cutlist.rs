@@ -81,6 +81,7 @@ impl WireListXlsxFormatter<'_> {
         self.table.set_cell(row, Self::LEFT + Self::FROM_DASH, "-");
         self.table.set_col_width_pixels(Self::LEFT + Self::FROM_DASH, 20);
         self.table.set_cell(row, Self::LEFT + Self::FROM_PIN, "Pin");
+        self.table.set_col_width_pixels(Self::LEFT + Self::FROM_PIN, 35);
         // Terminal
         self.table.set_cell(row, Self::LEFT + Self::FROM_TERM_PARTNO, "Termination");
         self.table.set_col_width_pixels(Self::LEFT + Self::FROM_TERM_PARTNO, 125);
@@ -102,11 +103,17 @@ impl WireListXlsxFormatter<'_> {
         self.table.set_cell(row, Self::LEFT + Self::TO_DASH, "-");
         self.table.set_col_width_pixels(Self::LEFT + Self::TO_DASH, 20);
         self.table.set_cell(row, Self::LEFT + Self::TO_PIN, "Pin");
+        self.table.set_col_width_pixels(Self::LEFT + Self::TO_PIN, 35);
     }
 
     pub fn print_entry(&mut self, wire: &WireEntry) {
         // Wire
-        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_ITEM, &wire.name);
+        // Twisted indicator
+        let twisted_indicator = wire.twisted_with.as_ref().map(|x| {
+            format!(" (⤫ {})", x.clone())
+        });
+
+        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_ITEM, &(wire.name.to_string() + &twisted_indicator.unwrap_or_default()));
         // Short Descr
         self.table.set_cell(self.current_row, Self::LEFT + Self::SHORT_DESCR, &wire.descr);
         // From
@@ -308,6 +315,7 @@ pub fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a s
                 wire_end_info.pin = pin.get_name().into();
                 wire_end_info.termination = "TODO".into();
                 if let Some(termination) = termination {
+                    //println!("termination {}", termination);
                     let terminal_partnumber = library.lookup_customer_partnumber(*termination);
                     wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
                     wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
@@ -319,9 +327,14 @@ pub fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a s
             wire_end_info.pin = pin.get_name().into();
             wire_end_info.termination = "TODO".into();
             if let Some(termination) = termination {
-                let terminal_partnumber = library.lookup_customer_partnumber(*termination);
-                wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
-                wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+                if termination.trim() == "^" { // two wire going to same terminal of device
+                    wire_end_info.termination = "^".into(); // leave ^ alone for now
+                    wire_end_info.termination_name = "".into();
+                } else {
+                    let terminal_partnumber = library.lookup_customer_partnumber(*termination);
+                    wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
+                    wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+                }
             }
         }
         (Connection::GroundDevice(device,pin), termination) => {
@@ -373,6 +386,10 @@ pub fn output_cutlist(project: &Project, library: &Library, design_name: &str, h
                     right_wire_end
                 });
 
+                if let Some(twisted_with) = wire.get_twisted_with() {
+                    println!("twist: {}", twisted_with);
+                }
+
                 wire_list.wires.insert(
                     WireEntry {
                         name : wire.get_name().into(),
@@ -381,10 +398,11 @@ pub fn output_cutlist(project: &Project, library: &Library, design_name: &str, h
                         material : wire.get_material().into(),
                         spec : wire.get_spec().into(),
                         color_code : wire.get_color().into(),
-                        color_description: library.get_color_description(wire.get_color()).unwrap_or_default().into(),
+                        color_description : library.get_color_description(wire.get_color()).unwrap_or_default().into(),
                         length : wire.get_length(),
                         left : left_wire_end.clone(),
-                        right : right_wire_end.clone()
+                        right : right_wire_end.clone(),
+                        twisted_with : wire.get_twisted_with().map(|x| x.into()) // check if wire is in twist with any other
                     }
                 );
             }

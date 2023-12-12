@@ -461,6 +461,31 @@ impl<'a> Wire<'a> {
         }
         return connections;
     }
+
+    pub fn get_twisted_with(&self) -> Option<&'a str> {
+        let twisted_pair = self.design.dom.connectivity.multicore.iter().find(|x| {
+            if x.sheathtype == "Twisted" {
+                // Find multicore that contains this wire id
+                x.member.iter().find(|y| y.ref_ == self.dom.id).is_some()
+            } else { false }
+        });
+
+        if let Some(twisted_pair) = twisted_pair {
+            // for member in twisted_pair.member.iter() {
+            //     println!("{}", member.ref_);
+            // }
+            // Filter out current wire, leave other(s?)
+            let member_dom = twisted_pair.member.iter().filter(|x| x.ref_ != self.dom.id).next();
+            if let Some(member_dom) = member_dom {
+                let wire_dom = self.design.dom.connectivity.wire.iter().find(|x| x.id == member_dom.ref_);
+                if let Some(wire_dom) = wire_dom {
+                    return Some(wire_dom.name.as_ref());
+                }
+            }
+        }
+
+        None
+    }
 }
 
 pub struct Pin<'a> {

@@ -130,6 +130,8 @@ pub struct XmlSplice<'a> {
 pub struct XmlWire<'a> {
     #[xml(attr = "name")]
     pub name: Cow<'a, str>,
+    #[xml(attr = "id")]
+    pub id: Cow<'a, str>,
     #[xml(attr = "harness")]
     pub harness: Option<Cow<'a, str>>,
     #[xml(child = "connection")]
@@ -152,7 +154,6 @@ pub struct XmlWire<'a> {
     pub terminalpartspecend2: Option<Cow<'a, str>>,
     #[xml(attr = "shortdescription")]
     pub shortdescription: Option<Cow<'a, str>>,
-
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
@@ -160,6 +161,17 @@ pub struct XmlWire<'a> {
 pub struct XmlMulticore<'a> {
     #[xml(attr = "name")]
     pub name: Cow<'a, str>,
+    #[xml(attr = "sheathtype")]
+    pub sheathtype: Cow<'a, str>,
+    #[xml(child = "member")]
+    pub member: Vec<XmlMember<'a>>,
+}
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "member")]
+pub struct XmlMember<'a> {
+    #[xml(attr = "ref")]
+    pub ref_: Cow<'a, str>,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
