@@ -121,6 +121,8 @@ pub struct XmlPin<'a> {
 pub struct XmlSplice<'a> {
     #[xml(attr = "name")]
     pub name: Cow<'a, str>,
+    #[xml(attr = "partnumber")]
+    pub partnumber: Option<Cow<'a, str>>,
     #[xml(child = "pin")]
     pub pin: Vec<XmlPin<'a>>,
 }

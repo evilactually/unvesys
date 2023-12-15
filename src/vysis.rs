@@ -273,6 +273,11 @@ impl<'a> Splice<'a> {
     pub fn get_name(&self) -> &'a str { // Lifetime of returned string must match dom struct, but not &self reference
         self.dom.name.as_ref()
     }
+
+    pub fn get_partno(&'a self) -> Option<&'a str> {
+        self.dom.partnumber.as_ref().map(|x| x.as_ref())
+    }
+
 }
 
 pub enum Connection2<'a> {
