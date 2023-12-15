@@ -250,6 +250,16 @@ impl<'a> LogicalDesign<'a> {
             }
         }
     }
+
+    // Search for component in the design by name and return its library part number
+    pub fn get_component_partnumber_by_name(&'a self, name: &str) -> Option<Box<str>> {
+        let connector = self.dom.connectivity.connector.iter().find(|x| x.name == name).map(|x| x.partnumber.map(|y| y.into()) );
+        let device = self.dom.connectivity.device.iter().find(|x| x.name == name).map(|x| x.partnumber.map(|y| y.into()) );
+        let splice = self.dom.connectivity.splice.iter().find(|x| x.name == name).map(|x| x.partnumber.map(|y| y.into()) );
+        let grounddevice = self.dom.connectivity.grounddevice.iter().find(|x| x.name == name).map(|x| x.partnumber.map(|y| y.into()) );
+        let result = connector.or(device).or(splice).or(grounddevice);
+        result.flatten()
+    }
 }
 
 pub enum Connection<'a> {
@@ -328,7 +338,7 @@ impl<'a> Connector<'a> {
     }
 
 
-    pub fn get_partno(&'a self) -> &'a str {
+    pub fn get_partno(&'a self) -> Option<&'a str> {
         self.dom.partnumber.as_ref()
     }
 

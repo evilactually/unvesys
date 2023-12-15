@@ -3,10 +3,10 @@
 use std::time::Duration;
 use winreg::enums::HKEY_CURRENT_USER;
 use egui::RichText;
-use crate::cutlist::output_cutlist;
+use crate::wire_list_xlsx_formatter::output_cutlist;
 
 use std::path::PathBuf;
-use crate::cutlist::process_connection;
+use crate::wire_list_xlsx_formatter::process_connection;
 use ::egui::Sense;
 use ::egui::Label;
 
@@ -58,6 +58,9 @@ use crate::json::*;
 mod outline;
 use crate::outline::*;
 
+mod devicelist;
+//use crate::
+
 use std::cmp::max;
 
 use colored::*;
@@ -84,8 +87,10 @@ use xlsxwriter::worksheet::PaperType;
 mod xlsxtable;
 use crate::xlsxtable::*;
 
-mod cutlist;
-use crate::cutlist::WireListXlsxFormatter;
+mod wire_list_xlsx_formatter;
+use crate::wire_list_xlsx_formatter::WireListXlsxFormatter;
+
+mod device_list_xlsx_formatter;
 
 use process_path;
 

@@ -95,12 +95,12 @@ pub struct XmlDevice<'a> {
 pub struct XmlConnector<'a> {
     #[xml(attr = "name")]
     pub name: Cow<'a, str>,
+    #[xml(attr = "partnumber")]
+    pub partnumber: Option<Cow<'a, str>>,
     #[xml(child = "pin")]
     pub pin: Vec<XmlPin<'a>>,
     #[xml(attr = "connectorusage")]
     pub connectorusage: Cow<'a, str>,
-    #[xml(attr = "partnumber")]
-    pub partnumber: Cow<'a, str>,
     #[xml(attr = "customerpartnumber")]
     pub customerpartnumber: Cow<'a, str>,
 }
@@ -121,6 +121,8 @@ pub struct XmlPin<'a> {
 pub struct XmlSplice<'a> {
     #[xml(attr = "name")]
     pub name: Cow<'a, str>,
+    #[xml(attr = "partnumber")]
+    pub partnumber: Option<Cow<'a, str>>,
     #[xml(child = "pin")]
     pub pin: Vec<XmlPin<'a>>,
 }
@@ -179,6 +181,8 @@ pub struct XmlMember<'a> {
 pub struct XmlGroundDevice<'a> {
     #[xml(attr = "name")]
     pub name: Cow<'a, str>,
+    #[xml(attr = "partnumber")]
+    pub partnumber: Option<Cow<'a, str>>,
     #[xml(child = "pin")]
     pub pin: Vec<XmlPin<'a>>,
 }

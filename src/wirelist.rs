@@ -6,7 +6,7 @@ use std::cmp::Ordering::*;
 
 #[derive(Clone)]
 pub struct WireList {
-    pub wires:HashSet<WireEntry>,
+    pub wires : HashSet<WireEntry>,
 }
 
 #[derive(Clone)]
@@ -122,4 +122,19 @@ pub fn sort_wirelist_by_left_device_pin(wirelist: &mut Vec<WireEntry>) {
         }
 
     });
+}
+
+// Get devices (and connectors) used in the wirelist
+pub fn get_devices(wirelist: &Vec<WireEntry>) -> Vec<Box<str>> {
+    let mut devices : HashSet<Box<str>> = HashSet::new();
+    for wire_entry in wirelist.iter() {
+        if let Some(left) = &wire_entry.left {
+            devices.insert(left.device.clone());
+        }
+
+        if let Some(right) = &wire_entry.right {
+            devices.insert(right.device.clone());    
+        }
+    }
+    devices.into_iter().collect()
 }
