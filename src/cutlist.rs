@@ -354,7 +354,7 @@ pub fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a s
             // For splices, use splice part number and short name instead of termination
             if let Some(library_partnumber) = splice.get_partno() {
                 let customer_partnumber = library.lookup_customer_partnumber(library_partnumber);
-                wire_end_info.termination = customer_partnumber.unwrap_or_default().into();
+                wire_end_info.termination = customer_partnumber.unwrap_or(library_partnumber).into();
                 wire_end_info.termination_name = library.lookup_terminal_short_name(library_partnumber).unwrap_or_default().into();
             }
             // TODO: Read properties of the device to find out which side of the splice wire is meant to 

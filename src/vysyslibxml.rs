@@ -11,6 +11,8 @@ pub struct XmlChssystem<'a> {
     pub devicepart: Vec<XmlDevicePart<'a>>,
     #[xml(child = "terminalpart")]
     pub terminalpart: Vec<XmlTerminalPart<'a>>,
+    #[xml(child = "splicepart")]
+    pub splicepart: Vec<XmlSplicePart<'a>>,
     #[xml(child = "librarycolor")]
     pub librarycolor: Vec<XmlLibraryColorCode<'a>>,
     #[xml(child = "chsuserproperty")]
@@ -21,6 +23,18 @@ pub struct XmlChssystem<'a> {
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "devicepart")]
 pub struct XmlDevicePart<'a> {
+    #[xml(attr = "libraryobject_id")]
+    pub libraryobject_id: Cow<'a, str>,
+    #[xml(attr = "partnumber")]
+    pub partnumber: Cow<'a, str>,
+    #[xml(child = "customerpartnumber")]
+    pub customerpartnumber: Vec<XmlCustomerPartNumber<'a>>,
+}
+
+/// Splice entry in a library
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "splicepart")]
+pub struct XmlSplicePart<'a> {
     #[xml(attr = "libraryobject_id")]
     pub libraryobject_id: Cow<'a, str>,
     #[xml(attr = "partnumber")]

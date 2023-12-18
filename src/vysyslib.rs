@@ -28,6 +28,7 @@ impl<'a> Library<'a> {
     }
 
     pub fn lookup_customer_partnumber(&self, partno: &str) -> Option<&str> {
+        // check terminals
         let part = self.dom.terminalpart.iter().find(|part| part.partnumber == partno);
         let terminal_partno = part.and_then(|part| {
             part.customerpartnumber.get(0)
@@ -36,6 +37,17 @@ impl<'a> Library<'a> {
         });
         if terminal_partno.is_some() { return terminal_partno };
 
+        // check splices
+        let part = self.dom.splicepart.iter().find(|part| part.partnumber == partno);
+        let splice_partno = part.and_then(|part| {
+            part.customerpartnumber.get(0)
+        }).and_then(|customerpartnumber| {
+            Some(customerpartnumber.customerpartnumber.as_ref())
+        });
+        if splice_partno.is_some() { return splice_partno };
+
+
+        // check devices
         let part = self.dom.devicepart.iter().find(|part| part.partnumber == partno);
         let device_partno = part.and_then(|part| {
             part.customerpartnumber.get(0)

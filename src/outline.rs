@@ -1,3 +1,4 @@
+use crate::HarnessDesign;
 use crate::{Project, LogicalDesign};
 
 /// This is needed mainly to decouple from Project and Design XML readers 
@@ -6,25 +7,46 @@ use crate::{Project, LogicalDesign};
 /// Project outline struct used in UI.
 pub struct ProjectOutline {
 	pub name: String,
-	pub designs: Vec<LogicalDesignOutline>
+	pub designs: Vec<LogicalDesignOutline>,
+	pub harnessdesigns: Vec<HarnessDesignOutline>
 }
 
 impl ProjectOutline {
 	pub fn new(project: &Project) -> ProjectOutline {
 		let mut designs: Vec<LogicalDesignOutline> = Vec::new();
+		let mut harnessdesigns: Vec<HarnessDesignOutline> = Vec::new();
 		let mut name : String;
 
-		// Accumulate designs
+		// Accumulate logic designs
 		for design in project.get_logical_design_iter() {
 			designs.push(LogicalDesignOutline::new(&design));
+		}
+
+		// Accumulate harness designs
+		for design in project.get_harness_design_iter() {
+			harnessdesigns.push(HarnessDesignOutline::new(&design));
 		}
 
 		// Return project outline
 		ProjectOutline {
 			name : project.get_name().to_string(),
-			designs : designs
+			designs : designs,
+			harnessdesigns : harnessdesigns
 		}
     }
+}
+
+/// Design outline struct used in UI.
+pub struct HarnessDesignOutline {
+	pub name: String,
+}
+
+impl HarnessDesignOutline {
+	pub fn new(design: &HarnessDesign) -> HarnessDesignOutline {
+		HarnessDesignOutline {
+			name: design.get_name().to_string()
+		}
+	}
 }
 
 /// Design outline struct used in UI.

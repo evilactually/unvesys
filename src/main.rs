@@ -599,9 +599,10 @@ impl App {
                         Ok(library_xml) => {
                             //println!("{}", &library_xml);
                             state_clone.lock().unwrap().library_xml = Some(library_xml);
+                            state_clone.lock().unwrap().log.push(RichText::new("Library loaded").color(Color32::GREEN));
                         }
                         _ => {
-                            // indicate error reading library.
+                            state_clone.lock().unwrap().log.push(RichText::new("Library loading error").color(Color32::RED));
                         }
                     }
                     //println!("Path: {:?}", path)
@@ -609,8 +610,8 @@ impl App {
             }
             //let xml = read_file(&xmlpath);
 
-            startup_worker(state_clone.clone());
-            state_clone.lock().unwrap().log.push(RichText::new("Library loaded").color(Color32::GREEN));
+            //startup_worker(state_clone.clone());
+            //state_clone.lock().unwrap().log.push(RichText::new("Library loaded").color(Color32::GREEN));
         });
         Self {
             state
@@ -636,7 +637,7 @@ impl<'a> eframe::App for App {
 
                                 // Wrap slow loading code in a thread
                                 std::thread::spawn(move || { // state_clone and path are moved
-                                    state_clone.lock().unwrap().log.push(RichText::new("Loading project").color(Color32::YELLOW));
+                                    state_clone.lock().unwrap().log.push(RichText::new("Loading project...").color(Color32::YELLOW));
                                     let xmlpath = path.display().to_string();
                                     let xml = read_file(&xmlpath);
                                     if let Ok(xml) = xml {
@@ -719,19 +720,16 @@ impl<'a> eframe::App for App {
                                                 // Clone Arc to avoid using self inside closure
                                                 let state_clone = self.state.clone();
                                                 let design_name = design.name.to_string();
-                                                let design_name = design.name.to_string();
                                                 let harness = harness.to_string();
-
+                                                
                                                 std::thread::spawn(move || { // state_clone and path are moved
-
-                                                    state_clone.lock().unwrap().log.push(RichText::new("Generating cutlist").color(Color32::YELLOW));
-
+                                                    state_clone.lock().unwrap().log.push(RichText::new("Generating cutlist...").color(Color32::YELLOW));
                                                     {
                                                         // SIGNAL RUNNING JOB
                                                         let state = &mut state_clone.lock().unwrap();
                                                         //state.log.push(RichText::new("Generating cutlist").color(Color32::YELLOW));
 
-                                                        if let Some(library_xml)=&state.library_xml {
+                                                        if let Some(library_xml)=&state.library_xml { // TODO: threading bug, read first then lock, otherwise this hangs-up the program ui
                                                             if let Some(project_xml)=&state.project_xml {
                                                                 let project = Project::new(&project_xml);
                                                                 if let Ok(project) = project {
@@ -766,12 +764,77 @@ impl<'a> eframe::App for App {
                                     }
                                 })
                                 .header_response.context_menu(|ui| {
-                                    if ui.button("Generate wire list").clicked() {
-                                        println!("Generating wire list for {}", &design.name);
-                                        ui.close_menu();
-                                    }
-                                    ui.button("Generate label data");
+                                    // Design-wide actions
+                                    // if ui.button("Generate wire list").clicked() {
+                                    //     println!("Generating wire list for {}", &design.name);
+                                    //     ui.close_menu();
+                                    // }
+                                    // ui.button("Generate label data");
                                 });
+                            }
+                        });
+
+                        CollapsingHeader::new("Harness Designs")
+                        .default_open(true)
+                        .show(ui, |ui| {
+                            for harnessdesign in outline.harnessdesigns.iter() {
+                                let harness_entry = ui.add(Label::new(&harnessdesign.name).sense(Sense::hover())) // Enable hover event
+                                        .context_menu(|ui| {
+                                            if ui.button("Export BOM table").clicked() {
+                                                
+                                                // Clone Arc to avoid using self inside closure
+                                                let state_clone = self.state.clone();
+                                                let harness_design_name = harnessdesign.name.to_string();
+                                                
+                                                std::thread::spawn(move || { // state_clone and path are moved
+                                                    state_clone.lock().unwrap().log.push(RichText::new("Exporting BOM table...").color(Color32::YELLOW));
+                                                    { // prevent a freeze from another state after this scope
+                                                    //         // SIGNAL RUNNING JOB
+                                                        let state = &mut state_clone.lock().unwrap();
+                                                    //         //state.log.push(RichText::new("Generating cutlist").color(Color32::YELLOW));
+
+                                                        if let Some(library_xml)=&state.library_xml { // TODO: threading bug, read first then lock, otherwise this hangs-up the program ui
+                                                            if let Some(project_xml)=&state.project_xml {
+                                                                let project = Project::new(&project_xml);
+                                                                if let Ok(project) = project {
+                                                                    if let Some(harness_design) = project.get_harness_design(&harness_design_name) {
+                                                                        let bom_table = harness_design.get_bom_table();
+                                                                        if bom_table.is_some() {
+                                                                            println!("BOM table title: {}", bom_table.unwrap().title);
+                                                                        } 
+                                                                    }
+                                                                    //let library = Library::new(&library_xml);
+                                                                    //if let Ok(library) = library {
+                                            //                         let mut filepath = PathBuf::from(state.output_dir.clone());
+                                            //                         filepath.push(harness.to_owned() + ".xlsx");
+                                            //                         println!("{}", filepath.display().to_string());
+                                            //                         output_cutlist(&project, &library, &design_name, &harness, &filepath.display().to_string());
+                                                                    //}
+                                                                }
+                                                            } else {
+                                                                panic!("{:?}", "Project XML was not loaded.");
+                                                            }
+                                                        } else {
+                                                            panic!("{:?}", "Library XML was not loaded.");
+                                                        }
+                                                    }
+                                                    state_clone.lock().unwrap().log.push(RichText::new("BOM table exported").color(Color32::GREEN));
+                                                });
+
+
+                                                ui.close_menu();
+                                            }
+
+                                            if ui.button("Export wire table").clicked() {
+                                                //println!("Generating wire list for {}, {}", &design.name, design);
+                                                ui.close_menu();
+                                            }
+                                        });
+
+                                // Highlight on hover
+                                if harness_entry.hovered() {
+                                    harness_entry.highlight();
+                                }
                             }
                         });
                     });
@@ -780,28 +843,33 @@ impl<'a> eframe::App for App {
                     ui.horizontal_centered(|ui| {
                     let mut dino =
 r"
-                                          
-         
-                                                                        
-                                  ▓▓▒▒▒▒▓▓▓▓                            
-                              ▓▓▓▓▓▓▒▒▒▒▒▒▓▓▓▓                          
-                  ██        ▒▒▓▓▒▒▓▓██████▓▓▓▓▓▓                        
-                  ████    ▓▓▓▓▒▒▓▓██████████▓▓▓▓▓▓                      
-              ▒▒▒▒████    ▓▓▓▓▓▓██████▓▓▓▓████▒▒▓▓                      
-            ▓▓██▒▒████▓▓  ▓▓▓▓██████▓▓▓▓▒▒▓▓██▓▓▒▒                      
-          ▓▓▓▓▒▒▓▓▒▒▒▒▓▓▓▓▓▓▓▓██████▒▒▒▒▓▓▓▓▒▒▒▒▓▓                      
-          ██▒▒▓▓▒▒▒▒▒▒████▒▒▒▒██████▓▓▒▒  ▓▓▒▒▒▒                        
-      ██▓▓▒▒    ▒▒▓▓██▓▓▒▒██▒▒▒▒██████▓▓    ▓▓▒▒                        
-      ▓▓▒▒░░░░    ██▒▒▓▓▓▓██▒▒▓▓██████▓▓    ▓▓                          
-      ▒▒░░░░░░  ██▒▒▒▒▒▒██▓▓▓▓▒▒▓▓████▓▓▓▓                              
-        ░░░░░░██▒▒██████▓▓████▓▓▓▓████▒▒▓▓                              
-            ██████      ██▒▒▓▓██▓▓████▒▒▓▓                              
-                      ██▓▓▓▓▓▓██▓▓████▒▒▒▒                              
-                      ██▒▒▒▒▒▒██▒▒██▒▒▓▓                                
-                  ██████▒▒▒▒▓▓████▓▓▓▓                                  
-                ██████  ████████  ▓▓                                    
-                                                                                        
-                                                                             
+                                                                              
+                                                                      
+                      ██          ██                                  
+                    ████          ████                                
+                  ██  ▒▒██████████▒▒  ██                              
+                  ██  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒  ██                              
+                  ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██                              
+                ██▒▒      ▒▒▒▒▒▒      ▒▒██                            
+                ██          ▒▒          ██                            
+                ██    ████  ▒▒  ████    ██                            
+                ██    ████  ▒▒  ████    ██                            
+                ██▒▒      ▒▒▒▒▒▒      ▒▒██                            
+                ██▒▒▒▒▒▒▒▒░░░░░░▒▒▒▒▒▒▒▒██                            
+      ░░    ░░  ██▒▒▒▒▒▒▒▒▒▒░░▒▒▒▒▒▒▒▒▒▒██                            
+        ▓▓░░    ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██            ░░              
+      ▓▓▒▒        ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒████    ░░    ▒▒                
+    ▓▓            ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██  ░░    ▒▒  ▒▒▓▓              
+▒▒▓▓  ▒▒            ██░░░░░░██░░░░░░██  ░░░░      ▒▒    ░░            
+▒▒▓▓▓▓            ▒▒▓▓██████▒▒██▓▓██▓▓▓▓░░  ▓▓▓▓▓▓  ░░                
+  ▒▒▒▒▒▒      ▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▒▒░░░░      ░░              
+    ▒▒▓▓▓▓▓▓▒▒▒▒▒▒            ▓▓░░      ▒▒▓▓      ░░      ░░          
+      ▓▓▓▓▒▒▒▒                  ▓▓░░    ▓▓  ▓▓  ░░▓▓  ▓▓░░            
+        ▒▒                                ▒▒  ▓▓    ▒▒▒▒  ░░          
+          ▓▓▒▒                          ░░      ▓▓▓▓▒▒░░              
+        ░░    ░░                              ▒▒      ▒▒░░            
+                                                                      
+                           
 
 Click on File -> Open to load a VeSys project file...
     

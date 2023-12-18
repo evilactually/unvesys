@@ -38,7 +38,43 @@ pub struct XmlHarnessDesign<'a> {
     pub name: Cow<'a, str>,
     #[xml(attr = "description")]
     pub description: Option<Cow<'a, str>>,
+    #[xml(child = "harnessdiagram")]
+    pub harnessdiagram: XmlHarnessDiagram<'a>
 }
+
+// #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+// #[xml(tag = "harnessdesign")]
+// pub struct XmlHarnessDesign<'a> {
+//     #[xml(child = "harnessdiagram")]
+//     pub harnessdiagram: XmlHarnessDiagram<'a>
+// }
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "harnessdiagram")]
+pub struct XmlHarnessDiagram<'a> {
+    #[xml(child = "harnessdiagramcontent")]
+    pub harnessdiagramcontent: XmlHarnessDiagramContent<'a>
+}
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "harnessdiagramcontent")]
+pub struct XmlHarnessDiagramContent<'a> {
+    #[xml(attr = "harnessdiagramid")]
+    pub harnessdiagramid: Cow<'a, str>,
+    #[xml(child = "tablegroup")]
+    pub tablegroup: Vec<XmlTableGroup<'a>>
+}
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "tablegroup")]
+pub struct XmlTableGroup<'a> {
+    #[xml(attr = "title")]
+    pub title: Cow<'a, str>,
+    #[xml(attr = "decorationname")]
+    pub decorationname: Cow<'a, str>
+}
+
+// harnessdesign, harnessdiagram, harnessdiagramcontent, tablegroup.title
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "connectivity")]

@@ -78,6 +78,12 @@ impl<'a> Project<'a> {
         }
     }
 
+    pub fn get_harness_design(&'a self, harness_design_name: &str) -> Option<HarnessDesign<'a>> {
+        self.get_harness_design_iter().find(|harnessdesign| {
+            harnessdesign.dom.name == harness_design_name
+        })
+    }
+
     pub fn get_logical_design_names(&'a self) -> Vec<&'a str> {
         let mut names = Vec::new();
         for logicaldesign in &self.dom.designmgr.logicaldesign {
@@ -97,6 +103,10 @@ impl<'a> Project<'a> {
     pub fn get_logical_design_iter(&self) -> LogicalDesignIter<'_> {
         LogicalDesignIter { project: self, logicaldesign_iter: self.dom.designmgr.logicaldesign.iter() }
     }
+
+    pub fn get_harness_design_iter(&self) -> HarnessDesignIter<'_> {
+        HarnessDesignIter { project: self, harnessdesign_iter: self.dom.designmgr.harnessdesign.iter() }
+    }
 }
 
 pub struct LogicalDesignIter<'a> {
@@ -104,6 +114,8 @@ pub struct LogicalDesignIter<'a> {
     logicaldesign_iter: std::slice::Iter<'a, XmlLogicalDesign<'a>>
 }
 
+
+// Iterator that converts XmlDesign into LogicalDesign on the fly
 impl<'a> Iterator for LogicalDesignIter<'a> {
     type Item = LogicalDesign<'a>;
 
@@ -278,10 +290,6 @@ impl<'a> Splice<'a> {
         self.dom.partnumber.as_ref().map(|x| x.as_ref())
     }
 
-}
-
-pub enum Connection2<'a> {
-    Thing(&'a str)
 }
 
 impl<'a> Connector<'a> {
@@ -525,10 +533,46 @@ struct Test3 {
 }
 
 
-
-
 // fn test() -> io::Result<Test<'static>> {
 //     let file_contents = fs::read_to_string("path/to/file.txt")?;
 //     let t2 = mkTest2(&file_contents);
 //     Ok(Test { test: t2 })
 // }
+
+pub struct HarnessDesignIter<'a> {
+    project:&'a Project<'a>,
+    harnessdesign_iter: std::slice::Iter<'a, XmlHarnessDesign<'a>>
+}
+
+impl<'a> Iterator for HarnessDesignIter<'a> {
+    type Item = HarnessDesign<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.harnessdesign_iter.next().map(|harnessdesignxml| {
+            HarnessDesign {
+                project: self.project,
+                dom: harnessdesignxml
+            }
+        })
+    }
+}
+
+pub struct HarnessDesign<'a> {
+    pub project: &'a Project<'a>,
+    pub dom: &'a XmlHarnessDesign<'a>
+}
+
+impl<'a> HarnessDesign<'a> {
+    pub fn get_name(&'a self) -> &'a str {
+        self.dom.name.as_ref()
+    }
+
+    pub fn get_bom_table(&'a self) ->  Option<&'a XmlTableGroup> {
+        return self.dom.harnessdiagram.harnessdiagramcontent.tablegroup.iter().find(|tablegroup| {
+            tablegroup.decorationname == "BOM Table"
+        });
+
+    }
+}
+
+
