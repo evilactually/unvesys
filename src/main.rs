@@ -549,6 +549,7 @@ fn startup_worker(state_clone: Arc<Mutex<State>>) -> io::Result<()> {
     let unvesys_key = hklu.open_subkey("SOFTWARE\\Unvesys")?;
     let output_dir = &mut state_clone.lock().unwrap().output_dir;
     *output_dir = unvesys_key.get_value("output_dir")?;
+    println!("Retrieved output_dir:  {}", *output_dir);
     return Ok(());
 
 }
@@ -610,7 +611,7 @@ impl App {
             }
             //let xml = read_file(&xmlpath);
 
-            //startup_worker(state_clone.clone());
+            startup_worker(state_clone.clone());
             //state_clone.lock().unwrap().log.push(RichText::new("Library loaded").color(Color32::GREEN));
         });
         Self {
@@ -906,7 +907,16 @@ Click on File -> Open to load a VeSys project file...
         // Save output directory to registry
         let hkcu = RegKey::predef(HKEY_CURRENT_USER);
         if let Ok((key, disp)) = hkcu.create_subkey("SOFTWARE\\Unvesys") {
-            key.set_value("output_dir", &self.state.lock().unwrap().output_dir);    
+            println!("output_dir:{}", self.state.lock().unwrap().output_dir);
+            match key.set_value("output_dir", &self.state.lock().unwrap().output_dir) {
+                Ok(_) => {
+                    println!("Saved output path");
+                }
+                Err(_) => {
+                    println!("Error saving output path!");
+                }
+
+            }
         }
     }
 
