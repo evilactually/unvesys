@@ -74,6 +74,23 @@ pub struct XmlTableGroup<'a> {
     pub decorationname: Cow<'a, str>
 }
 
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "tabledatacache")]
+pub struct XmlTableDataCache<'a> {
+    #[xml(attr = "colhdrnames")]
+    pub colhdrnames: XmlColHdrName,
+    #[xml(attr = "datavalues")]
+    pub datavalues: XmlDataValues
+}
+
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "datavalues")]
+pub struct XmlDataValues<'a> {
+    #[xml(attr = "datarow")]
+    pub datarow: Vec<XmlDataRow<'a>>
+}
+
 // harnessdesign, harnessdiagram, harnessdiagramcontent, tablegroup.title
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
