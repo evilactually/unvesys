@@ -765,12 +765,23 @@ impl<'a> eframe::App for App {
                                     }
                                 })
                                 .header_response.context_menu(|ui| {
-                                    // Design-wide actions
+                                    //Design-wide actions
                                     // if ui.button("Generate wire list").clicked() {
                                     //     println!("Generating wire list for {}", &design.name);
                                     //     ui.close_menu();
                                     // }
-                                    // ui.button("Generate label data");
+                                    //ui.button("Generate label data");
+                                    // ui.menu_button("Generate connector IO sheet", |ui| {
+                                    //     ui.button("J2");
+                                    //     ui.button("J9");
+                                    //     ui.button("J5");
+                                    //     for i in 1..500 {
+                                    //         ui.button("J5");
+                                    //     }
+
+
+                                    // });
+                                            
                                 });
                             }
                         });

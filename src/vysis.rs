@@ -220,16 +220,30 @@ impl<'a> LogicalDesign<'a> {
     }
 
     pub fn get_wires(&'a self, harness: &str) -> Vec<Wire<'a>> {
-        let mut wires:Vec<Wire> = Vec::new();
-        for wire in &self.dom.connectivity.wire {
-            if harness.is_empty() || wire.harness.as_ref().map(|cow_str| cow_str.as_ref() == harness).unwrap_or_default() {
-                wires.push(Wire {
-                    design : self,
-                    dom : wire
-                });
-            }
-        }
-        wires
+        self.get_wire_iter().filter(|wire| {
+            harness.is_empty() || wire.dom.harness.as_ref().map(|cow_str| cow_str.as_ref() == harness).unwrap_or_default()
+        }).collect()
+    }
+    
+    pub fn get_connector_wires(&'a self, connector_name: &str) -> Vec<Wire<'a>> {
+        self.get_wire_iter().filter(|wire| {
+            wire.get_connections().iter().map(|(x,_)| x).map(|connection| {
+                match connection {
+                    Connection::Connector(connector,_)  => {
+                        connector.get_name() == connector_name
+                    }
+                    _ => false
+                };
+                true
+            } );
+            //harness.is_empty() || wire.dom.harness.as_ref().map(|cow_str| cow_str.as_ref() == harness).unwrap_or_default()
+            false
+        }).collect()
+    }
+
+
+    pub fn get_wire_iter(&self) -> WireIter<'_> {
+        WireIter { design: self, wire_iter: self.dom.connectivity.wire.iter() }
     }
 
     /// Returns a list of unique harness attributes in logical design
@@ -261,6 +275,25 @@ impl<'a> LogicalDesign<'a> {
                 return Vec::new();
             }
         }
+    }
+}
+
+pub struct WireIter<'a> {
+    design:&'a LogicalDesign<'a>,
+    wire_iter: std::slice::Iter<'a, XmlWire<'a>>
+}
+
+// Iterator that converts XmlDesign into LogicalDesign on the fly
+impl<'a> Iterator for WireIter<'a> {
+    type Item = Wire<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.wire_iter.next().map(|wirexml| {
+            Wire {
+                design: self.design,
+                dom: wirexml
+            }
+        })
     }
 }
 
@@ -381,7 +414,6 @@ impl<'a> Wire<'a> {
     pub fn get_name(&self) -> &'a str {
         self.dom.name.as_ref()
     }
-
 
     pub fn get_short_descr(&self) -> &'a str {
         match &self.dom.shortdescription {

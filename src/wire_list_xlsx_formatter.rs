@@ -364,6 +364,20 @@ pub fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a s
     wire_end_info
 }
 
+
+pub fn output_connector_io(project: &Project, library: &Library, design_name: &str, connector: &str, filepath: &str ) -> Result<(), Box<dyn std::error::Error>> {
+    let colormap = color_map();
+    if let Some(design) = project.get_design(design_name) {
+        if let Ok(workbook) = Workbook::new(filepath) {
+            // Get harness wires            
+            let wires = design.get_connector_wires(&connector);
+
+        }
+    }
+
+    todo!();
+}
+
 pub fn output_cutlist(project: &Project, library: &Library, design_name: &str, harness: &str, filepath: &str ) -> Result<(), Box<dyn std::error::Error>> {
     let colormap = color_map();
     if let Some(design) = project.get_design(design_name) {

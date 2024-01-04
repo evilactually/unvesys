@@ -65,6 +65,8 @@ pub struct XmlHarnessDiagramContent<'a> {
     pub tablegroup: Vec<XmlTableGroup<'a>>
 }
 
+/* XmlTableGroup */
+
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "tablegroup")]
 pub struct XmlTableGroup<'a> {
@@ -77,19 +79,55 @@ pub struct XmlTableGroup<'a> {
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "tabledatacache")]
 pub struct XmlTableDataCache<'a> {
-    #[xml(attr = "colhdrnames")]
-    pub colhdrnames: XmlColHdrName,
-    #[xml(attr = "datavalues")]
-    pub datavalues: XmlDataValues
+    #[xml(child = "colhdrnames")]
+    pub colhdrnames: XmlColHdrNames<'a>,
+    #[xml(child = "datavalues")]
+    pub datavalues: XmlDataValues<'a>
 }
 
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "colhdrnames")]
+pub struct XmlColHdrNames<'a> {
+  #[xml(child = "row")]
+  pub row: XmlRow<'a>
+}
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "row")]
+pub struct XmlRow<'a> {
+  #[xml(child = "cellval")]
+  pub cellvals: Vec<XmlCellVal<'a>>
+}
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "datavalues")]
 pub struct XmlDataValues<'a> {
-    #[xml(attr = "datarow")]
+    #[xml(child = "datarow")]
     pub datarow: Vec<XmlDataRow<'a>>
 }
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "datarow")]
+pub struct XmlDataRow<'a> {
+    #[xml(child = "cellval")]
+     pub cellval: XmlCellVal<'a>
+}
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "cellval")]
+pub struct XmlCellVal<'a> {
+    #[xml(child = "cval")]
+    pub cval: XmlCVal<'a>
+}
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "cval")]    
+pub struct XmlCVal<'a> {
+    #[xml(attr = "val")]
+     pub val: Cow<'a, str>
+}
+
+/* XmlTableGroup */
 
 // harnessdesign, harnessdiagram, harnessdiagramcontent, tablegroup.title
 
