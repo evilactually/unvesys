@@ -1,5 +1,6 @@
 use petgraph::dot::{Dot, Config};
 use crate::Connection;
+use crate::Connectivity;
 //use crate::WireList;
 use crate::Project;
 use crate::Library;
@@ -268,6 +269,7 @@ pub fn color_map() -> Box<HashMap<String, FormatColor>> {
     bg_color_map.insert("TN".to_string(), FormatColor::Custom(0xead5c0)); // 24v DO
     bg_color_map.insert("BK".to_string(), FormatColor::Custom(0xf2f2f2)); // 24v DI
     bg_color_map.insert("GN".to_string(), FormatColor::Custom(0xc6e0b4)); // Sinking output
+    bg_color_map.insert("PR".to_string(), FormatColor::Custom(0xbc9dd4)); // Purple
     return Box::new(bg_color_map);
 }
 
@@ -370,7 +372,7 @@ pub fn output_connector_io(project: &Project, library: &Library, design_name: &s
     if let Some(design) = project.get_design(design_name) {
         if let Ok(workbook) = Workbook::new(filepath) {
             // Get harness wires            
-            let wires = design.get_connector_wires(&connector);
+            let wires = design.get_connectivity().get_connector_wires(&connector);
 
         }
     }
@@ -378,123 +380,132 @@ pub fn output_connector_io(project: &Project, library: &Library, design_name: &s
     todo!();
 }
 
-pub fn output_cutlist(project: &Project, library: &Library, design_name: &str, harness: &str, filepath: &str ) -> Result<(), Box<dyn std::error::Error>> {
+pub fn output_cutlist_from_connectivity(library: &Library, connectivity: &Connectivity, harness: &str, filepath: &str ) -> Result<(), Box<dyn std::error::Error>> {
     let colormap = color_map();
-    if let Some(design) = project.get_design(design_name) {
-        if let Ok(workbook) = Workbook::new(filepath) {
-            // Get harness wires            
-            let wires = design.get_wires(&harness);
+    if let Ok(workbook) = Workbook::new(filepath) {
+    // Get harness wires            
+    let wires = connectivity.get_wires(&harness);
 
-            // Processed wire list
-            let mut wire_list: WireList = WireList::new();
+    // Processed wire list
+    let mut wire_list: WireList = WireList::new();
 
-            for wire in wires {
-                println!("{}", wire.get_name());
+    for wire in wires {
+        println!("{}", wire.get_name());
 
-                let connections = wire.get_connections();
-                let connection_left = connections.get(0);
+        let connections = wire.get_connections();
+        let connection_left = connections.get(0);
 
-                // This is where most of VeSys non-sense is fixed regarding where wire is connected and what goes on it
-                let left_wire_end = connection_left.map(|(connection_left, termination)| {
-                    let mut left_wire_end = process_connection((connection_left, termination), &library);
-                    left_wire_end
-                });
+        // This is where most of VeSys non-sense is fixed regarding where wire is connected and what goes on it
+        let left_wire_end = connection_left.map(|(connection_left, termination)| {
+            let mut left_wire_end = process_connection((connection_left, termination), &library);
+            left_wire_end
+        });
 
-                let connection_right = connections.get(1);
-                let right_wire_end = connection_right.map(|(connection_right, termination)| {
-                    let mut right_wire_end = process_connection((connection_right, termination), &library);
-                    right_wire_end
-                });
+        let connection_right = connections.get(1);
+        let right_wire_end = connection_right.map(|(connection_right, termination)| {
+            let mut right_wire_end = process_connection((connection_right, termination), &library);
+            right_wire_end
+        });
 
-                if let Some(twisted_with) = wire.get_twisted_with() {
-                    println!("twist: {}", twisted_with);
-                }
-
-                wire_list.wires.insert(
-                    WireEntry {
-                        name : wire.get_name().into(),
-                        descr : wire.get_short_descr().into(),
-                        partno : wire.get_customer_partno().into(),
-                        material : wire.get_material().into(),
-                        spec : wire.get_spec().into(),
-                        color_code : wire.get_color().into(),
-                        color_description : library.get_color_description(wire.get_color()).unwrap_or_default().into(),
-                        length : wire.get_length(),
-                        left : left_wire_end.clone(),
-                        right : right_wire_end.clone(),
-                        twisted_with : wire.get_twisted_with().map(|x| x.into()) // check if wire is in twist with any other
-                    }
-                );
-            }
-
-            let mut wiregroups = traverse(&wire_list);
-
-            // for group in wiregroups {
-            //     println!("{}", "BEGIN GROUP");
-            //     for wireentry in group.wires {
-            //         println!("  {}", wireentry.name);
-            //     }
-            //     println!("{}", "END GROUP")
-            // }
-
-            // let g = build_graph_from_wirelist(&wire_list);
-            // let c = find_weakly_connected_components(&g);
-
-            // println!("{:?}", c);
-
-            // let graphs = build_graphs_from_components(&g,c);
-
-            // for graph in graphs {
-            
-            //     {
-            //     let dot = Dot::with_attr_getters(&graph, &[Config::EdgeNoLabel, Config::NodeNoLabel], &move|_, edge| {
-            //         //let is_mst_edge = mst_directed_graph.find_edge(edge.source(), edge.target()).is_some();
-            //         if  true {
-            //             format!("color=\"{}\"", "red")
-            //         } else {
-            //             "".to_string()
-            //         }
-            //     },
-            //     &|_, (id,name)| {
-            //         format!("label=\"{}\"", name)
-            //     });
-
-            //     // Print the DOT representation
-            //     println!("{:?}", dot);
-            //     }
-
-            // }
-
-            
-
-
-            let mut xlsx_formatter = WireListXlsxFormatter::new(&workbook, &colormap);
-            // Output plain wire list
-            xlsx_formatter.print_header();
-            // for wire in wire_list.wires.iter() {
-            //     xlsx_formatter.print_entry(wire);
-            //     //xlsx_formatter.bar();
-            // }
-
-            for mut group in wiregroups {
-                // Sort wire group
-                sort_wirelist_by_left_device_pin(&mut group);
-                //println!("{}", "BEGIN GROUP");
-                for wireentry in group {
-                    //println!("  {}", wireentry.name);
-                    xlsx_formatter.print_entry(&wireentry);
-                }
-                xlsx_formatter.bar();
-                //println!("{}", "END GROUP")
-            }
-
-        } else {
-            // can't open path
-            // return
+        if let Some(twisted_with) = wire.get_twisted_with() {
+            println!("twist: {}", twisted_with);
         }
-    } else {
-        // design not found
-        // return
+
+        wire_list.wires.insert(
+            WireEntry {
+                name : wire.get_name().into(),
+                descr : wire.get_short_descr().into(),
+                partno : wire.get_customer_partno().into(),
+                material : wire.get_material().into(),
+                spec : wire.get_spec().into(),
+                color_code : wire.get_color().into(),
+                color_description : library.get_color_description(wire.get_color()).unwrap_or_default().into(),
+                length : wire.get_length(),
+                left : left_wire_end.clone(),
+                right : right_wire_end.clone(),
+                twisted_with : wire.get_twisted_with().map(|x| x.into()) // check if wire is in twist with any other
+            }
+        );
+    }
+
+    let mut wiregroups = traverse(&wire_list);
+
+    // for group in wiregroups {
+    //     println!("{}", "BEGIN GROUP");
+    //     for wireentry in group.wires {
+    //         println!("  {}", wireentry.name);
+    //     }
+    //     println!("{}", "END GROUP")
+    // }
+
+    // let g = build_graph_from_wirelist(&wire_list);
+    // let c = find_weakly_connected_components(&g);
+
+    // println!("{:?}", c);
+
+    // let graphs = build_graphs_from_components(&g,c);
+
+    // for graph in graphs {
+    
+    //     {
+    //     let dot = Dot::with_attr_getters(&graph, &[Config::EdgeNoLabel, Config::NodeNoLabel], &move|_, edge| {
+    //         //let is_mst_edge = mst_directed_graph.find_edge(edge.source(), edge.target()).is_some();
+    //         if  true {
+    //             format!("color=\"{}\"", "red")
+    //         } else {
+    //             "".to_string()
+    //         }
+    //     },
+    //     &|_, (id,name)| {
+    //         format!("label=\"{}\"", name)
+    //     });
+
+    //     // Print the DOT representation
+    //     println!("{:?}", dot);
+    //     }
+
+    // }
+
+    
+
+
+    let mut xlsx_formatter = WireListXlsxFormatter::new(&workbook, &colormap);
+    // Output plain wire list
+    xlsx_formatter.print_header();
+    // for wire in wire_list.wires.iter() {
+    //     xlsx_formatter.print_entry(wire);
+    //     //xlsx_formatter.bar();
+    // }
+
+    for mut group in wiregroups {
+        // Sort wire group
+        sort_wirelist_by_left_device_pin(&mut group);
+        //println!("{}", "BEGIN GROUP");
+        for wireentry in group {
+            //println!("  {}", wireentry.name);
+            xlsx_formatter.print_entry(&wireentry);
+        }
+        xlsx_formatter.bar();
+        //println!("{}", "END GROUP")
+    }
+
+} else {
+    // can't open path
+    // return
+}
+
+Ok(())
+}
+
+pub fn output_cutlist(project: &Project,library: &Library, design_name: &str, harness: &str, filepath: &str ) -> Result<(), Box<dyn std::error::Error>> {
+    
+    if let Some(design) = project.get_design(design_name) {
+        let connectivity = design.get_connectivity();
+        output_cutlist_from_connectivity(library, &connectivity, harness, filepath);
+
+    } else if let Some(harnessdesign) = project.get_harness_design(design_name) {
+        let connectivity = harnessdesign.get_connectivity();
+        output_cutlist_from_connectivity(library, &connectivity, "", filepath);
     }
 
     Ok(())

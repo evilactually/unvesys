@@ -797,6 +797,7 @@ impl<'a> eframe::App for App {
                                                 // Clone Arc to avoid using self inside closure
                                                 let state_clone = self.state.clone();
                                                 let harness_design_name = harnessdesign.name.to_string();
+                                                let harness = harness_design_name.clone();
                                                 
                                                 std::thread::spawn(move || { // state_clone and path are moved
                                                     state_clone.lock().unwrap().log.push(RichText::new("Exporting BOM table...").color(Color32::YELLOW));
@@ -815,13 +816,13 @@ impl<'a> eframe::App for App {
                                                                             println!("BOM table title: {}", bom_table.unwrap().title);
                                                                         } 
                                                                     }
-                                                                    //let library = Library::new(&library_xml);
-                                                                    //if let Ok(library) = library {
-                                            //                         let mut filepath = PathBuf::from(state.output_dir.clone());
-                                            //                         filepath.push(harness.to_owned() + ".xlsx");
-                                            //                         println!("{}", filepath.display().to_string());
-                                            //                         output_cutlist(&project, &library, &design_name, &harness, &filepath.display().to_string());
-                                                                    //}
+                                                                    let library = Library::new(&library_xml);
+                                                                    if let Ok(library) = library {
+                                                                        let mut filepath = PathBuf::from(state.output_dir.clone());
+                                                                        filepath.push(harness.to_owned() + ".xlsx");
+                                                                        println!("{}", filepath.display().to_string());
+                                                                        output_cutlist(&project, &library, &harness_design_name, &harness, &filepath.display().to_string());
+                                                                    }
                                                                 }
                                                             } else {
                                                                 panic!("{:?}", "Project XML was not loaded.");
@@ -837,8 +838,45 @@ impl<'a> eframe::App for App {
                                                 ui.close_menu();
                                             }
 
-                                            if ui.button("Export wire table").clicked() {
-                                                //println!("Generating wire list for {}, {}", &design.name, design);
+                                            if ui.button("Generate wire list").clicked() {
+                                                println!("Generating wire list for {}", &harnessdesign.name);
+
+                                                // Clone Arc to avoid using self inside closure
+                                                let state_clone = self.state.clone();
+                                                let design_name = harnessdesign.name.to_string();
+                                                let harness = harnessdesign.name.to_string();
+                                                
+                                                std::thread::spawn(move || { // state_clone and path are moved
+                                                    state_clone.lock().unwrap().log.push(RichText::new("Generating cutlist...").color(Color32::YELLOW));
+                                                    {
+                                                        // SIGNAL RUNNING JOB
+                                                        let state = &mut state_clone.lock().unwrap();
+                                                        //state.log.push(RichText::new("Generating cutlist").color(Color32::YELLOW));
+
+                                                        if let Some(library_xml)=&state.library_xml { // TODO: threading bug, read first then lock, otherwise this hangs-up the program ui
+                                                            if let Some(project_xml)=&state.project_xml {
+                                                                let project = Project::new(&project_xml);
+                                                                if let Ok(project) = project {
+                                                                    let library = Library::new(&library_xml);
+                                                                    if let Ok(library) = library {
+                                                                        let mut filepath = PathBuf::from(state.output_dir.clone());
+                                                                        filepath.push(harness.to_owned() + ".xlsx");
+                                                                        println!("{}", filepath.display().to_string());
+                                                                        output_cutlist(&project, &library, &design_name, &harness, &filepath.display().to_string());
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                panic!("{:?}", "Project XML was not loaded.");
+                                                            }
+                                                        } else {
+                                                            panic!("{:?}", "Library XML was not loaded.");
+                                                        }
+
+                                                    }
+
+                                                    state_clone.lock().unwrap().log.push(RichText::new("Cutlist done").color(Color32::GREEN));
+                                                });
+
                                                 ui.close_menu();
                                             }
                                         });

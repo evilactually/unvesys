@@ -114,7 +114,8 @@ pub fn sort_wirelist_by_left_device_pin(wirelist: &mut Vec<WireEntry>) {
                         }
                         _ => {
                             // compare alphanumerically
-                            let pin_cmp = left_end_a.pin.cmp(&left_end_a.pin);
+                            //print!("{}{}", left_end_a.pin, )
+                            let pin_cmp = left_end_a.pin.cmp(&left_end_b.pin);
                             if (pin_cmp == Equal) {
                                 device_cmp // if pins are equal defer to device comparison  
                             } else {

@@ -17,7 +17,7 @@
 
 // use crate::traverse::*;
 
-// pub struct WireListXlsxFormatter<'a> {
+// pub struct HarnessTableXlsxFormatter<'a> {
 //     table : XLSXTable,
 //     workbook : &'a Workbook,
 //     sheet : Worksheet<'a>,
@@ -54,19 +54,19 @@
 //     const LEFT:u16 = 0;
 //     const TOP:u32 = 1;
 
-//     pub fn new<'a>(workbook: &'a xlsxwriter::Workbook, bg_colormap: &'a HashMap<std::string::String, xlsxwriter::format::FormatColor>) -> WireListXlsxFormatter<'a> {
-//         let mut table = XLSXTable::new();
-//         let mut format = Format::new();
-//         format.set_align(FormatAlignment::Center);
-//         table.set_default_format(format);
-//         WireListXlsxFormatter {
-//             table : table,
-//             workbook : workbook,
-//             sheet : workbook.add_worksheet(None).unwrap(),
-//             current_row : Self::TOP + 1,
-//             bg_colormap : bg_colormap
-//         }
-//     }
+    pub fn format_bom_table<'a>(workbook: &'a xlsxwriter::Workbook, xmltable: XmlTable) {
+        let mut table = XLSXTable::new();
+        let mut format = Format::new();
+        format.set_align(FormatAlignment::Center);
+        table.set_default_format(format);
+        // WireListXlsxFormatter {
+        //     table : table,
+        //     workbook : workbook,
+        //     sheet : workbook.add_worksheet(None).unwrap(),
+        //     current_row : Self::TOP + 1,
+        //     bg_colormap : bg_colormap
+        // }
+    }
 
 //     pub fn print_header(&mut self) {
 //         let row = Self::TOP;

@@ -39,8 +39,20 @@ pub struct XmlHarnessDesign<'a> {
     #[xml(attr = "description")]
     pub description: Option<Cow<'a, str>>,
     #[xml(child = "harnessdiagram")]
-    pub harnessdiagram: XmlHarnessDiagram<'a>
+    pub harnessdiagram: XmlHarnessDiagram<'a>,
+    #[xml(child = "harnesscontainer")]
+    pub harnesscontainer: XmlHarnessContainer<'a>,
 }
+
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "harnesscontainer")]
+pub struct XmlHarnessContainer<'a> {
+    #[xml(child = "connectivity")]
+    pub connectivity: XmlConnectivity<'a>,
+}
+
+
 
 // #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 // #[xml(tag = "harnessdesign")]
