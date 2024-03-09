@@ -64,6 +64,8 @@ use colored::*;
 
 mod graphs;
 
+mod project;
+
 use std::collections::{HashMap, HashSet};
 
 use petgraph::graph::{Graph, NodeIndex, EdgeIndex};
