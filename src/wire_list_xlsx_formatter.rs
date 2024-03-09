@@ -15,6 +15,7 @@ use xlsxwriter::worksheet::WorksheetCol;
 use xlsxwriter::worksheet::PaperType;
 
 use crate::wirelist::*;
+use crate::deviceindex::*;
 
 use crate::traverse::*;
 
@@ -53,7 +54,7 @@ impl WireListXlsxFormatter<'_> {
     const TO_PIN: u16 = 15;
     // Margins
     const LEFT:u16 = 0;
-    const TOP:u32 = 1;
+    const TOP:u32 = 0;
 
     pub fn new<'a>(workbook: &'a xlsxwriter::Workbook, bg_colormap: &'a HashMap<std::string::String, xlsxwriter::format::FormatColor>) -> WireListXlsxFormatter<'a> {
         let mut table = XLSXTable::new();
@@ -488,6 +489,9 @@ pub fn output_cutlist_from_connectivity(library: &Library, connectivity: &Connec
         xlsx_formatter.bar();
         //println!("{}", "END GROUP")
     }
+
+    // outout device index
+
 
 } else {
     // can't open path

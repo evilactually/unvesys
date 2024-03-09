@@ -288,6 +288,54 @@ pub struct Connectivity<'a> {
 
 impl<'a> Connectivity<'a> {
 
+    pub fn get_device_by_name(&'a self, name: &str) -> Option<Device<'a>> {
+        // search devices
+        if let Some(device_dom) = self.dom.device.iter().find(|device_dom| device_dom.name == name) {
+            Some(Device {
+               connectivity: self,
+               dom: device_dom
+           })
+        } else {
+            None
+        }
+    }
+
+    pub fn get_connector_by_name(&'a self, name: &str) -> Option<Connector<'a>> {
+        // search devices
+        if let Some(connector_dom) = self.dom.connector.iter().find(|connector_dom| connector_dom.name == name) {
+            Some(Connector {
+               connectivity: self,
+               dom: connector_dom
+           })
+        } else {
+            None
+        }
+    }
+
+    pub fn get_splice_by_name(&'a self, name: &str) -> Option<Splice<'a>> {
+        // search devices
+        if let Some(splice_dom) = self.dom.splice.iter().find(|splice_dom| splice_dom.name == name) {
+            Some(Splice {
+               connectivity: self,
+               dom: splice_dom
+           })
+        } else {
+            None
+        }
+    }
+
+    pub fn get_grounddevice_by_name(&'a self, name: &str) -> Option<GroundDevice<'a>> {
+        // search devices
+        if let Some(gnd_dom) = self.dom.grounddevice.iter().find(|gnd_dom| gnd_dom.name == name) {
+            Some(GroundDevice {
+               connectivity: self,
+               dom: gnd_dom
+           })
+        } else {
+            None
+        }
+    }
+
     pub fn get_connection_by_pinref(&'a self, pinref: &str) -> Option<Connection<'a>> {
          // search connectors
         for connector_dom in &self.dom.connector {

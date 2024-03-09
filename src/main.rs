@@ -92,6 +92,8 @@ use process_path;
 mod wirelist;
 use crate::wirelist::*;
 
+mod deviceindex;
+
 mod traverse;
 
 use winreg::*;
