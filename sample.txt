@@ -1,0 +1,5 @@
+Import	ASCII
+Units	inch
+Area	TT
+Name	Part	Length	Style	Stripping type	Right strip	Left strip	Partial strip %	Marker left text	Marker left position	Marker right text	Marker right position	Autorotation
+Wrire1	1	15	20ga_GXL_ Pink_WL20-12_70445-SD-100	9	0.6	0.6	50%	@6\#CJ3-1\&n\&@6T12A1-2	3.25	@6\#CJ3-1\&n\&@6T12A1-2	2	X
