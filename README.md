@@ -17,9 +17,10 @@ BUILD
 
 This application is written in Rust.
 
-`
+```
 cargo build
-cargo run`
+cargo run
+```
 
 
 OPEN PROJECT
