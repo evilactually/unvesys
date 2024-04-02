@@ -12,8 +12,8 @@ use std::collections::{HashSet};
 
 pub use hard_xml::{XmlError};
 
-pub struct Project<'a> {
-    pub dom: XmlProject<'a>,
+pub struct Project {
+    pub dom: XmlProject,
 }
 
 fn read_file(filename:&str) -> std::io::Result<String> {
@@ -30,9 +30,9 @@ fn read_file(filename:&str) -> std::io::Result<String> {
 //     Dud
 // }
 
-impl<'a> Project<'a> {
+impl<'a> Project {
 
-    pub fn new(xml: &'a str) -> Result<Project<'a>, XmlError> {
+    pub fn new(xml: &'a str) -> Result<Project, XmlError> {
         XmlProject::from_str(&xml).map(|dom| {
             Project {
                 dom : dom
@@ -110,8 +110,8 @@ impl<'a> Project<'a> {
 }
 
 pub struct LogicalDesignIter<'a> {
-    project:&'a Project<'a>,
-    logicaldesign_iter: std::slice::Iter<'a, XmlLogicalDesign<'a>>
+    project:&'a Project,
+    logicaldesign_iter: std::slice::Iter<'a, XmlLogicalDesign>
 }
 
 
@@ -130,8 +130,8 @@ impl<'a> Iterator for LogicalDesignIter<'a> {
 }
 
 pub struct LogicalDesign<'a> {
-    pub project: &'a Project<'a>,
-    pub dom: &'a XmlLogicalDesign<'a>
+    pub project: &'a Project,
+    pub dom: &'a XmlLogicalDesign
 }
 
 impl<'a> LogicalDesign<'a> {
@@ -283,7 +283,7 @@ impl<'a> LogicalDesign<'a> {
 }
 
 pub struct Connectivity<'a> {
-    pub dom: &'a XmlConnectivity<'a>
+    pub dom: &'a XmlConnectivity
 }
 
 impl<'a> Connectivity<'a> {
@@ -417,7 +417,7 @@ impl<'a> Connectivity<'a> {
 
     pub fn get_wires(&'a self, harness: &str) -> Vec<Wire<'a>> {
         self.get_wire_iter().filter(|wire| {
-            harness.is_empty() || wire.dom.harness.as_ref().map(|cow_str| cow_str.as_ref() == harness).unwrap_or_default()
+            harness.is_empty() || wire.dom.harness.as_ref().map(|cow_str| cow_str == harness).unwrap_or_default()
         }).collect()
     }
     
@@ -445,7 +445,7 @@ impl<'a> Connectivity<'a> {
 
 pub struct WireIter<'a> {
     connectivity:&'a Connectivity<'a>,
-    wire_iter: std::slice::Iter<'a, XmlWire<'a>>
+    wire_iter: std::slice::Iter<'a, XmlWire>
 }
 
 // Iterator that converts XmlDesign into LogicalDesign on the fly
@@ -471,12 +471,12 @@ pub enum Connection<'a> {
 
 pub struct Connector<'a> {
     connectivity: &'a Connectivity<'a>,
-    pub dom: &'a XmlConnector<'a>
+    pub dom: &'a XmlConnector
 }
 
 pub struct Splice<'a> {
     connectivity: &'a Connectivity<'a>,
-    pub dom: &'a XmlSplice<'a>
+    pub dom: &'a XmlSplice
 }
 
 impl<'a> Splice<'a> {
@@ -535,7 +535,7 @@ impl<'a> Connector<'a> {
     // }
 
     pub fn is_ring(&self) -> bool {
-        self.dom.connectorusage.as_ref() == "RingTerminal"
+        self.dom.connectorusage == "RingTerminal"
     }
 
 
@@ -550,7 +550,7 @@ impl<'a> Connector<'a> {
 
 pub struct Device<'a> {
     connectivity: &'a Connectivity<'a>,
-    dom: &'a XmlDevice<'a>
+    dom: &'a XmlDevice
 }
 
 impl<'a> Device<'a> {
@@ -561,7 +561,7 @@ impl<'a> Device<'a> {
 
 pub struct GroundDevice<'a> {
     connectivity: &'a Connectivity<'a>,
-    dom: &'a XmlGroundDevice<'a>
+    dom: &'a XmlGroundDevice
 }
 
 impl<'a> GroundDevice<'a> {
@@ -572,7 +572,7 @@ impl<'a> GroundDevice<'a> {
 
 pub struct Wire<'a> {
     connectivity: &'a Connectivity<'a>,
-    dom: &'a XmlWire<'a>
+    dom: &'a XmlWire
 }
 
 impl<'a> Wire<'a> {
@@ -648,10 +648,10 @@ impl<'a> Wire<'a> {
                 // Return first wire end
                 if pinref == startpinref {
                     // Option<Cow<'a, str>> -> Option<&Cow<'a, str>> -> Option<&str>
-                    self.dom.terminalpartspecend1.as_ref().map(Cow::as_ref)
+                    self.dom.terminalpartspecend1.as_deref()
                 } else {
                     // Option<Cow<'a, str>> -> Option<&Cow<'a, str>> -> Option<&str>
-                    self.dom.terminalpartspecend2.as_ref().map(Cow::as_ref)
+                    self.dom.terminalpartspecend2.as_deref()
                 }
             }
             // If there's no startpinref than there's nothing I can do to help you determine wire end
@@ -700,7 +700,7 @@ impl<'a> Wire<'a> {
 
 pub struct Pin<'a> {
     connectivity: &'a Connectivity<'a>,
-    dom: &'a XmlPin<'a>
+    dom: &'a XmlPin
 }
 
 impl<'a> Pin<'a> {
@@ -737,8 +737,8 @@ struct Test3 {
 // }
 
 pub struct HarnessDesignIter<'a> {
-    project:&'a Project<'a>,
-    harnessdesign_iter: std::slice::Iter<'a, XmlHarnessDesign<'a>>
+    project:&'a Project,
+    harnessdesign_iter: std::slice::Iter<'a, XmlHarnessDesign>
 }
 
 impl<'a> Iterator for HarnessDesignIter<'a> {
@@ -755,8 +755,8 @@ impl<'a> Iterator for HarnessDesignIter<'a> {
 }
 
 pub struct HarnessDesign<'a> {
-    pub project: &'a Project<'a>,
-    pub dom: &'a XmlHarnessDesign<'a>
+    pub project: &'a Project,
+    pub dom: &'a XmlHarnessDesign
 }
 
 impl<'a> HarnessDesign<'a> {

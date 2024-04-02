@@ -3,12 +3,12 @@ use hard_xml::XmlError;
 use std::collections::HashMap;
 use crate::vysyslibxml::*;
 
-pub struct Library<'a> {
-    dom: XmlChssystem<'a>,
+pub struct Library {
+    dom: XmlChssystem,
 }
 
-impl<'a> Library<'a> {
-    pub fn new(xml:&'a str) -> Result<Library, XmlError> {
+impl Library {
+    pub fn new(xml:&str) -> Result<Library, XmlError> {
         XmlChssystem::from_str(xml).map(|dom| {
             Library {
                 dom : dom,

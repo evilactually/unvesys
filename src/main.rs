@@ -1,5 +1,6 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+use std::thread::sleep;
 use std::time::Duration;
 use winreg::enums::HKEY_CURRENT_USER;
 use egui::RichText;
@@ -52,8 +53,8 @@ use crate::vysis::*;
 mod vysyslibxml;
 use crate::vysyslibxml::*;
 
-mod json;
-use crate::json::*;
+// mod json;
+// use crate::json::*;
 
 mod outline;
 use crate::outline::*;
@@ -65,6 +66,9 @@ use colored::*;
 mod graphs;
 
 mod project;
+
+mod application;
+use application::*;
 
 use std::collections::{HashMap, HashSet};
 
@@ -179,49 +183,49 @@ fn show_project_info(project: &Project) {
 
 
 
-fn print_field_opt(fieldname:&str, field_opt: &Option<Cow<str>>) {
-    field_opt.as_ref().map(|field|
-        if field.len() > 0 {
-            println!("\t\t{}{}{}", fieldname.bright_yellow(), ": ".bright_yellow(), field.yellow())
-        });
-}
+// fn print_field_opt(fieldname:&str, field_opt: &Option<Cow<str>>) {
+//     field_opt.as_ref().map(|field|
+//         if field.len() > 0 {
+//             println!("\t\t{}{}{}", fieldname.bright_yellow(), ": ".bright_yellow(), field.yellow())
+//         });
+// }
 
-fn print_field(fieldname:&str, field: Cow<str>) {
-    if field.len() > 0 {
-        println!("\t\t{}{}{}", fieldname.bright_yellow(), ": ".bright_yellow(), field.yellow());
-    }
-}
+// fn print_field(fieldname:&str, field: Cow<str>) {
+//     if field.len() > 0 {
+//         println!("\t\t{}{}{}", fieldname.bright_yellow(), ": ".bright_yellow(), field.yellow());
+//     }
+// }
 
-fn lookup_pinref<'a>(design_dom: &XmlLogicalDesign<'a>, pinref_uuid: Cow<str>) -> (XmlConnector<'a>, XmlPin<'a>){
-    unimplemented!()
-}
+// fn lookup_pinref<'a>(design_dom: &XmlLogicalDesign<'a>, pinref_uuid: Cow<str>) -> (XmlConnector<'a>, XmlPin<'a>){
+//     unimplemented!()
+// }
 
-fn show_design_info__(dom: &XmlProject, design_name: &str) {
-    println!("{} {}", "XmlProject Name:".bright_yellow(), dom.name.yellow());
-    let index = dom.designmgr.logicaldesign.iter().position(|design| design.name == design_name);
-    match index {
-        Some(index) => {
-            let design_dom = &dom.designmgr.logicaldesign[index];
-            println!("{} {}", "Logical Design Name:".bright_yellow(), design_dom.name.yellow());
-            println!("{}","Devices:".bright_yellow());
-            for device in &design_dom.connectivity.device {
-                println!("\t{}:", device.name.yellow());
-                print_field_opt("MPN", &device.partnumber);
-                print_field_opt("Part Number", &device.customerpartnumber);
-                print_field_opt("Part Description", &device.partdesc);
-                print_field_opt("Short Description", &device.shortdescription);
-            }
-            println!("{}","Wires:".bright_yellow());
-            for wire in &design_dom.connectivity.wire {
+// fn show_design_info__(dom: &XmlProject, design_name: &str) {
+//     println!("{} {}", "XmlProject Name:".bright_yellow(), dom.name.yellow());
+//     let index = dom.designmgr.logicaldesign.iter().position(|design| design.name == design_name);
+//     match index {
+//         Some(index) => {
+//             let design_dom = &dom.designmgr.logicaldesign[index];
+//             println!("{} {}", "Logical Design Name:".bright_yellow(), design_dom.name.yellow());
+//             println!("{}","Devices:".bright_yellow());
+//             for device in &design_dom.connectivity.device {
+//                 println!("\t{}:", device.name.yellow());
+//                 print_field_opt("MPN", &device.partnumber);
+//                 print_field_opt("Part Number", &device.customerpartnumber);
+//                 print_field_opt("Part Description", &device.partdesc);
+//                 print_field_opt("Short Description", &device.shortdescription);
+//             }
+//             println!("{}","Wires:".bright_yellow());
+//             for wire in &design_dom.connectivity.wire {
 
-            }
-            println!("{}", "OK".bright_green());
-        }
-        None => {
-            println!("{}{}", "Error: ".red(), "Logical design with that name was not found.".to_string().bright_red())
-        }
-    }
-}
+//             }
+//             println!("{}", "OK".bright_green());
+//         }
+//         None => {
+//             println!("{}{}", "Error: ".red(), "Logical design with that name was not found.".to_string().bright_red())
+//         }
+//     }
+// }
 
 fn show_design_info(dom: &XmlProject, design_name: &str) {
     let index = dom.designmgr.logicaldesign.iter().position(|design| design.name == design_name);
@@ -546,23 +550,60 @@ fn show_project_info_gui(project: &Project, ui : &mut Ui) {
 }
 
 
+fn load_library(state_clone: Arc<Mutex<State>>) -> io::Result<()> {
+    state_clone.lock().unwrap().log.push(RichText::new("Loading library").color(Color32::YELLOW));
+    let path = process_path::get_executable_path();
+    match path {
+        None => {}
+        Some(mut path) => { 
+            path.set_file_name("Library.xml");
+            let library_xml = read_file(&path.display().to_string());
+            match library_xml {
+                Ok(library_xml) => {
+                    //println!("{}", &library_xml);
+                    match Library::new(&library_xml) {
+                        Ok(library) => {
+                            state_clone.lock().unwrap().library = Some(library);
+                            state_clone.lock().unwrap().log.push(RichText::new("Library loaded").color(Color32::GREEN));
+                        }
+                        _ => {
+                            state_clone.lock().unwrap().log.push(RichText::new("Library loading error").color(Color32::RED));
+                        }
+                    }
+                }
+                _ => {
+                    state_clone.lock().unwrap().log.push(RichText::new("Library loading error").color(Color32::RED));
+                }
+            }
+        },
+    }
+    Ok(())
+}
 
-fn startup_worker(state_clone: Arc<Mutex<State>>) -> io::Result<()> {
+
+fn read_saved_session_data(state_clone: Arc<Mutex<State>>) -> io::Result<()> {
     // Restore output directory from registry
     let hklu = RegKey::predef(HKEY_CURRENT_USER);
     let unvesys_key = hklu.open_subkey("SOFTWARE\\Unvesys")?;
     let output_dir = &mut state_clone.lock().unwrap().output_dir;
     *output_dir = unvesys_key.get_value("output_dir")?;
-    println!("Retrieved output_dir:  {}", *output_dir);
-    return Ok(());
+    //println!("Retrieved output_dir:  {}", *output_dir);
+    Ok(())
+}
 
+
+fn startup_worker(state_clone: Arc<Mutex<State>>) -> io::Result<()> {
+    read_saved_session_data(state_clone.clone());
+    load_library(state_clone.clone());
+    Ok(())
 }
 
 struct State {
     duration: u64,
-    ctx: Option<egui::Context>,
     project_xml: Option<String>,
+    project: Option<Project>,
     library_xml: Option<String>,
+    library: Option<Library>,
     project_outline: Option<ProjectOutline>,
     output_dir: String,
     log: Vec::<RichText>
@@ -572,9 +613,10 @@ impl State {
     pub fn new() -> Self {
         Self {
             duration: 0,
-            ctx: None,
             project_xml: None,
+            project: None,
             library_xml: None,
+            library: None,
             project_outline: None,
             output_dir: Default::default(),
             log: Vec::<RichText>::new()
@@ -589,30 +631,12 @@ pub struct App {
 impl App {
     pub fn new(cc: &eframe::CreationContext) -> Self {
         let state = Arc::new(Mutex::new(State::new()));
-        state.lock().unwrap().ctx = Some(cc.egui_ctx.clone());
         let state_clone = state.clone();
         // Any slow start-up work goes here
         std::thread::spawn(move || {
-            state_clone.lock().unwrap().log.push(RichText::new("Loading library").color(Color32::YELLOW));
-            let path = process_path::get_executable_path();
-            match path {
-                None => {}
-                Some(mut path) => { 
-                    path.set_file_name("Library.xml");
-                    let library_xml = read_file(&path.display().to_string());
-                    match library_xml {
-                        Ok(library_xml) => {
-                            //println!("{}", &library_xml);
-                            state_clone.lock().unwrap().library_xml = Some(library_xml);
-                            state_clone.lock().unwrap().log.push(RichText::new("Library loaded").color(Color32::GREEN));
-                        }
-                        _ => {
-                            state_clone.lock().unwrap().log.push(RichText::new("Library loading error").color(Color32::RED));
-                        }
-                    }
-                    //println!("Path: {:?}", path)
-                },
-            }
+            
+
+
             //let xml = read_file(&xmlpath);
 
             startup_worker(state_clone.clone());
@@ -649,6 +673,7 @@ impl<'a> eframe::App for App {
                                         let project = Project::new(&xml);
                                         if let Ok(project) = project {
                                             state_clone.lock().unwrap().project_outline = Some(ProjectOutline::new(&project));
+                                            state_clone.lock().unwrap().project = Some(project);
                                             state_clone.lock().unwrap().project_xml = Some(xml); // store XML for later use
                                         } else {
                                             project.map_err(|e| {
@@ -734,24 +759,27 @@ impl<'a> eframe::App for App {
                                                         let state = &mut state_clone.lock().unwrap();
                                                         //state.log.push(RichText::new("Generating cutlist").color(Color32::YELLOW));
 
-                                                        if let Some(library_xml)=&state.library_xml { // TODO: threading bug, read first then lock, otherwise this hangs-up the program ui
-                                                            if let Some(project_xml)=&state.project_xml {
-                                                                let project = Project::new(&project_xml);
-                                                                if let Ok(project) = project {
-                                                                    let library = Library::new(&library_xml);
-                                                                    if let Ok(library) = library {
-                                                                        let mut filepath = PathBuf::from(state.output_dir.clone());
-                                                                        filepath.push(harness.to_owned() + ".xlsx");
-                                                                        println!("{}", filepath.display().to_string());
-                                                                        output_cutlist(&project, &library, &design_name, &harness, &filepath.display().to_string());
-                                                                    }
+                                                        //if let Some(library_xml)=&state.library_xml { // TODO: threading bug, read first then lock, otherwise this hangs-up the program ui
+                                                            if let Some(project)=&state.project {
+                                                                //let project = Project::new(&project_xml);
+                                                                //let library = Library::new(&library_xml);
+                                                                if let Some(library) = &state.library {
+                                                                    let mut filepath = PathBuf::from(state.output_dir.clone());
+                                                                    filepath.push(harness.to_owned() + ".xlsx");
+                                                                    println!("{}", filepath.display().to_string());
+                                                                    output_cutlist(&project, &library, &design_name, &harness, &filepath.display().to_string());
+                                                                } else {
+                                                                    state.log.push(RichText::new("Library is not ready!").color(Color32::RED));
+                                                                    return;
+                                                                    //panic!("{:?}", "Library XML was not loaded.");
                                                                 }
                                                             } else {
-                                                                panic!("{:?}", "Project XML was not loaded.");
+                                                                return;
+                                                                //panic!("{:?}", "Project XML was not loaded.");
                                                             }
-                                                        } else {
-                                                            panic!("{:?}", "Library XML was not loaded.");
-                                                        }
+                                                        //} else {
+                                                        //    panic!("{:?}", "Library XML was not loaded.");
+                                                        //}
 
                                                     }
 
@@ -897,33 +925,34 @@ impl<'a> eframe::App for App {
                     ui.horizontal_centered(|ui| {
                     let mut dino =
 r"
-                                                                              
-                                                                      
-                      ██          ██                                  
-                    ████          ████                                
-                  ██  ▒▒██████████▒▒  ██                              
-                  ██  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒  ██                              
-                  ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██                              
-                ██▒▒      ▒▒▒▒▒▒      ▒▒██                            
-                ██          ▒▒          ██                            
-                ██    ████  ▒▒  ████    ██                            
-                ██    ████  ▒▒  ████    ██                            
-                ██▒▒      ▒▒▒▒▒▒      ▒▒██                            
-                ██▒▒▒▒▒▒▒▒░░░░░░▒▒▒▒▒▒▒▒██                            
-      ░░    ░░  ██▒▒▒▒▒▒▒▒▒▒░░▒▒▒▒▒▒▒▒▒▒██                            
-        ▓▓░░    ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██            ░░              
-      ▓▓▒▒        ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒████    ░░    ▒▒                
-    ▓▓            ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██  ░░    ▒▒  ▒▒▓▓              
-▒▒▓▓  ▒▒            ██░░░░░░██░░░░░░██  ░░░░      ▒▒    ░░            
-▒▒▓▓▓▓            ▒▒▓▓██████▒▒██▓▓██▓▓▓▓░░  ▓▓▓▓▓▓  ░░                
-  ▒▒▒▒▒▒      ▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▒▒░░░░      ░░              
-    ▒▒▓▓▓▓▓▓▒▒▒▒▒▒            ▓▓░░      ▒▒▓▓      ░░      ░░          
-      ▓▓▓▓▒▒▒▒                  ▓▓░░    ▓▓  ▓▓  ░░▓▓  ▓▓░░            
-        ▒▒                                ▒▒  ▓▓    ▒▒▒▒  ░░          
-          ▓▓▒▒                          ░░      ▓▓▓▓▒▒░░              
-        ░░    ░░                              ▒▒      ▒▒░░            
-                                                                      
-                           
+                                                                                  
+                          ██████                  
+                ██████  ██▒▒▒▒▒▒██                
+              ██▒▒▒▒▒▒██▒▒▒▒▒▒▒▒▒▒██              
+              ██▒▒▒▒▒▒▒▒██▒▒▒▒▒▒▒▒██              
+              ██▒▒▒▒▒▒▒▒▒▒██▒▒▒▒▒▒▒▒██            
+                ██▒▒▒▒▒▒▒▒▒▒██▒▒▒▒▒▒██            
+                ██▒▒▒▒▒▒▒▒▒▒██▒▒▒▒▒▒██            
+                  ██▒▒▒▒▒▒▒▒▒▒████████            
+                    ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒████        
+                      ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒    ██      
+              ██████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒    ██    
+          ████▒▒    ████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒  ██    
+        ██▒▒▒▒▒▒    ██▒▒▒▒▒▒▒▒      ▒▒▒▒▒▒  ██    
+      ██▒▒▒▒▒▒▒▒    ██▒▒▒▒▒▒▒▒  ████  ▒▒▒▒  ██    
+      ██▒▒▒▒▒▒▒▒    ██▒▒▒▒▒▒▒▒  ████  ▒▒▒▒    ██  
+    ██▒▒▒▒▒▒▒▒▒▒    ██▒▒▒▒▒▒▒▒▒▒    ▒▒▒▒      ██  
+    ██▒▒▒▒▒▒▒▒▒▒      ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒    ▒▒██    
+    ██▒▒▒▒▒▒▒▒▒▒▒▒      ██                ██      
+    ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒      ████          ████      
+    ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒          ██████████░░░░██    
+    ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒              ████░░░░██    
+      ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒    ████    ████░░██░░
+      ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒    ████    ██░░  
+        ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒████████        ░░  ░░
+          ████▒▒▒▒▒▒▒▒▒▒  ██▒▒▒▒▒▒▒▒██            
+          ██▒▒▒▒▒▒▒▒        ██████████            
+            ██████████████████████████            
 
 Click on File -> Open to load a VeSys project file...
     
@@ -977,7 +1006,7 @@ Click on File -> Open to load a VeSys project file...
 
 fn main() {
     let mut native_options = eframe::NativeOptions::default();
-    native_options.initial_window_size = Some(egui::vec2(410.0, 600.0));
+    native_options.initial_window_size = Some(egui::vec2(450.0, 800.0));
     native_options.default_theme = Theme::Dark;
     native_options.follow_system_theme = false;
 

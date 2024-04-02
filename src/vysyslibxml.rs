@@ -6,95 +6,95 @@ pub use hard_xml::{XmlRead, XmlWrite};
 /// VeSys Library root
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "chssystem")]
-pub struct XmlChssystem<'a> {
+pub struct XmlChssystem {
     #[xml(child = "devicepart")]
-    pub devicepart: Vec<XmlDevicePart<'a>>,
+    pub devicepart: Vec<XmlDevicePart>,
     #[xml(child = "terminalpart")]
-    pub terminalpart: Vec<XmlTerminalPart<'a>>,
+    pub terminalpart: Vec<XmlTerminalPart>,
     #[xml(child = "splicepart")]
-    pub splicepart: Vec<XmlSplicePart<'a>>,
+    pub splicepart: Vec<XmlSplicePart>,
     #[xml(child = "librarycolor")]
-    pub librarycolor: Vec<XmlLibraryColorCode<'a>>,
+    pub librarycolor: Vec<XmlLibraryColorCode>,
     #[xml(child = "chsuserproperty")]
-    pub chsuserproperty: Vec<XmlChsUserProperty<'a>>,
+    pub chsuserproperty: Vec<XmlChsUserProperty>,
 }
 
 /// Device entry in a library
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "devicepart")]
-pub struct XmlDevicePart<'a> {
+pub struct XmlDevicePart {
     #[xml(attr = "libraryobject_id")]
-    pub libraryobject_id: Cow<'a, str>,
+    pub libraryobject_id: String,
     #[xml(attr = "partnumber")]
-    pub partnumber: Cow<'a, str>,
+    pub partnumber: String,
     #[xml(child = "customerpartnumber")]
-    pub customerpartnumber: Vec<XmlCustomerPartNumber<'a>>,
+    pub customerpartnumber: Vec<XmlCustomerPartNumber>,
 }
 
 /// Splice entry in a library
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "splicepart")]
-pub struct XmlSplicePart<'a> {
+pub struct XmlSplicePart {
     #[xml(attr = "libraryobject_id")]
-    pub libraryobject_id: Cow<'a, str>,
+    pub libraryobject_id: String,
     #[xml(attr = "partnumber")]
-    pub partnumber: Cow<'a, str>,
+    pub partnumber: String,
     #[xml(child = "customerpartnumber")]
-    pub customerpartnumber: Vec<XmlCustomerPartNumber<'a>>,
+    pub customerpartnumber: Vec<XmlCustomerPartNumber>,
 }
 
 /// Device entry in a library
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "terminalpart")]
-pub struct XmlTerminalPart<'a> {
+pub struct XmlTerminalPart {
     #[xml(attr = "libraryobject_id")]
-    pub libraryobject_id: Cow<'a, str>,
+    pub libraryobject_id: String,
     #[xml(attr = "partnumber")]
-    pub partnumber: Cow<'a, str>,
+    pub partnumber: String,
     #[xml(child = "customerpartnumber")]
-    pub customerpartnumber: Vec<XmlCustomerPartNumber<'a>>,
+    pub customerpartnumber: Vec<XmlCustomerPartNumber>,
     #[xml(child = "chsuserpropertypart")]
-    pub chsuserpropertypart: Vec<XmlChsUserPropertyPart<'a>>,
+    pub chsuserpropertypart: Vec<XmlChsUserPropertyPart>,
 }
 
 /// Customer part number of a component
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "customerpartnumber")]
-pub struct XmlCustomerPartNumber<'a> {
+pub struct XmlCustomerPartNumber {
     #[xml(attr = "customerpartnumber")]
-    pub customerpartnumber: Cow<'a, str>,
+    pub customerpartnumber: String,
 }
 
 /// Property inside a part
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "chsuserpropertypart")]
-pub struct XmlChsUserPropertyPart<'a> {
+pub struct XmlChsUserPropertyPart {
     #[xml(attr = "chsuserproperty_id")]
-    pub chsuserproperty_id: Cow<'a, str>,
+    pub chsuserproperty_id: String,
     #[xml(attr = "userpropertyvalue")]
-    pub userpropertyvalue: Cow<'a, str>,
+    pub userpropertyvalue: String,
 }
 
 /// Color code entry in a library
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "librarycolor")]
-pub struct XmlLibraryColorCode<'a> {
+pub struct XmlLibraryColorCode {
     #[xml(attr = "librarycolor_id")]
-    pub libraryobject_id: Cow<'a, str>,
+    pub libraryobject_id: String,
     #[xml(attr = "colorcode")]
-    pub colorcode: Cow<'a, str>,
+    pub colorcode: String,
     #[xml(attr = "description")]
-    pub description: Cow<'a, str>,
+    pub description: String,
 }
 
 /// User property in the library
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "chsuserproperty")]
-pub struct XmlChsUserProperty<'a> {
+pub struct XmlChsUserProperty {
     #[xml(attr = "chsuserproperty_id")]
-    pub chsuserproperty_id: Cow<'a, str>,
+    pub chsuserproperty_id: String,
     #[xml(attr = "userpropertyname")]
-    pub userpropertyname: Cow<'a, str>,
+    pub userpropertyname: String,
 }
 
 

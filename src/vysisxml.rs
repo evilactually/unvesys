@@ -4,139 +4,139 @@ pub use hard_xml::{XmlRead, XmlWrite};
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "project")]
-pub struct XmlProject<'a> {
+pub struct XmlProject {
     #[xml(attr = "name")]
-    pub name: Cow<'a, str>,
+    pub name: String,
     #[xml(child = "designmgr")]
-    pub designmgr: XmlDesignMgr<'a>,
+    pub designmgr: XmlDesignMgr,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "designmgr")]
-pub struct XmlDesignMgr<'a> {
+pub struct XmlDesignMgr {
     #[xml(child = "logicaldesign")]
-    pub logicaldesign: Vec<XmlLogicalDesign<'a>>,
+    pub logicaldesign: Vec<XmlLogicalDesign>,
     #[xml(child = "harnessdesign")]
-    pub harnessdesign: Vec<XmlHarnessDesign<'a>>,
+    pub harnessdesign: Vec<XmlHarnessDesign>,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "logicaldesign")]
-pub struct XmlLogicalDesign<'a> {
+pub struct XmlLogicalDesign {
     #[xml(attr = "name")]
-    pub name: Cow<'a, str>,
+    pub name: String,
     #[xml(attr = "description")]
-    pub description: Option<Cow<'a, str>>,
+    pub description: Option<String>,
     #[xml(child = "connectivity")]
-    pub connectivity: XmlConnectivity<'a>,
+    pub connectivity: XmlConnectivity,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "harnessdesign")]
-pub struct XmlHarnessDesign<'a> {
+pub struct XmlHarnessDesign {
     #[xml(attr = "name")]
-    pub name: Cow<'a, str>,
+    pub name: String,
     #[xml(attr = "description")]
-    pub description: Option<Cow<'a, str>>,
+    pub description: Option<String>,
     #[xml(child = "harnessdiagram")]
-    pub harnessdiagram: XmlHarnessDiagram<'a>,
+    pub harnessdiagram: XmlHarnessDiagram,
     #[xml(child = "harnesscontainer")]
-    pub harnesscontainer: XmlHarnessContainer<'a>,
+    pub harnesscontainer: XmlHarnessContainer,
 }
 
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "harnesscontainer")]
-pub struct XmlHarnessContainer<'a> {
+pub struct XmlHarnessContainer {
     #[xml(child = "connectivity")]
-    pub connectivity: XmlConnectivity<'a>,
+    pub connectivity: XmlConnectivity,
 }
 
 
 
 // #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 // #[xml(tag = "harnessdesign")]
-// pub struct XmlHarnessDesign<'a> {
+// pub struct XmlHarnessDesign {
 //     #[xml(child = "harnessdiagram")]
-//     pub harnessdiagram: XmlHarnessDiagram<'a>
+//     pub harnessdiagram: XmlHarnessDiagram
 // }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "harnessdiagram")]
-pub struct XmlHarnessDiagram<'a> {
+pub struct XmlHarnessDiagram {
     #[xml(child = "harnessdiagramcontent")]
-    pub harnessdiagramcontent: XmlHarnessDiagramContent<'a>
+    pub harnessdiagramcontent: XmlHarnessDiagramContent
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "harnessdiagramcontent")]
-pub struct XmlHarnessDiagramContent<'a> {
+pub struct XmlHarnessDiagramContent {
     #[xml(attr = "harnessdiagramid")]
-    pub harnessdiagramid: Cow<'a, str>,
+    pub harnessdiagramid: String,
     #[xml(child = "tablegroup")]
-    pub tablegroup: Vec<XmlTableGroup<'a>>
+    pub tablegroup: Vec<XmlTableGroup>
 }
 
 /* XmlTableGroup */
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "tablegroup")]
-pub struct XmlTableGroup<'a> {
+pub struct XmlTableGroup {
     #[xml(attr = "title")]
-    pub title: Cow<'a, str>,
+    pub title: String,
     #[xml(attr = "decorationname")]
-    pub decorationname: Cow<'a, str>
+    pub decorationname: String
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "tabledatacache")]
-pub struct XmlTableDataCache<'a> {
+pub struct XmlTableDataCache {
     #[xml(child = "colhdrnames")]
-    pub colhdrnames: XmlColHdrNames<'a>,
+    pub colhdrnames: XmlColHdrNames,
     #[xml(child = "datavalues")]
-    pub datavalues: XmlDataValues<'a>
+    pub datavalues: XmlDataValues
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "colhdrnames")]
-pub struct XmlColHdrNames<'a> {
+pub struct XmlColHdrNames {
   #[xml(child = "row")]
-  pub row: XmlRow<'a>
+  pub row: XmlRow
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "row")]
-pub struct XmlRow<'a> {
+pub struct XmlRow {
   #[xml(child = "cellval")]
-  pub cellvals: Vec<XmlCellVal<'a>>
+  pub cellvals: Vec<XmlCellVal>
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "datavalues")]
-pub struct XmlDataValues<'a> {
+pub struct XmlDataValues {
     #[xml(child = "datarow")]
-    pub datarow: Vec<XmlDataRow<'a>>
+    pub datarow: Vec<XmlDataRow>
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "datarow")]
-pub struct XmlDataRow<'a> {
+pub struct XmlDataRow {
     #[xml(child = "cellval")]
-     pub cellval: XmlCellVal<'a>
+     pub cellval: XmlCellVal
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "cellval")]
-pub struct XmlCellVal<'a> {
+pub struct XmlCellVal {
     #[xml(child = "cval")]
-    pub cval: XmlCVal<'a>
+    pub cval: XmlCVal
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "cval")]    
-pub struct XmlCVal<'a> {
+pub struct XmlCVal {
     #[xml(attr = "val")]
-     pub val: Cow<'a, str>
+     pub val: String
 }
 
 /* XmlTableGroup */
@@ -145,155 +145,155 @@ pub struct XmlCVal<'a> {
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "connectivity")]
-pub struct XmlConnectivity<'a> {
+pub struct XmlConnectivity {
     #[xml(child = "device")]
-    pub device: Vec<XmlDevice<'a>>,
+    pub device: Vec<XmlDevice>,
     #[xml(child = "connector")]
-    pub connector: Vec<XmlConnector<'a>>,
+    pub connector: Vec<XmlConnector>,
     #[xml(child = "splice")]
-    pub splice: Vec<XmlSplice<'a>>,
+    pub splice: Vec<XmlSplice>,
     #[xml(child = "wire")]
-    pub wire: Vec<XmlWire<'a>>,
+    pub wire: Vec<XmlWire>,
     #[xml(child = "multicore")]
-    pub multicore: Vec<XmlMulticore<'a>>,
+    pub multicore: Vec<XmlMulticore>,
     #[xml(child = "grounddevice")]
-    pub grounddevice: Vec<XmlGroundDevice<'a>>,
+    pub grounddevice: Vec<XmlGroundDevice>,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "device")]
-pub struct XmlDevice<'a> {
+pub struct XmlDevice {
     #[xml(attr = "name")]
-    pub name: Cow<'a, str>,
+    pub name: String,
     #[xml(attr = "partnumber")]
-    pub partnumber: Option<Cow<'a, str>>,
+    pub partnumber: Option<String>,
     #[xml(attr = "customerpartnumber")]
-    pub customerpartnumber: Option<Cow<'a, str>>,
+    pub customerpartnumber: Option<String>,
     #[xml(attr = "customername")]
-    pub customername: Option<Cow<'a, str>>,
+    pub customername: Option<String>,
     #[xml(attr = "partdesc")]
-    pub partdesc: Option<Cow<'a, str>>,
+    pub partdesc: Option<String>,
     #[xml(attr = "typecode")]
-    pub typecode: Option<Cow<'a, str>>,
+    pub typecode: Option<String>,
     #[xml(attr = "typecodedesc")]
-    pub typecodedesc: Option<Cow<'a, str>>,
+    pub typecodedesc: Option<String>,
     #[xml(attr = "colorcode")]
-    pub colorcode: Option<Cow<'a, str>>,
+    pub colorcode: Option<String>,
     #[xml(attr = "colordesc")]
-    pub colordesc: Option<Cow<'a, str>>,
+    pub colordesc: Option<String>,
     #[xml(attr = "incbom")]
-    pub incbom: Option<Cow<'a, str>>,
+    pub incbom: Option<String>,
     #[xml(attr = "suppliername")]
-    pub suppliername: Option<Cow<'a, str>>,
+    pub suppliername: Option<String>,
     #[xml(attr = "supplierpartnumber")]
-    pub supplierpartnumber: Option<Cow<'a, str>>,
+    pub supplierpartnumber: Option<String>,
     #[xml(attr = "shortdescription")]
-    pub shortdescription: Option<Cow<'a, str>>,
+    pub shortdescription: Option<String>,
     #[xml(child = "pin")]
-    pub pin: Vec<XmlPin<'a>>,
+    pub pin: Vec<XmlPin>,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "connector")]
-pub struct XmlConnector<'a> {
+pub struct XmlConnector {
     #[xml(attr = "name")]
-    pub name: Cow<'a, str>,
+    pub name: String,
     #[xml(child = "pin")]
-    pub pin: Vec<XmlPin<'a>>,
+    pub pin: Vec<XmlPin>,
     #[xml(attr = "connectorusage")]
-    pub connectorusage: Cow<'a, str>,
+    pub connectorusage: String,
     #[xml(attr = "partnumber")]
-    pub partnumber: Cow<'a, str>,
+    pub partnumber: String,
     #[xml(attr = "customerpartnumber")]
-    pub customerpartnumber: Cow<'a, str>,
+    pub customerpartnumber: String,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "pin")]
-pub struct XmlPin<'a> {
+pub struct XmlPin {
     #[xml(attr = "name")]
-    pub name: Cow<'a, str>,
+    pub name: String,
     #[xml(attr = "id")]
-    pub id: Cow<'a, str>,
+    pub id: String,
     #[xml(attr = "connectedpin")]
-    pub connectedpin: Option<Cow<'a, str>>
+    pub connectedpin: Option<String>
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "splice")]
-pub struct XmlSplice<'a> {
+pub struct XmlSplice {
     #[xml(attr = "name")]
-    pub name: Cow<'a, str>,
+    pub name: String,
     #[xml(attr = "partnumber")]
-    pub partnumber: Option<Cow<'a, str>>,
+    pub partnumber: Option<String>,
     #[xml(child = "pin")]
-    pub pin: Vec<XmlPin<'a>>,
+    pub pin: Vec<XmlPin>,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "wire")]
-pub struct XmlWire<'a> {
+pub struct XmlWire {
     #[xml(attr = "name")]
-    pub name: Cow<'a, str>,
+    pub name: String,
     #[xml(attr = "id")]
-    pub id: Cow<'a, str>,
+    pub id: String,
     #[xml(attr = "harness")]
-    pub harness: Option<Cow<'a, str>>,
+    pub harness: Option<String>,
     #[xml(child = "connection")]
-    pub connection: Vec<XmlConnection<'a>>,
+    pub connection: Vec<XmlConnection>,
     #[xml(attr = "wirelength")]
     pub wirelength: f32,
     #[xml(attr = "customerpartnumber")]
-    pub customerpartnumber: Option<Cow<'a, str>>,
+    pub customerpartnumber: Option<String>,
     #[xml(attr = "wirespec")]
-    pub wirespec: Option<Cow<'a, str>>,
+    pub wirespec: Option<String>,
     #[xml(attr = "wirematerial")]
-    pub wirematerial: Option<Cow<'a, str>>,
+    pub wirematerial: Option<String>,
     #[xml(attr = "wirecolor")]
-    pub wirecolor: Option<Cow<'a, str>>, 
+    pub wirecolor: Option<String>, 
     #[xml(attr = "startpinref")]
-    pub startpinref: Option<Cow<'a, str>>,
+    pub startpinref: Option<String>,
     #[xml(attr = "terminalpartspecend1")]
-    pub terminalpartspecend1: Option<Cow<'a, str>>,
+    pub terminalpartspecend1: Option<String>,
     #[xml(attr = "terminalpartspecend2")]
-    pub terminalpartspecend2: Option<Cow<'a, str>>,
+    pub terminalpartspecend2: Option<String>,
     #[xml(attr = "shortdescription")]
-    pub shortdescription: Option<Cow<'a, str>>,
+    pub shortdescription: Option<String>,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "multicore")]
-pub struct XmlMulticore<'a> {
+pub struct XmlMulticore {
     #[xml(attr = "name")]
-    pub name: Cow<'a, str>,
+    pub name: String,
     #[xml(attr = "sheathtype")]
-    pub sheathtype: Cow<'a, str>,
+    pub sheathtype: String,
     #[xml(child = "member")]
-    pub member: Vec<XmlMember<'a>>,
+    pub member: Vec<XmlMember>,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "member")]
-pub struct XmlMember<'a> {
+pub struct XmlMember {
     #[xml(attr = "ref")]
-    pub ref_: Cow<'a, str>,
+    pub ref_: String,
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "grounddevice")]
-pub struct XmlGroundDevice<'a> {
+pub struct XmlGroundDevice {
     #[xml(attr = "name")]
-    pub name: Cow<'a, str>,
+    pub name: String,
     #[xml(child = "pin")]
-    pub pin: Vec<XmlPin<'a>>,
+    pub pin: Vec<XmlPin>,
 }
 
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
 #[xml(tag = "connection")]
-pub struct XmlConnection<'a> {
+pub struct XmlConnection {
     #[xml(attr = "pinref")]
-    pub pinref: Cow<'a, str>,
+    pub pinref: String,
 }
 
 
