@@ -206,6 +206,7 @@ pub struct XmlConnector {
     pub partnumber: String,
     #[xml(attr = "customerpartnumber")]
     pub customerpartnumber: String,
+    //TODO: add cavitydetail to get termination assignments
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
@@ -241,7 +242,7 @@ pub struct XmlWire {
     pub harness: Option<String>,
     #[xml(child = "connection")]
     pub connection: Vec<XmlConnection>,
-    #[xml(attr = "wirelength")]
+    #[xml(attr = "wirelength")] // TODO: add lengthu for harness lengths
     pub wirelength: f32,
     #[xml(attr = "customerpartnumber")]
     pub customerpartnumber: Option<String>,
