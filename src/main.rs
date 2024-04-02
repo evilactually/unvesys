@@ -838,30 +838,30 @@ impl<'a> eframe::App for App {
                                                         let state = &mut state_clone.lock().unwrap();
                                                     //         //state.log.push(RichText::new("Generating cutlist").color(Color32::YELLOW));
 
-                                                        if let Some(library_xml)=&state.library_xml { // TODO: threading bug, read first then lock, otherwise this hangs-up the program ui
-                                                            if let Some(project_xml)=&state.project_xml {
-                                                                let project = Project::new(&project_xml);
-                                                                if let Ok(project) = project {
+                                                        //if let Some(library_xml)=&state.library_xml { // TODO: threading bug, read first then lock, otherwise this hangs-up the program ui
+                                                            //if let Some(project_xml)=&state.project_xml {
+                                                                //let project = Project::new(&project_xml);
+                                                                if let Some(project) = &state.project {
                                                                     if let Some(harness_design) = project.get_harness_design(&harness_design_name) {
                                                                         let bom_table = harness_design.get_bom_table();
                                                                         if bom_table.is_some() {
                                                                             println!("BOM table title: {}", bom_table.unwrap().title);
                                                                         } 
                                                                     }
-                                                                    let library = Library::new(&library_xml);
-                                                                    if let Ok(library) = library {
+                                                                    //let library = Library::new(&library_xml);
+                                                                    if let Some(library) = &state.library {
                                                                         let mut filepath = PathBuf::from(state.output_dir.clone());
                                                                         filepath.push(harness.to_owned() + ".xlsx");
                                                                         println!("{}", filepath.display().to_string());
                                                                         output_cutlist(&project, &library, &harness_design_name, &harness, &filepath.display().to_string());
                                                                     }
                                                                 }
-                                                            } else {
-                                                                panic!("{:?}", "Project XML was not loaded.");
-                                                            }
-                                                        } else {
-                                                            panic!("{:?}", "Library XML was not loaded.");
-                                                        }
+                                                            //} else {
+                                                            //    panic!("{:?}", "Project XML was not loaded.");
+                                                            //}
+                                                        //} else {
+                                                        //    panic!("{:?}", "Library XML was not loaded.");
+                                                        //}
                                                     }
                                                     state_clone.lock().unwrap().log.push(RichText::new("BOM table exported").color(Color32::GREEN));
                                                 });
@@ -885,24 +885,24 @@ impl<'a> eframe::App for App {
                                                         let state = &mut state_clone.lock().unwrap();
                                                         //state.log.push(RichText::new("Generating cutlist").color(Color32::YELLOW));
 
-                                                        if let Some(library_xml)=&state.library_xml { // TODO: threading bug, read first then lock, otherwise this hangs-up the program ui
-                                                            if let Some(project_xml)=&state.project_xml {
-                                                                let project = Project::new(&project_xml);
-                                                                if let Ok(project) = project {
-                                                                    let library = Library::new(&library_xml);
-                                                                    if let Ok(library) = library {
+                                                        //if let Some(library_xml)=&state.library_xml { // TODO: threading bug, read first then lock, otherwise this hangs-up the program ui
+                                                            //if let Some(project_xml)=&state.project_xml {
+                                                                //let project = Project::new(&project_xml);
+                                                                if let Some(project) = &state.project {
+                                                                    //let library = Library::new(&library_xml);
+                                                                    if let Some(library) = &state.library {
                                                                         let mut filepath = PathBuf::from(state.output_dir.clone());
                                                                         filepath.push(harness.to_owned() + ".xlsx");
                                                                         println!("{}", filepath.display().to_string());
                                                                         output_cutlist(&project, &library, &design_name, &harness, &filepath.display().to_string());
                                                                     }
                                                                 }
-                                                            } else {
-                                                                panic!("{:?}", "Project XML was not loaded.");
-                                                            }
-                                                        } else {
-                                                            panic!("{:?}", "Library XML was not loaded.");
-                                                        }
+                                                            //} else {
+                                                            //    panic!("{:?}", "Project XML was not loaded.");
+                                                            //}
+                                                        //} else {
+                                                        //    panic!("{:?}", "Library XML was not loaded.");
+                                                        //}
 
                                                     }
 
@@ -925,34 +925,39 @@ impl<'a> eframe::App for App {
                     ui.horizontal_centered(|ui| {
                     let mut dino =
 r"
-                                                                                  
-                          ██████                  
-                ██████  ██▒▒▒▒▒▒██                
-              ██▒▒▒▒▒▒██▒▒▒▒▒▒▒▒▒▒██              
-              ██▒▒▒▒▒▒▒▒██▒▒▒▒▒▒▒▒██              
-              ██▒▒▒▒▒▒▒▒▒▒██▒▒▒▒▒▒▒▒██            
-                ██▒▒▒▒▒▒▒▒▒▒██▒▒▒▒▒▒██            
-                ██▒▒▒▒▒▒▒▒▒▒██▒▒▒▒▒▒██            
-                  ██▒▒▒▒▒▒▒▒▒▒████████            
-                    ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒████        
-                      ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒    ██      
-              ██████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒    ██    
-          ████▒▒    ████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒  ██    
-        ██▒▒▒▒▒▒    ██▒▒▒▒▒▒▒▒      ▒▒▒▒▒▒  ██    
-      ██▒▒▒▒▒▒▒▒    ██▒▒▒▒▒▒▒▒  ████  ▒▒▒▒  ██    
-      ██▒▒▒▒▒▒▒▒    ██▒▒▒▒▒▒▒▒  ████  ▒▒▒▒    ██  
-    ██▒▒▒▒▒▒▒▒▒▒    ██▒▒▒▒▒▒▒▒▒▒    ▒▒▒▒      ██  
-    ██▒▒▒▒▒▒▒▒▒▒      ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒    ▒▒██    
-    ██▒▒▒▒▒▒▒▒▒▒▒▒      ██                ██      
-    ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒      ████          ████      
-    ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒          ██████████░░░░██    
-    ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒              ████░░░░██    
-      ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒    ████    ████░░██░░
-      ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒    ████    ██░░  
-        ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒████████        ░░  ░░
-          ████▒▒▒▒▒▒▒▒▒▒  ██▒▒▒▒▒▒▒▒██            
-          ██▒▒▒▒▒▒▒▒        ██████████            
-            ██████████████████████████            
+                          ░░░░▒▒▒▒░░                            
+                      ░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒                          
+                    ▒▒▒▒░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒                      
+                  ▒▒░░░░░░░░░░░░▒▒▒▒▒▒▓▓▓▓▒▒                    
+                ▒▒▒▒░░░░░░░░░░░░▒▒▒▒▒▒▓▓▓▓▓▓▒▒                  
+              ░░▒▒░░░░░░░░░░░░▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓░░                
+              ▓▓▒▒░░░░░░░░░░▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓                
+            ▒▒▒▒░░░░░░░░░░░░▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░              
+            ▓▓▒▒░░░░░░░░░░▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓██              
+          ▒▒▒▒▒▒░░░░░░░░▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓██░░            
+          ▓▓▒▒░░░░░░░░▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████            
+        ░░▒▒▒▒░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████            
+        ▒▒▒▒▒▒░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▒▒          
+        ▓▓▒▒▒▒░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████          
+        ▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████          
+      ░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████░░        
+      ▒▒▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████▒▒        
+      ▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓████▓▓████▒▒        
+      ▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓████▓▓▓▓████▓▓        
+      ▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓████▓▓▓▓████▓▓        
+      ▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓████████████▓▓        
+      ▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████████████▒▒        
+      ▒▒▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████████████░░        
+      ░░▓▓▓▓▓▓▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████████████████          
+        ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████████████████          
+        ▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██████████████▒▒          
+          ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████████████            
+          ░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████████████░░            
+            ▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██████████████░░              
+              ░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓████████████████                  
+                  ▒▒██████████████████████▒▒                    
+                        ▒▒▓▓██████▓▓▒▒                          
+                                                               
 
 Click on File -> Open to load a VeSys project file...
     
