@@ -6,6 +6,7 @@ use winreg::*;
 use std::io::prelude::*;
 use std::io;
 use egui::{Color32};
+use ::egui::menu;
 
 
 use crate::vysis::*;
@@ -87,7 +88,21 @@ pub struct Application {
 
 impl<'a> eframe::App for Application {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Draw menu
+        egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
+            self.menu_ui(ui);
+        });
 
+        // Draw bottom panel first, so CentralPanel knows how much space it gets
+        egui::TopBottomPanel::bottom("bottom_panel")
+        .show_separator_line(false)
+        .resizable(false)
+        .show(ctx, |ui| {
+            ui.vertical_centered(|ui| {
+                self.output_dir_ui(ui);
+                self.log_ui(ui);
+            })
+        });
     }
 
     fn on_exit(&mut self, ctx: Option<&eframe::glow::Context>) {
@@ -127,5 +142,68 @@ impl Application {
         }
     }
 
+    fn menu_ui(&mut self, ui: &mut egui::Ui) {
+
+        egui::menu::bar(ui, |ui| {
+                menu::bar(ui, |ui| {
+                    ui.menu_button("File", |ui| {
+                        if ui.button("Open").clicked() {
+                            if let Some(path) = rfd::FileDialog::new()
+                                .add_filter("VeSys XML Project", &["xml"])
+                                .pick_file() {
+                                
+                                // Clone Arc to avoid using self inside closure
+                                let state_clone = self.state.clone();
+
+                                // Wrap slow loading code in a thread
+                                std::thread::spawn(move || { // state_clone and path are moved
+                                    let loading_msg = format!("Loading project {:?}", path.file_name().unwrap());
+                                    state_clone.lock().unwrap().log(RichText::new(loading_msg).color(Color32::YELLOW));
+                                    let xmlpath = path.display().to_string();
+                                    let xml = read_file(&xmlpath);
+                                    match xml {
+                                        Ok(xml) => {
+                                            let project = Project::new(&xml);
+                                            match Project::new(&xml) {
+                                                Ok(project) => state_clone.lock().unwrap().project = Some(project),
+                                                _ => state_clone.lock().unwrap().log(RichText::new("Failed to parse project XML!").color(Color32::RED)),
+                                            }
+                                        },
+                                        _ => state_clone.lock().unwrap().log(RichText::new("Failed to load project XML file!").color(Color32::RED)),
+                                    }
+                                    state_clone.lock().unwrap().log(RichText::new("Project loaded").color(Color32::GREEN));
+                                });
+                            }
+                            ui.close_menu(); // close menu so it doesn't stay opened
+                        }
+                    });
+                });
+            });
+    }
+
+    fn output_dir_ui(&mut self, ui: &mut egui::Ui) {
+        let output_dir = &mut self.state.lock().unwrap().output_dir;
+        ui.horizontal(|ui| {
+            ui.label("Output Folder:");
+            ui.add_sized(ui.available_size()-egui::vec2(75.0,0.0),egui::TextEdit::singleline(output_dir)
+            .hint_text("Where do you want it?"));
+            if ui.add(egui::Button::new("Browse").min_size(ui.available_size())).clicked() {
+                if let Some(path) = rfd::FileDialog::new().pick_folder() {
+                    println!("{}", &path.display().to_string());
+                    *output_dir = path.display().to_string();
+                }
+            }
+            ui.end_row();
+        });
+    }
+
+    fn log_ui(&mut self, ui: &mut egui::Ui) {
+        // Show status
+        if let Some(status) = self.state.lock().unwrap().log.last() {
+            ui.label(status.clone());    
+        } else {
+            ui.label("");
+        }
+    }
 
 }
