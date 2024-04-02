@@ -1,0 +1,291 @@
+ <connector id="UIDdcfd20-18d234782a0-9d97fb81e0f5a9ec8c073ae430304d26" name="J3" nameindex="-1" type="generic" libraryref="UIDe320e9-16affa5495f-58e10cb4c1c1dc6a2e7d562793940186" partnumber="HDP24-24-21PE" partrevision="" customerpartnumber="71276-SD-100" customername="FireFly Automatix" supplierpartnumber="HDP24-24-21PE" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="CONN,RCPT,HDP20,24SHL,21WAY,E SL" colorcode="BK" colordesc="Black" unitofmeasure="Each" materialcode="PA" matcodedesc="Polyamide" typecode="CONR" typecodedesc="Connector (Receptacle)" groupname="Connector" weight="0.0" architecturalcost="0.0" incbom="1" issealed="false" datum="Default" isplugged="false" isgreased="false" isbackshellplugged="false" shortdescription="" baseid="UID013d1b-18d3d2767ef-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDccbf22-18d3d24d5f9-1cc0ce3aad839001362ba96f02c8c4a3" origin="logic" connectorusage="Connector" isconnectorassembly="false" quantity="1.0" bomidref="UID737ccc-18e8b9c6fcf-1cc0ce3aad839001362ba96f02c8c4a3">
+            <symbolref symbol="UIDd68518-1277c6def0f-06c402f9afc91aff3ed7b022f9d82304" timestamp="1270667625865"/>
+            <property name="AUTHOR" propertyuserdefined="true" val="Sysign" type="String" stability="fixed"/>
+            <pin id="UIDdcfd20-18d234782a1-9d97fb81e0f5a9ec8c073ae430304d26" name="B" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767f0-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UID5551d1-18cb145cccc-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c905-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c905-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c906-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3237" nameindex="3237" libraryref="UID2cd655-16ae05d7dbb-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-204-12141" partrevision="" customerpartnumber="70540-SD-100" customername="FireFly Automatix" supplierpartnumber="0460-204-12141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 12 PIN NICKEL, DEUTSCH" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe8-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c906-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="12" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 12 PIN" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="25.0" type="Float" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fb4d-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782a2-9d97fb81e0f5a9ec8c073ae430304d26" name="D" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767f1-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UID5551d1-18cb145ccce-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c909-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c909-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c90a-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3239" nameindex="3239" libraryref="UID2cd655-16ae05d7dbb-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-204-12141" partrevision="" customerpartnumber="70540-SD-100" customername="FireFly Automatix" supplierpartnumber="0460-204-12141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 12 PIN NICKEL, DEUTSCH" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe8-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c90a-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="12" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 12 PIN" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="25.0" type="Float" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fb50-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782a3-9d97fb81e0f5a9ec8c073ae430304d26" name="A" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767f2-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb2729650-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c903-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c903-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c904-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3236" nameindex="3236" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c904-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fb5b-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782a4-9d97fb81e0f5a9ec8c073ae430304d26" name="C" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767f3-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb2729656-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c907-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c907-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c908-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3238" nameindex="3238" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c908-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fb63-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782a5-9d97fb81e0f5a9ec8c073ae430304d26" name="F" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767f4-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb272965e-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c90c-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c90c-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c90d-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3240" nameindex="3240" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c90d-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fb5f-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782a6-9d97fb81e0f5a9ec8c073ae430304d26" name="J" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767f5-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb2729beb-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c911-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c911-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c912-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3242" nameindex="3242" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c912-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fb53-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782a7-9d97fb81e0f5a9ec8c073ae430304d26" name="K" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767f6-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb2729bf1-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c913-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c913-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c914-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3243" nameindex="3243" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c914-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fb57-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782a8-9d97fb81e0f5a9ec8c073ae430304d26" name="M" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767f7-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb272d44d-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c917-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c917-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c918-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3245" nameindex="3245" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c918-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fb71-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782a9-9d97fb81e0f5a9ec8c073ae430304d26" name="N" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767f8-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb272d44f-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c919-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c919-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c91a-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3246" nameindex="3246" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c91a-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fb67-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782aa-9d97fb81e0f5a9ec8c073ae430304d26" name="P" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767f9-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb272d451-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c91b-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c91b-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c91c-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3247" nameindex="3247" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c91c-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fb7a-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782ab-9d97fb81e0f5a9ec8c073ae430304d26" name="R" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767fa-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb272d453-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c91d-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c91d-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="0" issealrequired="0" terminalmaterialcode="AuP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c91e-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3248" nameindex="3248" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c91e-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fb83-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782ac-9d97fb81e0f5a9ec8c073ae430304d26" name="S" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767fb-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb272d455-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c91f-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c91f-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="0" issealrequired="0" terminalmaterialcode="AuP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c920-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3249" nameindex="3249" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c920-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fb87-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782ad-9d97fb81e0f5a9ec8c073ae430304d26" name="T" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767fc-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb272f28a-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c921-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c921-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c922-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3250" nameindex="3250" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c922-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fba4-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782ae-9d97fb81e0f5a9ec8c073ae430304d26" name="W" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767fd-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb272f88b-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c927-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c927-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c928-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3253" nameindex="3253" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c928-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fbaa-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782af-9d97fb81e0f5a9ec8c073ae430304d26" name="H" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767fe-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb272fc13-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UID737ccc-18e8b9b98b5-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UID737ccc-18e8b9b98b5-1cc0ce3aad839001362ba96f02c8c4a3" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UID737ccc-18e8b9b98b6-1cc0ce3aad839001362ba96f02c8c4a3" name="TERM7006" nameindex="7006" libraryref="UID2cd655-16ae05d81ff-58e10cb4c1c1dc6a2e7d562793940186" partnumber="1060-16-0622" partrevision="" customerpartnumber="" customername="" supplierpartnumber="1060-16-0622" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1620069121417" partdesc="TRM,PIN,STMP&amp;FRMD,SZ 16,16-20(0.5-1.0) IR 1.40-2.54,NP,RL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fea-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UID737ccc-18e8b9b98b6-1cc0ce3aad839001362ba96f02c8c4a3" incbom="1">
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Reel" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UID478c02-18e86009f3d-1cc0ce3aad839001362ba96f02c8c4a3"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782b0-9d97fb81e0f5a9ec8c073ae430304d26" name="L" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d2767ff-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb272fc59-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UID737ccc-18e8b9b98b7-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UID737ccc-18e8b9b98b7-1cc0ce3aad839001362ba96f02c8c4a3" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UID737ccc-18e8b9b98b8-1cc0ce3aad839001362ba96f02c8c4a3" name="TERM7007" nameindex="7007" libraryref="UID2cd655-16ae05d825f-58e10cb4c1c1dc6a2e7d562793940186" partnumber="1060-16-0722" partrevision="" customerpartnumber="" customername="" supplierpartnumber="1060-16-0722" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1620069121417" partdesc="TRM,PIN,STMP&amp;FRMD,SZ 16,14-18(0.75-2.0) IR 1.91-3.56,NP,RL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6feb-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UID737ccc-18e8b9b98b8-1cc0ce3aad839001362ba96f02c8c4a3" incbom="1">
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Reel" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UID478c02-18e86009f3a-1cc0ce3aad839001362ba96f02c8c4a3"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782b1-9d97fb81e0f5a9ec8c073ae430304d26" name="V" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d276800-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb2733c73-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c925-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c925-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c926-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3252" nameindex="3252" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c926-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fba7-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782b2-9d97fb81e0f5a9ec8c073ae430304d26" name="U" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID013d1b-18d3d276801-1cc0ce3aad839001362ba96f02c8c4a3" parentid="UIDf0af07-18cb2733cf2-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDdcfd20-18d2349c923-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c923-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDdcfd20-18d2349c924-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3251" nameindex="3251" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDdcfd20-18d2349c924-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDdcfd20-18d2347fba1-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+            <pin id="UIDdcfd20-18d234782b3-9d97fb81e0f5a9ec8c073ae430304d26" name="E" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID892aff-18d0d65cab2-5ef4c77a112482a4c853300e642d50ea" parentid="UID892aff-18d0d65cab2-5ef4c77a112482a4c853300e642d50ea">
+              <cavitydetail id="UIDdcfd20-18d2349c90b-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c90b-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="0" issealrequired="0" optionexpression="" isdefault="true"/>
+            </pin>
+            <pin id="UIDdcfd20-18d234782b4-9d97fb81e0f5a9ec8c073ae430304d26" name="G" nameindex="-1" pingraphic="male" pintype="U" analysismappingtype="Automatic" baseid="UID892aff-18d0d65cab4-5ef4c77a112482a4c853300e642d50ea" parentid="UID892aff-18d0d65cab4-5ef4c77a112482a4c853300e642d50ea">
+              <cavitydetail id="UIDdcfd20-18d2349c90e-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDdcfd20-18d2349c90e-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="0" issealrequired="0" optionexpression="" isdefault="true"/>
+            </pin>
+            <pin id="UIDdcfd20-18d234782b5-9d97fb81e0f5a9ec8c073ae430304d26" name="X" nameindex="-1" pintype="U" analysismappingtype="Automatic" baseid="UID62c44d-18d658bf5ca-9d97fb81e0f5a9ec8c073ae430304d26">
+              <cavitydetail id="UIDe092d8-18d5beddc78-9d97fb81e0f5a9ec8c073ae430304d26" baseid="UIDe092d8-18d5beddc78-9d97fb81e0f5a9ec8c073ae430304d26" istermrequired="1" issealrequired="0" terminalmaterialcode="NiP" optionexpression="" isdefault="false">
+                <terminal id="UIDe092d8-18d5beddc79-9d97fb81e0f5a9ec8c073ae430304d26" name="TERM3536" nameindex="3536" libraryref="UID2cd655-16ae05d7c41-58e10cb4c1c1dc6a2e7d562793940186" partnumber="0460-202-16141" partrevision="" customerpartnumber="70005-SD-200" customername="FireFly Automatix" supplierpartnumber="0460-202-16141" suppliername="TE Connectivity (Deutsch)" partmodifiedtimestamp="1702069660620" partdesc="SZ 16 PIN NICKEL" colorcode="-" colordesc="Not Applicable" unitofmeasure="Each" materialcode="NiP" matcodedesc="Nickel Plating" typecode="TERM" typecodedesc="Terminal - General" groupname="Terminal" bomidref="UID737ccc-18e8b9c6fe9-1cc0ce3aad839001362ba96f02c8c4a3" baseid="UIDe092d8-18d5beddc79-9d97fb81e0f5a9ec8c073ae430304d26" incbom="1">
+                  <property name="HAND_CRIMP_TOOL" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="PACKAGING" propertyuserdefined="true" val="Loose Piece" type="String" stability="fixed"/>
+                  <property name="TERMINAL_NAME" propertyuserdefined="true" val="SZ 16 PIN" type="String" stability="fixed"/>
+                  <property name="CONTACT_SIZE" propertyuserdefined="true" val="16" type="String" stability="fixed"/>
+                  <property name="STYLE" propertyuserdefined="true" val="Solid" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_DIE" propertyuserdefined="true" val="TBD" type="String" stability="fixed"/>
+                  <property name="APPLICATOR_1" propertyuserdefined="true" val="PICO" type="String" stability="fixed"/>
+                  <property name="TERMINAL_I_RATING" propertyuserdefined="true" val="13.0" type="Float" stability="fixed"/>
+                </terminal>
+                <cavitywirecombination wireref="UIDe092d8-18d5beb717d-9d97fb81e0f5a9ec8c073ae430304d26"/>
+              </cavitydetail>
+            </pin>
+          </connector>
