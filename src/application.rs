@@ -1,3 +1,4 @@
+use egui::CollapsingHeader;
 use std::fs::File;
 use winreg::enums::HKEY_CURRENT_USER;
 use egui::RichText;
@@ -103,6 +104,10 @@ impl<'a> eframe::App for Application {
                 self.log_ui(ui);
             })
         });
+
+        egui::CentralPanel::default().show(ctx, |ui| {
+            self.project_view_ui(ui);
+        });
     }
 
     fn on_exit(&mut self, ctx: Option<&eframe::glow::Context>) {
@@ -179,6 +184,38 @@ impl Application {
                     });
                 });
             });
+    }
+
+    fn project_view_ui(&mut self, ui: &mut egui::Ui) {
+        egui::ScrollArea::vertical()
+        .max_width(f32::INFINITY)
+        .auto_shrink([false, true])
+        .show(ui, |ui| {
+            let state_clone = self.state.clone();
+            {
+                let state = state_clone.lock().unwrap();
+                if let Some(project) = &state.project {
+                    CollapsingHeader::new(project.get_name())
+                    .default_open(true)
+                    .selectable(true)
+                    .show(ui, |ui| {
+                        CollapsingHeader::new("Logical Designs")
+                        .default_open(true)
+                        .show(ui, |ui| {
+                            let design_iter = project.get_logical_design_iter();
+                            for design in design_iter {
+                                CollapsingHeader::new(design.get_name())
+                                .default_open(true)
+                                .show(ui, |ui| {
+
+                                });
+                            }
+                        });
+                    });
+                }
+            }
+            //}
+        });
     }
 
     fn output_dir_ui(&mut self, ui: &mut egui::Ui) {

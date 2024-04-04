@@ -1018,7 +1018,7 @@ fn main() {
     eframe::run_native(
         "Vesys project post-processor",
         native_options,
-        Box::new(|cc| Box::new(App::new(cc))),
+        Box::new(|cc| Box::new(Application::new(cc))),
     );
 }
 
