@@ -772,7 +772,10 @@ impl<'a> HarnessDesign<'a> {
         return self.dom.harnessdiagram.harnessdiagramcontent.tablegroup.iter().find(|tablegroup| {
             tablegroup.decorationname == "BOM Table"
         });
+    }
 
+    pub fn get_table_groups(&'a self) ->  &'a Vec<XmlTableGroup> {
+        return &self.dom.harnessdiagram.harnessdiagramcontent.tablegroup;
     }
 }
 

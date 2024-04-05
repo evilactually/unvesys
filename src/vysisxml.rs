@@ -85,7 +85,9 @@ pub struct XmlTableGroup {
     #[xml(attr = "title")]
     pub title: String,
     #[xml(attr = "decorationname")]
-    pub decorationname: String
+    pub decorationname: String,
+    #[xml(child = "tablefamily")]
+    pub tablefamily: XmlTableFamily
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
@@ -122,7 +124,7 @@ pub struct XmlDataValues {
 #[xml(tag = "datarow")]
 pub struct XmlDataRow {
     #[xml(child = "cellval")]
-     pub cellval: XmlCellVal
+     pub cellval: Vec<XmlCellVal>
 }
 
 #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
@@ -140,6 +142,20 @@ pub struct XmlCVal {
 }
 
 /* XmlTableGroup */
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "tablefamily")]    
+pub struct XmlTableFamily {
+    #[xml(child = "table")]
+    pub table: Vec<XmlTable>
+}
+
+#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[xml(tag = "table")]    
+pub struct XmlTable {
+    #[xml(child = "tabledatacache")]
+    pub tabledatacache: Option<XmlTableDataCache>
+}
 
 // harnessdesign, harnessdiagram, harnessdiagramcontent, tablegroup.title
 

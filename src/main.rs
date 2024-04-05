@@ -106,6 +106,9 @@ use winreg::*;
 
 use std::io;
 
+mod table_dump;
+use table_dump::*;
+
 /// VeSys XML project post-processor 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -824,7 +827,7 @@ impl<'a> eframe::App for App {
                             for harnessdesign in outline.harnessdesigns.iter() {
                                 let harness_entry = ui.add(Label::new(&harnessdesign.name).sense(Sense::hover())) // Enable hover event
                                         .context_menu(|ui| {
-                                            if ui.button("Export BOM table").clicked() {
+                                            if ui.button("Dump tables to CSV").clicked() {
                                                 
                                                 // Clone Arc to avoid using self inside closure
                                                 let state_clone = self.state.clone();
@@ -832,7 +835,7 @@ impl<'a> eframe::App for App {
                                                 let harness = harness_design_name.clone();
                                                 
                                                 std::thread::spawn(move || { // state_clone and path are moved
-                                                    state_clone.lock().unwrap().log.push(RichText::new("Exporting BOM table...").color(Color32::YELLOW));
+                                                    state_clone.lock().unwrap().log.push(RichText::new("Dumping tables to CSV").color(Color32::YELLOW));
                                                     { // prevent a freeze from another state after this scope
                                                     //         // SIGNAL RUNNING JOB
                                                         let state = &mut state_clone.lock().unwrap();
@@ -843,18 +846,21 @@ impl<'a> eframe::App for App {
                                                                 //let project = Project::new(&project_xml);
                                                                 if let Some(project) = &state.project {
                                                                     if let Some(harness_design) = project.get_harness_design(&harness_design_name) {
-                                                                        let bom_table = harness_design.get_bom_table();
-                                                                        if bom_table.is_some() {
-                                                                            println!("BOM table title: {}", bom_table.unwrap().title);
-                                                                        } 
+                                                                        // let bom_table = harness_design.get_bom_table();
+                                                                        // if bom_table.is_some() {
+                                                                        //     println!("BOM table title: {}", bom_table.unwrap().title);
+                                                                        // }
+                                                                        let table_groups = harness_design.get_table_groups();
+                                                                        dump_tables(table_groups, &harness_design_name, &state.output_dir);
+
                                                                     }
                                                                     //let library = Library::new(&library_xml);
-                                                                    if let Some(library) = &state.library {
-                                                                        let mut filepath = PathBuf::from(state.output_dir.clone());
-                                                                        filepath.push(harness.to_owned() + ".xlsx");
-                                                                        println!("{}", filepath.display().to_string());
-                                                                        output_cutlist(&project, &library, &harness_design_name, &harness, &filepath.display().to_string());
-                                                                    }
+                                                                    // if let Some(library) = &state.library {
+                                                                    //     let mut filepath = PathBuf::from(state.output_dir.clone());
+                                                                    //     filepath.push(harness.to_owned() + ".xlsx");
+                                                                    //     println!("{}", filepath.display().to_string());
+                                                                    //     output_cutlist(&project, &library, &harness_design_name, &harness, &filepath.display().to_string());
+                                                                    // }
                                                                 }
                                                             //} else {
                                                             //    panic!("{:?}", "Project XML was not loaded.");
@@ -863,14 +869,14 @@ impl<'a> eframe::App for App {
                                                         //    panic!("{:?}", "Library XML was not loaded.");
                                                         //}
                                                     }
-                                                    state_clone.lock().unwrap().log.push(RichText::new("BOM table exported").color(Color32::GREEN));
+                                                    state_clone.lock().unwrap().log.push(RichText::new("Tables exported").color(Color32::GREEN));
                                                 });
 
 
                                                 ui.close_menu();
                                             }
 
-                                            if ui.button("Generate wire list").clicked() {
+                                            if ui.button("Generate wire list(BETA)").clicked() {
                                                 println!("Generating wire list for {}", &harnessdesign.name);
 
                                                 // Clone Arc to avoid using self inside closure
@@ -1018,7 +1024,7 @@ fn main() {
     eframe::run_native(
         "Vesys project post-processor",
         native_options,
-        Box::new(|cc| Box::new(Application::new(cc))),
+        Box::new(|cc| Box::new(App::new(cc))),
     );
 }
 
