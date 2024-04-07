@@ -1,3 +1,6 @@
+use crate::ProjectOutline;
+use egui::Label;
+use egui::Sense;
 use egui::CollapsingHeader;
 use std::fs::File;
 use winreg::enums::HKEY_CURRENT_USER;
@@ -16,8 +19,9 @@ use crate::vysyslib::*;
 struct ApplicationState {
     project: Option<Project>, // VeSys Project
     library: Option<Library>, // VeSys Library
+    project_outline: Option<ProjectOutline>,   // Cached UI representation of the VeSys project
     output_dir: String,       // Output directory
-    log: Vec::<RichText>     // Log output lines
+    log: Vec::<RichText>,     // Log output lines
 }
 
 fn read_file(filename:&str) -> std::io::Result<String> {
@@ -129,6 +133,7 @@ impl Application {
         let state = Arc::new(Mutex::new(ApplicationState {
             library: None,
             project: None,
+            project_outline: None,
             output_dir: String::new(),
             log: Vec::new()
         }));
@@ -144,6 +149,16 @@ impl Application {
         // Construct return value and return while thread is working
         Self {
             state : state
+        }
+    }
+
+    fn update_project_outline(&mut self) {
+        let state_clone = self.state.clone();
+        let mut state = state_clone.lock().unwrap();
+        if let Some(project) = &state.project {
+            state.project_outline = Some(ProjectOutline::new(project));
+        } else {
+            state.project_outline = None; // Clear project outline
         }
     }
 
@@ -170,7 +185,10 @@ impl Application {
                                         Ok(xml) => {
                                             let project = Project::new(&xml);
                                             match Project::new(&xml) {
-                                                Ok(project) => state_clone.lock().unwrap().project = Some(project),
+                                                Ok(project) => {
+                                                    state_clone.lock().unwrap().project_outline = Some(ProjectOutline::new(&project));
+                                                    state_clone.lock().unwrap().project = Some(project);
+                                                },
                                                 _ => state_clone.lock().unwrap().log(RichText::new("Failed to parse project XML!").color(Color32::RED)),
                                             }
                                         },
@@ -207,6 +225,16 @@ impl Application {
                                 CollapsingHeader::new(design.get_name())
                                 .default_open(true)
                                 .show(ui, |ui| {
+                                    let harness_names = design.get_harness_names();
+                                    println!("{:?}", harness_names.len());
+                                    for harness_name in harness_names {
+                                        let harness_entry = ui.add(Label::new(harness_name).sense(Sense::hover()));
+                                        // Highlight on hover
+                                        if harness_entry.hovered() {
+                                            harness_entry.highlight();
+                                        }
+
+                                    }
 
                                 });
                             }

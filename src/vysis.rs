@@ -13,7 +13,7 @@ use std::collections::{HashSet};
 pub use hard_xml::{XmlError};
 
 pub struct Project {
-    pub dom: XmlProject,
+    pub dom: XmlProject
 }
 
 fn read_file(filename:&str) -> std::io::Result<String> {
