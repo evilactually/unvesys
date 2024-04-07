@@ -1,5 +1,6 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+use egui::ViewportBuilder;
 use std::thread::sleep;
 use std::time::Duration;
 use winreg::enums::HKEY_CURRENT_USER;
@@ -735,7 +736,7 @@ impl<'a> eframe::App for App {
                 if let Some(outline) = &self.state.lock().unwrap().project_outline {
                     CollapsingHeader::new(&outline.name)
                     .default_open(true)
-                    .selectable(true)
+                    //.selectable(true) // UPGRADE
                     .show(ui, |ui| {
                         CollapsingHeader::new("Logical Designs")
                         .default_open(true)
@@ -794,9 +795,9 @@ impl<'a> eframe::App for App {
                                             //ui.button("Generate label data");
                                         });
                                         // Highlight on hover
-                                        if harness_entry.hovered() {
-                                            harness_entry.highlight();
-                                        }
+                                        // if harness_entry.hovered() {
+                                        //     harness_entry.highlight();
+                                        // }
                                     }
                                 })
                                 .header_response.context_menu(|ui| {
@@ -920,9 +921,9 @@ impl<'a> eframe::App for App {
                                         });
 
                                 // Highlight on hover
-                                if harness_entry.hovered() {
-                                    harness_entry.highlight();
-                                }
+                                // if harness_entry.hovered() {
+                                //     harness_entry.highlight();
+                                // }
                             }
                         });
                     });
@@ -1017,7 +1018,8 @@ Click on File -> Open to load a VeSys project file...
 
 fn main() {
     let mut native_options = eframe::NativeOptions::default();
-    native_options.initial_window_size = Some(egui::vec2(450.0, 800.0));
+    //native_options.initial_window_size = Some(egui::vec2(450.0, 800.0));
+    native_options.viewport = ViewportBuilder::default().with_inner_size(egui::vec2(450.0, 800.0));
     native_options.default_theme = Theme::Dark;
     native_options.follow_system_theme = false;
 

@@ -12,12 +12,12 @@ winres = "0.1"
 clap = { version = "4.3.4", features = ["derive"] }
 colored = "2.0.0"
 csv = "1.2.2"
-eframe = "0.22.0"
+eframe = "0.27.2"
 # eframe = { path = "../egui/crates/eframe", features = [
 #     "__screenshot", # __screenshot is so we can dump a screenshot using EFRAME_SCREENSHOT_TO
 # ] }
 ecolor = "0.23.0"
-egui = "0.22.0"
+egui = "0.27.2"
 
 #egui = { path = "../egui/crates/egui"}
 

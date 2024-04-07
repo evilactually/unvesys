@@ -1,3 +1,4 @@
+use std::time::Duration;
 use crate::ProjectOutline;
 use egui::Label;
 use egui::Sense;
@@ -11,6 +12,7 @@ use std::io::prelude::*;
 use std::io;
 use egui::{Color32};
 use ::egui::menu;
+use native_dialog::{MessageDialog, MessageType};
 
 
 use crate::vysis::*;
@@ -32,6 +34,14 @@ fn read_file(filename:&str) -> std::io::Result<String> {
 }
 
 impl ApplicationState {
+
+    fn update_project_outline(&mut self) {
+        if let Some(project) = &self.project {
+            self.project_outline = Some(ProjectOutline::new(project));
+        } else {
+            self.project_outline = None; // Clear project outline
+        }
+    }
 
     fn load_session_data(&mut self) -> io::Result<()> {
         let hklu = RegKey::predef(HKEY_CURRENT_USER);
@@ -92,7 +102,9 @@ pub struct Application {
 }
 
 impl<'a> eframe::App for Application {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        ctx.request_repaint_after(Duration::from_secs(1));
+
         // Draw menu
         egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
             self.menu_ui(ui);
@@ -112,6 +124,8 @@ impl<'a> eframe::App for Application {
         egui::CentralPanel::default().show(ctx, |ui| {
             self.project_view_ui(ui);
         });
+
+
     }
 
     fn on_exit(&mut self, ctx: Option<&eframe::glow::Context>) {
@@ -152,15 +166,6 @@ impl Application {
         }
     }
 
-    fn update_project_outline(&mut self) {
-        let state_clone = self.state.clone();
-        let mut state = state_clone.lock().unwrap();
-        if let Some(project) = &state.project {
-            state.project_outline = Some(ProjectOutline::new(project));
-        } else {
-            state.project_outline = None; // Clear project outline
-        }
-    }
 
     fn menu_ui(&mut self, ui: &mut egui::Ui) {
 
@@ -186,15 +191,16 @@ impl Application {
                                             let project = Project::new(&xml);
                                             match Project::new(&xml) {
                                                 Ok(project) => {
-                                                    state_clone.lock().unwrap().project_outline = Some(ProjectOutline::new(&project));
                                                     state_clone.lock().unwrap().project = Some(project);
+                                                    state_clone.lock().unwrap().update_project_outline();
                                                 },
                                                 _ => state_clone.lock().unwrap().log(RichText::new("Failed to parse project XML!").color(Color32::RED)),
                                             }
                                         },
                                         _ => state_clone.lock().unwrap().log(RichText::new("Failed to load project XML file!").color(Color32::RED)),
                                     }
-                                    state_clone.lock().unwrap().log(RichText::new("Project loaded").color(Color32::GREEN));
+                                    let done_loading_msg = format!("Loaded project {:?}", path.file_name().unwrap());
+                                    state_clone.lock().unwrap().log(RichText::new(done_loading_msg).color(Color32::GREEN));
                                 });
                             }
                             ui.close_menu(); // close menu so it doesn't stay opened
@@ -215,28 +221,29 @@ impl Application {
                 if let Some(project) = &state.project {
                     CollapsingHeader::new(project.get_name())
                     .default_open(true)
-                    .selectable(true)
+                    //.selectable(true) // UPGRADE
                     .show(ui, |ui| {
                         CollapsingHeader::new("Logical Designs")
                         .default_open(true)
                         .show(ui, |ui| {
-                            let design_iter = project.get_logical_design_iter();
-                            for design in design_iter {
-                                CollapsingHeader::new(design.get_name())
-                                .default_open(true)
-                                .show(ui, |ui| {
-                                    let harness_names = design.get_harness_names();
-                                    println!("{:?}", harness_names.len());
-                                    for harness_name in harness_names {
-                                        let harness_entry = ui.add(Label::new(harness_name).sense(Sense::hover()));
-                                        // Highlight on hover
-                                        if harness_entry.hovered() {
-                                            harness_entry.highlight();
+                            if let Some(project_outline) = &state.project_outline {
+                                for design_outline in &project_outline.designs {
+                                    CollapsingHeader::new(&design_outline.name)
+                                    .default_open(true)
+                                    .show(ui, |ui| {
+                                        for harness_name in &design_outline.harnesses {
+                                            let harness_entry = ui.add(
+                                                Label::new(harness_name)
+                                                .selectable(false)
+                                                .sense(Sense::hover()));
+                                            // Highlight on hover
+                                            if harness_entry.hovered() {
+                                                harness_entry.highlight();
+                                            }
                                         }
 
-                                    }
-
-                                });
+                                    });
+                                }
                             }
                         });
                     });
@@ -253,7 +260,7 @@ impl Application {
             ui.add_sized(ui.available_size()-egui::vec2(75.0,0.0),egui::TextEdit::singleline(output_dir)
             .hint_text("Where do you want it?"));
             if ui.add(egui::Button::new("Browse").min_size(ui.available_size())).clicked() {
-                if let Some(path) = rfd::FileDialog::new().pick_folder() {
+                if let Some(path) = rfd::FileDialog::new().pick_folder() { // set_parent(frame.window_handle()) 
                     println!("{}", &path.display().to_string());
                     *output_dir = path.display().to_string();
                 }
