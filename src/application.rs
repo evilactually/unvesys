@@ -125,7 +125,6 @@ impl<'a> eframe::App for Application {
             self.project_view_ui(ui);
         });
 
-
     }
 
     fn on_exit(&mut self, ctx: Option<&eframe::glow::Context>) {
@@ -193,14 +192,15 @@ impl Application {
                                                 Ok(project) => {
                                                     state_clone.lock().unwrap().project = Some(project);
                                                     state_clone.lock().unwrap().update_project_outline();
+                                                    let done_loading_msg = format!("Loaded project {:?}", path.file_name().unwrap());
+                                                    state_clone.lock().unwrap().log(RichText::new(done_loading_msg).color(Color32::GREEN));
                                                 },
                                                 _ => state_clone.lock().unwrap().log(RichText::new("Failed to parse project XML!").color(Color32::RED)),
                                             }
                                         },
                                         _ => state_clone.lock().unwrap().log(RichText::new("Failed to load project XML file!").color(Color32::RED)),
                                     }
-                                    let done_loading_msg = format!("Loaded project {:?}", path.file_name().unwrap());
-                                    state_clone.lock().unwrap().log(RichText::new(done_loading_msg).color(Color32::GREEN));
+
                                 });
                             }
                             ui.close_menu(); // close menu so it doesn't stay opened
@@ -236,6 +236,9 @@ impl Application {
                                                 Label::new(harness_name)
                                                 .selectable(false)
                                                 .sense(Sense::hover()));
+                                            harness_entry.context_menu(|ui| {
+                                                ui.button("Generate wire list");
+                                            });
                                             // Highlight on hover
                                             if harness_entry.hovered() {
                                                 harness_entry.highlight();
