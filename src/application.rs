@@ -13,6 +13,7 @@ use std::io;
 use egui::{Color32};
 use ::egui::menu;
 use native_dialog::{MessageDialog, MessageType};
+use std::cell::RefCell;
 
 
 use crate::vysis::*;
@@ -23,7 +24,7 @@ struct ApplicationState {
     library: Option<Library>, // VeSys Library
     project_outline: Option<ProjectOutline>,   // Cached UI representation of the VeSys project
     output_dir: String,       // Output directory
-    log: Vec::<RichText>,     // Log output lines
+    log: RefCell<Vec::<RichText>>,     // Log output lines
 }
 
 fn read_file(filename:&str) -> std::io::Result<String> {
@@ -91,8 +92,8 @@ impl ApplicationState {
         Ok(())
     }
 
-    fn log(&mut self, msg: RichText) {
-        self.log.push(msg);
+    fn log(&self, msg: RichText) { // note, RefCell allows this function to take immutable &self
+        self.log.borrow_mut().push(msg);
     }
 }
 
@@ -148,7 +149,7 @@ impl Application {
             project: None,
             project_outline: None,
             output_dir: String::new(),
-            log: Vec::new()
+            log: Vec::new().into()
         }));
         let state_clone = state.clone();
         // Start-up worker thread. Put any slow start-up work here
@@ -287,7 +288,7 @@ impl Application {
 
     fn log_ui(&mut self, ui: &mut egui::Ui) {
         // Show status
-        if let Some(status) = self.state.lock().unwrap().log.last() {
+        if let Some(status) = self.state.lock().unwrap().log.borrow().last() {
             ui.label(status.clone());    
         } else {
             ui.label("");
