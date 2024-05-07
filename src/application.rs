@@ -237,14 +237,16 @@ impl Application {
                                                 .selectable(false)
                                                 .sense(Sense::hover()));
                                             harness_entry.context_menu(|ui| {
-                                                ui.button("Generate wire list");
+                                                //self.logic_design_context_menu(ui, &state, &design_outline.name, &harness_name)
+                                                if ui.button("Generate wire list").clicked() {
+                                                    state.log(RichText::new("...").color(Color32::YELLOW));
+                                                }
                                             });
                                             // Highlight on hover
                                             if harness_entry.hovered() {
                                                 harness_entry.highlight();
                                             }
                                         }
-
                                     });
                                 }
                             }
@@ -255,6 +257,17 @@ impl Application {
             //}
         });
     }
+
+    // fn logic_design_context_menu(&mut self, ui: &mut egui::Ui, state: &ApplicationState ,design: &str, harness: &str) {
+    //     if ui.button("Generate wire list").clicked() {
+    //         //let state_clone = self.state.clone();
+    //         {
+    //             //let state = state_clone.lock().unwrap();
+    //             println!("Generating wire list for {}, {}", design, harness);
+    //             state.log(RichText::new(loading_msg).color(Color32::YELLOW));
+    //         }
+    //     }
+    // }
 
     fn output_dir_ui(&mut self, ui: &mut egui::Ui) {
         let output_dir = &mut self.state.lock().unwrap().output_dir;
