@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::time::Duration;
 use crate::ProjectOutline;
 use egui::Label;
@@ -18,6 +19,8 @@ use std::cell::RefCell;
 
 use crate::vysis::*;
 use crate::vysyslib::*;
+
+use crate::wire_list_xlsx_formatter::output_cutlist;
 
 struct ApplicationState {
     project: Option<Project>, // VeSys Project
@@ -104,7 +107,7 @@ pub struct Application {
 
 impl<'a> eframe::App for Application {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        ctx.request_repaint_after(Duration::from_secs(1));
+        ctx.request_repaint_after(Duration::from_secs(1)); // refresh the UI occasionally
 
         // Draw menu
         egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
@@ -238,10 +241,10 @@ impl Application {
                                                 .selectable(false)
                                                 .sense(Sense::hover()));
                                             harness_entry.context_menu(|ui| {
-                                                //self.logic_design_context_menu(ui, &state, &design_outline.name, &harness_name)
-                                                if ui.button("Generate wire list").clicked() {
-                                                    state.log(RichText::new("...").color(Color32::YELLOW));
-                                                }
+                                                self.logic_design_context_menu(ui, &state, &design_outline.name, &harness_name)
+                                                // if ui.button("Generate wire list").clicked() {
+                                                //     state.log(RichText::new("...").color(Color32::YELLOW));
+                                                // }
                                             });
                                             // Highlight on hover
                                             if harness_entry.hovered() {
@@ -259,16 +262,19 @@ impl Application {
         });
     }
 
-    // fn logic_design_context_menu(&mut self, ui: &mut egui::Ui, state: &ApplicationState ,design: &str, harness: &str) {
-    //     if ui.button("Generate wire list").clicked() {
-    //         //let state_clone = self.state.clone();
-    //         {
-    //             //let state = state_clone.lock().unwrap();
-    //             println!("Generating wire list for {}, {}", design, harness);
-    //             state.log(RichText::new(loading_msg).color(Color32::YELLOW));
-    //         }
-    //     }
-    // }
+    fn logic_design_context_menu(&mut self, ui: &mut egui::Ui, state: &ApplicationState ,design_name: &str, harness: &str) {
+        if ui.button("Generate wire list").clicked() {
+            println!("Generating wire list for {}, {}", design_name, harness);
+            if let Some(project) = &state.project {
+                if let Some(library) = &state.library {
+                    let mut filepath = PathBuf::from(state.output_dir.clone());
+                    filepath.push(harness.to_owned() + ".xlsx");
+                    output_cutlist(&project, &library, &design_name, &harness, &filepath.display().to_string());
+                }
+            }
+            ui.close_menu();   
+        }
+    }
 
     fn output_dir_ui(&mut self, ui: &mut egui::Ui) {
         let output_dir = &mut self.state.lock().unwrap().output_dir;
