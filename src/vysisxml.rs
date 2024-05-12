@@ -1,8 +1,6 @@
+pub use hard_xml::{XmlRead};
 
-pub use std::borrow::Cow;
-pub use hard_xml::{XmlRead, XmlWrite};
-
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "project")]
 pub struct XmlProject {
     #[xml(attr = "name")]
@@ -11,7 +9,7 @@ pub struct XmlProject {
     pub designmgr: XmlDesignMgr,
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "designmgr")]
 pub struct XmlDesignMgr {
     #[xml(child = "logicaldesign")]
@@ -20,7 +18,7 @@ pub struct XmlDesignMgr {
     pub harnessdesign: Vec<XmlHarnessDesign>,
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "logicaldesign")]
 pub struct XmlLogicalDesign {
     #[xml(attr = "name")]
@@ -31,7 +29,7 @@ pub struct XmlLogicalDesign {
     pub connectivity: XmlConnectivity,
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "harnessdesign")]
 pub struct XmlHarnessDesign {
     #[xml(attr = "name")]
@@ -45,7 +43,7 @@ pub struct XmlHarnessDesign {
 }
 
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "harnesscontainer")]
 pub struct XmlHarnessContainer {
     #[xml(child = "connectivity")]
@@ -54,21 +52,21 @@ pub struct XmlHarnessContainer {
 
 
 
-// #[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+// #[derive(XmlRead, PartialEq, Debug)]
 // #[xml(tag = "harnessdesign")]
 // pub struct XmlHarnessDesign {
 //     #[xml(child = "harnessdiagram")]
 //     pub harnessdiagram: XmlHarnessDiagram
 // }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "harnessdiagram")]
 pub struct XmlHarnessDiagram {
     #[xml(child = "harnessdiagramcontent")]
     pub harnessdiagramcontent: XmlHarnessDiagramContent
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "harnessdiagramcontent")]
 pub struct XmlHarnessDiagramContent {
     #[xml(attr = "harnessdiagramid")]
@@ -79,7 +77,7 @@ pub struct XmlHarnessDiagramContent {
 
 /* XmlTableGroup */
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "tablegroup")]
 pub struct XmlTableGroup {
     #[xml(attr = "title")]
@@ -90,7 +88,7 @@ pub struct XmlTableGroup {
     pub tablefamily: XmlTableFamily
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "tabledatacache")]
 pub struct XmlTableDataCache {
     #[xml(child = "colhdrnames")]
@@ -99,42 +97,42 @@ pub struct XmlTableDataCache {
     pub datavalues: XmlDataValues
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "colhdrnames")]
 pub struct XmlColHdrNames {
   #[xml(child = "row")]
   pub row: XmlRow
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "row")]
 pub struct XmlRow {
   #[xml(child = "cellval")]
   pub cellvals: Vec<XmlCellVal>
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "datavalues")]
 pub struct XmlDataValues {
     #[xml(child = "datarow")]
     pub datarow: Vec<XmlDataRow>
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "datarow")]
 pub struct XmlDataRow {
     #[xml(child = "cellval")]
      pub cellval: Vec<XmlCellVal>
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "cellval")]
 pub struct XmlCellVal {
     #[xml(child = "cval")]
     pub cval: XmlCVal
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "cval")]    
 pub struct XmlCVal {
     #[xml(attr = "val")]
@@ -143,14 +141,14 @@ pub struct XmlCVal {
 
 /* XmlTableGroup */
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "tablefamily")]    
 pub struct XmlTableFamily {
     #[xml(child = "table")]
     pub table: Vec<XmlTable>
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "table")]    
 pub struct XmlTable {
     #[xml(child = "tabledatacache")]
@@ -159,7 +157,7 @@ pub struct XmlTable {
 
 // harnessdesign, harnessdiagram, harnessdiagramcontent, tablegroup.title
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "connectivity")]
 pub struct XmlConnectivity {
     #[xml(child = "device")]
@@ -176,7 +174,7 @@ pub struct XmlConnectivity {
     pub grounddevice: Vec<XmlGroundDevice>,
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "device")]
 pub struct XmlDevice {
     #[xml(attr = "name")]
@@ -209,7 +207,7 @@ pub struct XmlDevice {
     pub pin: Vec<XmlPin>,
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "connector")]
 pub struct XmlConnector {
     #[xml(attr = "name")]
@@ -225,7 +223,7 @@ pub struct XmlConnector {
     //TODO: add cavitydetail to get termination assignments
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "pin")]
 pub struct XmlPin {
     #[xml(attr = "name")]
@@ -236,7 +234,7 @@ pub struct XmlPin {
     pub connectedpin: Option<String>
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "splice")]
 pub struct XmlSplice {
     #[xml(attr = "name")]
@@ -247,7 +245,7 @@ pub struct XmlSplice {
     pub pin: Vec<XmlPin>,
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "wire")]
 pub struct XmlWire {
     #[xml(attr = "name")]
@@ -278,7 +276,7 @@ pub struct XmlWire {
     pub shortdescription: Option<String>,
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "multicore")]
 pub struct XmlMulticore {
     #[xml(attr = "name")]
@@ -289,14 +287,14 @@ pub struct XmlMulticore {
     pub member: Vec<XmlMember>,
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "member")]
 pub struct XmlMember {
     #[xml(attr = "ref")]
     pub ref_: String,
 }
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "grounddevice")]
 pub struct XmlGroundDevice {
     #[xml(attr = "name")]
@@ -306,7 +304,7 @@ pub struct XmlGroundDevice {
 }
 
 
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "connection")]
 pub struct XmlConnection {
     #[xml(attr = "pinref")]

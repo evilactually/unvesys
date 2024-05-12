@@ -1,6 +1,6 @@
 
 use hard_xml::XmlError;
-use std::collections::HashMap;
+
 use crate::vysyslibxml::*;
 
 pub struct Library {

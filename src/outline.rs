@@ -1,5 +1,5 @@
-use crate::HarnessDesign;
-use crate::{Project, LogicalDesign, Connectivity};
+use crate::vysis::HarnessDesign;
+use crate::vysis::{Project, LogicalDesign, Connectivity};
 
 /// This is needed mainly to decouple from Project and Design XML readers 
 /// that have lifetime tied to original XML string and are really hard to pass around.

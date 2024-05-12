@@ -1,7 +1,7 @@
 
 use std::hash::Hasher;
 use std::hash::Hash;
-use crate::HashSet;
+use std::collections::HashSet;
 use std::cmp::Ordering::*;
 
 #[derive(Clone)]

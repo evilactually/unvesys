@@ -1,9 +1,9 @@
 use petgraph::dot::{Dot, Config};
-use crate::Connection;
-use crate::Connectivity;
+use crate::vysis::Connection;
+use crate::vysis::Connectivity;
 //use crate::WireList;
-use crate::Project;
-use crate::Library;
+use crate::vysis::Project;
+use crate::vysyslib::Library;
 //use crate::WireEntry;
 use xlsxwriter::prelude::FormatColor;
 use std::collections::HashMap;

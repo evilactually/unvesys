@@ -1,6 +1,6 @@
+use std::thread;
 use std::path::PathBuf;
-use std::time::Duration;
-use crate::ProjectOutline;
+use crate::outline::ProjectOutline;
 use egui::Label;
 use egui::Sense;
 use egui::CollapsingHeader;
@@ -13,21 +13,71 @@ use std::io::prelude::*;
 use std::io;
 use egui::{Color32};
 use ::egui::menu;
-use native_dialog::{MessageDialog, MessageType};
 use std::cell::RefCell;
-
+use std::time::{Duration, SystemTime};
 
 use crate::vysis::*;
 use crate::vysyslib::*;
+use crate::table_dump::*;
 
 use crate::wire_list_xlsx_formatter::output_cutlist;
+
+static BG_GRAPHIC: &str =
+r"     
+
+
+
+
+
+
+
+
+                                                               
+                ▒▒░░░░░░                                        
+              ░░░░░░░░░░░░                                      
+            ░░░░░░░░░░░░░░░░                                    
+            ░░░░░░░░    ░░░░░░                                  
+            ░░░░██░░    ░░░░░░                                  
+              ████      ░░░░░░                                  
+              ░░        ░░░░░░        ░░░░░░░░░░░░              
+              ░░      ░░░░░░      ░░░░░░░░░░░░░░                
+                    ░░░░░░      ░░░░░░░░░░░░░░                  
+                ░░░░░░░░      ░░░░░░░░░░░░░░                    
+              ░░░░░░░░      ░░░░░░░░░░░░░░░░  ░░░░░░░░          
+            ░░░░░░░░        ░░░░░░░░░░░░░░░░░░░░░░░░            
+          ░░░░░░░░░░░░    ░░░░░░░░░░░░░░▒▒░░░░░░░░              
+          ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░                
+          ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░                  
+          ░░▒▒▒▒░░░░░░░░▒▒░░░░░░░░▒▒░░░░░░░░░░                  
+          ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░                  
+            ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░                  
+              ▒▒░░░░░░▒▒░░░░░░░░░░░░░░░░░░░░                    
+                ░░░░░░░░░░░░░░░░░░░░░░░░░░                      
+                  ░░░░░░░░░░░░░░░░░░░░░░              
+
+                        CHANGELOG
+                    - Made it better
+
+
+
+
+
+
+
+
+    
+  
+
+";
+
+static LOG_EXPIRATION: Duration = Duration::from_secs(5);
 
 struct ApplicationState {
     project: Option<Project>, // VeSys Project
     library: Option<Library>, // VeSys Library
     project_outline: Option<ProjectOutline>,   // Cached UI representation of the VeSys project
     output_dir: String,       // Output directory
-    log: RefCell<Vec::<RichText>>,     // Log output lines
+    log: RefCell<Vec::<(RichText, SystemTime, Option<Duration>)>>,     // Log output lines
 }
 
 fn read_file(filename:&str) -> std::io::Result<String> {
@@ -36,6 +86,18 @@ fn read_file(filename:&str) -> std::io::Result<String> {
     file.read_to_string(&mut contents)?;
     Ok(contents)
 }
+
+fn ui_hover_label_with_menu(ui: &mut egui::Ui, name: &str, context_menu_ui: impl FnOnce(&mut egui::Ui)) {
+   let label = ui.add(Label::new(name)
+          .selectable(false)
+          .sense(Sense::hover()));
+    label.context_menu(context_menu_ui);
+    // Highlight on hover
+    if label.hovered() {
+        label.highlight();
+    }
+}
+
 
 impl ApplicationState {
 
@@ -65,8 +127,8 @@ impl ApplicationState {
         Ok(())
     }
 
-    fn load_library(&mut self) -> io::Result<()> {
-        self.log(RichText::new("Loading library").color(Color32::YELLOW));
+    fn load_library(&mut self) -> Result<(), String> {
+        //self.log(RichText::new("Loading library").color(Color32::YELLOW), None);
         let path = process_path::get_executable_path();
         match path {
             None => {}
@@ -79,15 +141,14 @@ impl ApplicationState {
                         match Library::new(&library_xml) {
                             Ok(library) => {
                                 self.library = Some(library);
-                                self.log(RichText::new("Library loaded").color(Color32::GREEN));
                             }
                             _ => {
-                                self.log(RichText::new("Library loading error").color(Color32::RED));
+                                return Err("Failed to parse Library.xml".to_string());
                             }
                         }
                     }
                     _ => {
-                        self.log(RichText::new("Library loading error").color(Color32::RED));
+                        return Err("Failed to load Library.xml".to_string());
                     }
                 }
             },
@@ -95,11 +156,26 @@ impl ApplicationState {
         Ok(())
     }
 
-    fn log(&self, msg: RichText) { // note, RefCell allows this function to take immutable &self
-        self.log.borrow_mut().push(msg);
+    fn log(&self, msg: RichText, expire: Option<Duration>) { // note, RefCell allows this function to take immutable &self
+        self.log.borrow_mut().push((msg, SystemTime::now(), expire));
+    }
+
+    fn with_library_and_project<T>(&self, action: impl FnOnce(&Library, &Project) -> T) -> Result<T, String>  {
+        if let Some(project) = &self.project {
+            if let Some(library) = &self.library {
+                Ok(action(&library, &project))
+            } else {
+                let msg = "Library not loaded!";
+                self.log(RichText::new(msg).color(Color32::RED), Some(LOG_EXPIRATION));
+                Err(msg.to_string())
+            }
+        } else {
+            let msg = "Project not loaded!";
+            self.log(RichText::new(msg).color(Color32::RED), Some(LOG_EXPIRATION));
+            Err(msg.to_string())
+        }
     }
 }
-
 
 pub struct Application {
     state : Arc<Mutex<ApplicationState>>,
@@ -132,15 +208,9 @@ impl<'a> eframe::App for Application {
     }
 
     fn on_exit(&mut self, ctx: Option<&eframe::glow::Context>) {
-        //self.state.save_session_data();
+        self.state.lock().unwrap().save_session_data();
     }
 }
-
-// fn startup_worker(state_clone: Arc<Mutex<State>>) -> io::Result<()> {
-//     read_saved_session_data(state_clone.clone());
-//     load_library(state_clone.clone());
-//     Ok(())
-// }
 
 impl Application {
 
@@ -157,11 +227,18 @@ impl Application {
         let state_clone = state.clone();
         // Start-up worker thread. Put any slow start-up work here
         std::thread::spawn(move || {
-            let mut state_locked = state_clone.lock().unwrap();
-            {
-                state_locked.load_library(); // load Library XML
-                state_locked.load_session_data(); // load registry values
-            }
+
+                state_clone.clone().lock().unwrap().log(RichText::new("Loading library...").color(Color32::YELLOW), None);
+                {
+                    thread::sleep(Duration::from_secs(1)); // let UI have the first lock
+                    let mut state = state_clone.lock().unwrap();
+                    match state.load_library() { // load Library XML {
+                        Ok(_) => state.log(RichText::new("Library Loaded").color(Color32::GREEN), Some(LOG_EXPIRATION)),
+                        Err(msg) => state.log(RichText::new(msg).color(Color32::RED), None)
+                    }
+                }
+
+                state_clone.clone().lock().unwrap().load_session_data(); // load registry values
         });
         // Construct return value and return while thread is working
         Self {
@@ -186,7 +263,7 @@ impl Application {
                                 // Wrap slow loading code in a thread
                                 std::thread::spawn(move || { // state_clone and path are moved
                                     let loading_msg = format!("Loading project {:?}", path.file_name().unwrap());
-                                    state_clone.lock().unwrap().log(RichText::new(loading_msg).color(Color32::YELLOW));
+                                    state_clone.lock().unwrap().log(RichText::new(loading_msg).color(Color32::YELLOW), None);
                                     let xmlpath = path.display().to_string();
                                     let xml = read_file(&xmlpath);
                                     match xml {
@@ -197,14 +274,13 @@ impl Application {
                                                     state_clone.lock().unwrap().project = Some(project);
                                                     state_clone.lock().unwrap().update_project_outline();
                                                     let done_loading_msg = format!("Loaded project {:?}", path.file_name().unwrap());
-                                                    state_clone.lock().unwrap().log(RichText::new(done_loading_msg).color(Color32::GREEN));
+                                                    state_clone.lock().unwrap().log(RichText::new(done_loading_msg).color(Color32::GREEN), Some(LOG_EXPIRATION));
                                                 },
-                                                _ => state_clone.lock().unwrap().log(RichText::new("Failed to parse project XML!").color(Color32::RED)),
+                                                _ => state_clone.lock().unwrap().log(RichText::new("Failed to parse project XML!").color(Color32::RED), Some(LOG_EXPIRATION)),
                                             }
                                         },
-                                        _ => state_clone.lock().unwrap().log(RichText::new("Failed to load project XML file!").color(Color32::RED)),
+                                        _ => state_clone.lock().unwrap().log(RichText::new("Failed to load project XML file!").color(Color32::RED), Some(LOG_EXPIRATION)),
                                     }
-
                                 });
                             }
                             ui.close_menu(); // close menu so it doesn't stay opened
@@ -221,58 +297,82 @@ impl Application {
         .show(ui, |ui| {
             let state_clone = self.state.clone();
             {
-                let state = state_clone.lock().unwrap();
-                if let Some(project) = &state.project {
-                    CollapsingHeader::new(project.get_name())
-                    .default_open(true)
-                    //.selectable(true) // UPGRADE
-                    .show(ui, |ui| {
-                        CollapsingHeader::new("Logical Designs")
+                //let state = state_clone.lock().unwrap();
+                let state_locked = state_clone.lock();
+                if let Ok(state) = state_locked {
+                    if let Some(project) = &state.project {
+                        CollapsingHeader::new(project.get_name())
                         .default_open(true)
+                        //.selectable(true) // UPGRADE
                         .show(ui, |ui| {
-                            if let Some(project_outline) = &state.project_outline {
-                                for design_outline in &project_outline.designs {
-                                    CollapsingHeader::new(&design_outline.name)
-                                    .default_open(true)
-                                    .show(ui, |ui| {
-                                        for harness_name in &design_outline.harnesses {
-                                            let harness_entry = ui.add(
-                                                Label::new(harness_name)
-                                                .selectable(false)
-                                                .sense(Sense::hover()));
-                                            harness_entry.context_menu(|ui| {
-                                                self.logic_design_context_menu(ui, &state, &design_outline.name, &harness_name)
-                                                // if ui.button("Generate wire list").clicked() {
-                                                //     state.log(RichText::new("...").color(Color32::YELLOW));
-                                                // }
-                                            });
-                                            // Highlight on hover
-                                            if harness_entry.hovered() {
-                                                harness_entry.highlight();
+                            CollapsingHeader::new("Logical Designs")
+                            .default_open(true)
+                            .show(ui, |ui| {
+                                if let Some(project_outline) = &state.project_outline {
+                                    for design_outline in &project_outline.designs {
+                                        CollapsingHeader::new(&design_outline.name)
+                                        .default_open(true)
+                                        .show(ui, |ui| {
+                                            for harness_name in &design_outline.harnesses {
+                                                ui_hover_label_with_menu(ui, &harness_name, |ui| {
+                                                    // Right click on logic harness
+                                                    self.logic_design_context_menu(ui, &state, &design_outline.name, &harness_name)
+                                                });
                                             }
-                                        }
-                                    });
+                                        });
+                                    }
                                 }
-                            }
+                            });
+                            CollapsingHeader::new("Harness Designs")
+                            .default_open(true)
+                            .show(ui, |ui| {
+                                if let Some(project_outline) = &state.project_outline {
+                                    for harness_design in project_outline.harnessdesigns.iter() {
+                                        ui_hover_label_with_menu(ui, &harness_design.name, |ui| {
+                                            // Right click on logic harness
+                                            self.harness_design_context_menu(ui, &state, &harness_design.name)
+                                        });
+                                    }
+                                }
+                            });
                         });
-                    });
+                    } else {
+                        ui.horizontal_centered(|ui| {
+                            ui.monospace(BG_GRAPHIC);
+                        });
+                    }
                 }
             }
             //}
         });
     }
-
-    fn logic_design_context_menu(&mut self, ui: &mut egui::Ui, state: &ApplicationState ,design_name: &str, harness: &str) {
+    
+    fn logic_design_context_menu(&mut self, ui: &mut egui::Ui, state: &ApplicationState, current_design_name: &str, current_harness: &str) {
         if ui.button("Generate wire list").clicked() {
-            println!("Generating wire list for {}, {}", design_name, harness);
-            if let Some(project) = &state.project {
-                if let Some(library) = &state.library {
-                    let mut filepath = PathBuf::from(state.output_dir.clone());
-                    filepath.push(harness.to_owned() + ".xlsx");
-                    output_cutlist(&project, &library, &design_name, &harness, &filepath.display().to_string());
-                }
-            }
+            println!("Generating wire list for {}, {}", current_design_name, current_harness);
+            let _ = state.with_library_and_project(|library, project| {
+                let mut filepath = PathBuf::from(state.output_dir.clone());
+                let filename = current_harness.to_owned() + ".xlsx";
+                state.log(RichText::new("Generating wire list ".to_owned() + &filename).color(Color32::YELLOW), None);
+                filepath.push(current_harness.to_owned() + ".xlsx");
+                output_cutlist(&project, &library, &current_design_name, &current_harness, &filepath.display().to_string());
+                state.log(RichText::new("Finished wire list ".to_owned() + &filename).color(Color32::GREEN), Some(LOG_EXPIRATION));
+            });
             ui.close_menu();   
+        }
+    }
+
+    fn harness_design_context_menu(&mut self, ui: &mut egui::Ui, state: &ApplicationState, current_design_name: &str) {
+        if ui.button("Dump tables to CSV").clicked() {
+            let _ = state.with_library_and_project(|_, project| {
+                state.log(RichText::new("Dumping tables to ".to_owned() + &state.output_dir).color(Color32::YELLOW), None);
+                if let Some(harness_design) = project.get_harness_design(&current_design_name) {
+                    let table_groups = harness_design.get_table_groups();
+                    dump_tables(table_groups, &current_design_name, &state.output_dir);
+                    state.log(RichText::new("Dumped ".to_owned() + &table_groups.len().to_string() + " tables from \"" + &current_design_name + "\" to CSV").color(Color32::GREEN), Some(LOG_EXPIRATION));
+                }
+            });
+            ui.close_menu();
         }
     }
 
@@ -294,11 +394,16 @@ impl Application {
 
     fn log_ui(&mut self, ui: &mut egui::Ui) {
         // Show status
-        if let Some(status) = self.state.lock().unwrap().log.borrow().last() {
-            ui.label(status.clone());    
+        if let Some((status,timestamp, expire)) = self.state.try_lock().unwrap().log.borrow().last() {
+            let duration = SystemTime::now().duration_since(*timestamp).unwrap_or(Duration::ZERO);
+
+            if duration < expire.unwrap_or(Duration::MAX) {
+                ui.label(status.clone());    
+            } else {
+                ui.label("");
+            }
         } else {
             ui.label("");
         }
     }
-
 }

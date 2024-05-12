@@ -1,9 +1,10 @@
-use crate::{WireList};
+use crate::wirelist::WireList;
+
 
 use std::hash::Hasher;
 use std::hash::Hash;
-use crate::HashSet;
-use std::cmp::Ordering::*;
+use std::collections::HashSet;
+
 
 
 #[derive(Clone)]

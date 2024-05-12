@@ -1,5 +1,5 @@
 use std::io::{Read, Seek, Write};
-use crate::Project;
+use crate::vysis::Project;
 use hard_xml::{XmlError};
 
 pub struct ProjectFile {

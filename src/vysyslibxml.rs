@@ -1,10 +1,7 @@
-
-pub use std::borrow::Cow;
 pub use hard_xml::{XmlRead, XmlWrite};
 
-
 /// VeSys Library root
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "chssystem")]
 pub struct XmlChssystem {
     #[xml(child = "devicepart")]
@@ -20,7 +17,7 @@ pub struct XmlChssystem {
 }
 
 /// Device entry in a library
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "devicepart")]
 pub struct XmlDevicePart {
     #[xml(attr = "libraryobject_id")]
@@ -32,7 +29,7 @@ pub struct XmlDevicePart {
 }
 
 /// Splice entry in a library
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "splicepart")]
 pub struct XmlSplicePart {
     #[xml(attr = "libraryobject_id")]
@@ -44,7 +41,7 @@ pub struct XmlSplicePart {
 }
 
 /// Device entry in a library
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "terminalpart")]
 pub struct XmlTerminalPart {
     #[xml(attr = "libraryobject_id")]
@@ -58,7 +55,7 @@ pub struct XmlTerminalPart {
 }
 
 /// Customer part number of a component
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "customerpartnumber")]
 pub struct XmlCustomerPartNumber {
     #[xml(attr = "customerpartnumber")]
@@ -66,7 +63,7 @@ pub struct XmlCustomerPartNumber {
 }
 
 /// Property inside a part
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "chsuserpropertypart")]
 pub struct XmlChsUserPropertyPart {
     #[xml(attr = "chsuserproperty_id")]
@@ -76,7 +73,7 @@ pub struct XmlChsUserPropertyPart {
 }
 
 /// Color code entry in a library
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "librarycolor")]
 pub struct XmlLibraryColorCode {
     #[xml(attr = "librarycolor_id")]
@@ -88,7 +85,7 @@ pub struct XmlLibraryColorCode {
 }
 
 /// User property in the library
-#[derive(XmlWrite, XmlRead, PartialEq, Debug)]
+#[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "chsuserproperty")]
 pub struct XmlChsUserProperty {
     #[xml(attr = "chsuserproperty_id")]
