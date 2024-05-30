@@ -374,6 +374,12 @@ impl Application {
             });
             ui.close_menu();
         }
+
+        if ui.button("Export Schleuniger ASCII").clicked() {
+            schleuniger_ascii_export("test",  &state.output_dir);
+            ui.close_menu();
+        }
+
     }
 
     fn output_dir_ui(&mut self, ui: &mut egui::Ui) {
