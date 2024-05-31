@@ -193,16 +193,16 @@ impl<'a> eframe::App for Application {
                 self.menu_ui(ui);
             });
 
-            // Draw bottom panel first, so CentralPanel knows how much space it gets
-            // egui::TopBottomPanel::bottom("bottom_panel")
-            // .show_separator_line(false)
-            // .resizable(false)
-            // .show(ctx, |ui| {
-            //     ui.vertical_centered(|ui| {
-            //         self.output_dir_ui(ui);
-            //         self.log_ui(ui);
-            //     })
-            // });
+            //Draw bottom panel first, so CentralPanel knows how much space it gets
+            egui::TopBottomPanel::bottom("bottom_panel")
+            .show_separator_line(false)
+            .resizable(false)
+            .show(ctx, |ui| {
+                ui.vertical_centered(|ui| {
+                    self.output_dir_ui(ui);
+                    self.log_ui(ui);
+                })
+            });
 
             egui::CentralPanel::default().show(ctx, |ui| {
                 
@@ -304,7 +304,7 @@ impl Application {
     fn project_view_ui(&mut self, ui: &mut egui::Ui) {
         egui::ScrollArea::vertical()
         .max_width(f32::INFINITY)
-        //.auto_shrink([false, true])
+        .auto_shrink([false, true])
         .show(ui, |ui| {
             let state_clone = self.state.clone();
             {
@@ -400,6 +400,17 @@ impl Application {
             });
             ui.close_menu();
         }
+
+        if ui.button("Export Schleuniger ASCII").clicked() {
+            let _ = state.with_library_and_project(|_, project| {
+                state.log(RichText::new("Exporting Schleuniger ASCII file to ".to_owned() + &state.output_dir).color(Color32::YELLOW), None);
+                if let Some(harness_design) = project.get_harness_design(&current_design_name) {
+                    schleuniger_ascii_export(&harness_design,"test",  &state.output_dir);
+                }
+                ui.close_menu();
+            });
+        }
+
     }
 
     fn output_dir_ui(&mut self, ui: &mut egui::Ui) {

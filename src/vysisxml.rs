@@ -84,6 +84,8 @@ pub struct XmlTableGroup {
     pub title: String,
     #[xml(attr = "decorationname")]
     pub decorationname: String,
+    #[xml(child = "columnstyle")]
+    pub columnstyle: Vec<XmlColumnStyle>,
     #[xml(child = "tablefamily")]
     pub tablefamily: XmlTableFamily
 }
@@ -147,6 +149,19 @@ pub struct XmlTableFamily {
     #[xml(child = "table")]
     pub table: Vec<XmlTable>
 }
+
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "columnstyle")]    
+pub struct XmlColumnStyle {
+    #[xml(attr = "columnname")]
+    pub columnname: String,
+    #[xml(attr = "displayname")]
+    pub displayname: String,
+    #[xml(attr = "visibility")]
+    pub visibility: String
+}
+
+
 
 #[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "table")]    

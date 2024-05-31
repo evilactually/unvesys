@@ -18,7 +18,8 @@ mod wirelist;
 mod deviceindex;
 mod traverse;
 mod table_dump;
-mod outline2;
+// mod outline2;
+mod vesys_table_reader;
 
 fn main() {
     let mut native_options = eframe::NativeOptions::default();
