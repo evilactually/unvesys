@@ -33,4 +33,10 @@ Go to File -> Open to load project XML, then you may right click on various harn
 
 Capital Essentials Online Project Viewer
 
+ROADMAP
+------------
 
+- Improved project outline
+- Separate data from format
+- Device index (or just BOM) for harness wire list report
+- Multi-wire terminations

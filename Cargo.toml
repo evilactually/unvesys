@@ -34,7 +34,10 @@ serde_json = "1.0.104"
 serde_yaml = "0.9.25"
 xlsxwriter = "0.6.0"
 
+
 winreg = "0.51"
 native-dialog = "0.7.0"
+simple_tables = "0.3.0"
+egui-data-table = "0.2.2"
 
 

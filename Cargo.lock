@@ -23,6 +23,10 @@ name = "accesskit"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74a4b14f3d99c1255dcba8f45621ab1a2e7540a0009652d33989005a4d0bfc6b"
+dependencies = [
+ "enumn",
+ "serde",
+]
 
 [[package]]
 name = "accesskit_consumer"
@@ -104,6 +108,7 @@ dependencies = [
  "cfg-if",
  "getrandom",
  "once_cell",
+ "serde",
  "version_check",
  "zerocopy",
 ]
@@ -1117,6 +1122,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20930a432bbd57a6d55e07976089708d4893f3d556cf42a0d79e9e321fa73b10"
 dependencies = [
  "bytemuck",
+ "serde",
 ]
 
 [[package]]
@@ -1164,6 +1170,20 @@ dependencies = [
  "epaint",
  "log",
  "nohash-hasher",
+ "serde",
+]
+
+[[package]]
+name = "egui-data-table"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59a5557024a78ccbccdd77963f47f8c6bb843857038ef86b960f4ace02eed030"
+dependencies = [
+ "egui",
+ "egui_extras",
+ "itertools 0.12.1",
+ "serde",
+ "tap",
 ]
 
 [[package]]
@@ -1202,6 +1222,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "egui_extras"
+version = "0.27.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b78779f35ded1a853786c9ce0b43fe1053e10a21ea3b23ebea411805ce41593"
+dependencies = [
+ "egui",
+ "enum-map",
+ "log",
+ "serde",
+]
+
+[[package]]
 name = "egui_glow"
 version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1230,6 +1262,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4c3a552cfca14630702449d35f41c84a0d15963273771c6059175a803620f3f"
 dependencies = [
  "bytemuck",
+ "serde",
+]
+
+[[package]]
+name = "enum-map"
+version = "2.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6866f3bfdf8207509a033af1a75a7b08abda06bbaaeae6669323fd5a097df2e9"
+dependencies = [
+ "enum-map-derive",
+ "serde",
+]
+
+[[package]]
+name = "enum-map-derive"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f282cfdfe92516eb26c2af8589c274c7c17681f5ecc03c18255fe741c6aa64eb"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.58",
 ]
 
 [[package]]
@@ -1247,6 +1301,17 @@ name = "enumflags2_derive"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f95e2801cd355d4a1a3e3953ce6ee5ae9603a5c833455343a8bfe3f44d418246"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.58",
+]
+
+[[package]]
+name = "enumn"
+version = "0.1.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fd000fd6988e73bbe993ea3db9b1aa64906ab88766d654973924340c8cddb42"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1280,6 +1345,7 @@ dependencies = [
  "log",
  "nohash-hasher",
  "parking_lot",
+ "serde",
 ]
 
 [[package]]
@@ -1925,6 +1991,15 @@ name = "itertools"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
+dependencies = [
+ "either",
+]
+
+[[package]]
+name = "itertools"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
 dependencies = [
  "either",
 ]
@@ -2944,6 +3019,34 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d66dc143e6b11c1eddc06d5c423cfc97062865baf299914ab64caa38182078fe"
 
 [[package]]
+name = "simple_tables"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1248aa113774f3193c5ad090ee8a429005d32fcdb722f114dce7a74356cce4c"
+dependencies = [
+ "simple_tables-core",
+ "simple_tables-derive",
+]
+
+[[package]]
+name = "simple_tables-core"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e7d16173bdde70a696f9eaf1b49bb38f41ea7445c800ab46e6d8ac08c157551"
+
+[[package]]
+name = "simple_tables-derive"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "add2dda7ba63477aabd1ff151a8f570ebbea9c12444d07bf6ec1a7c5858bd0e7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "simple_tables-core",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "slab"
 version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3083,6 +3186,12 @@ dependencies = [
  "toml 0.8.2",
  "version-compare",
 ]
+
+[[package]]
+name = "tap"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "target-lexicon"
@@ -3344,6 +3453,7 @@ dependencies = [
  "ecolor 0.23.0",
  "eframe",
  "egui",
+ "egui-data-table",
  "env_logger",
  "hard-xml",
  "native-dialog",
@@ -3354,6 +3464,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
+ "simple_tables",
  "winreg",
  "winres",
  "xlsxwriter",
@@ -3394,7 +3505,7 @@ version = "5.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c73a36bc44e3039f51fbee93e39f41225f6b17b380eb70cc2aab942df06b34dd"
 dependencies = [
- "itertools",
+ "itertools 0.11.0",
  "nom",
 ]
 

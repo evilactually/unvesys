@@ -73,11 +73,12 @@ r"
 static LOG_EXPIRATION: Duration = Duration::from_secs(5);
 
 struct ApplicationState {
-    project: Option<Project>, // VeSys Project
-    library: Option<Library>, // VeSys Library
-    project_outline: Option<ProjectOutline>,   // Cached UI representation of the VeSys project
-    output_dir: String,       // Output directory
-    log: RefCell<Vec::<(RichText, SystemTime, Option<Duration>)>>,     // Log output lines
+    project: Option<Project>, // VeSys Project                                                          // Opened document
+    library: Option<Library>, // VeSys Library                                                          // Loaded on start
+    project_outline: Option<ProjectOutline>,   // Cached UI representation of the VeSys project         // UI representation
+    output_dir: String,       // Output directory                                                       // UI storage
+    log: RefCell<Vec::<(RichText, SystemTime, Option<Duration>)>>,     // Log output lines              // state of log
+    selected: bool
 }
 
 fn read_file(filename:&str) -> std::io::Result<String> {
@@ -185,25 +186,34 @@ impl<'a> eframe::App for Application {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         ctx.request_repaint_after(Duration::from_secs(1)); // refresh the UI occasionally
 
-        // Draw menu
-        egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
-            self.menu_ui(ui);
-        });
+        
 
-        // Draw bottom panel first, so CentralPanel knows how much space it gets
-        egui::TopBottomPanel::bottom("bottom_panel")
-        .show_separator_line(false)
-        .resizable(false)
-        .show(ctx, |ui| {
-            ui.vertical_centered(|ui| {
-                self.output_dir_ui(ui);
-                self.log_ui(ui);
-            })
-        });
+            // Draw menu
+            egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
+                self.menu_ui(ui);
+            });
 
-        egui::CentralPanel::default().show(ctx, |ui| {
-            self.project_view_ui(ui);
-        });
+            // Draw bottom panel first, so CentralPanel knows how much space it gets
+            // egui::TopBottomPanel::bottom("bottom_panel")
+            // .show_separator_line(false)
+            // .resizable(false)
+            // .show(ctx, |ui| {
+            //     ui.vertical_centered(|ui| {
+            //         self.output_dir_ui(ui);
+            //         self.log_ui(ui);
+            //     })
+            // });
+
+            egui::CentralPanel::default().show(ctx, |ui| {
+                
+                ui.vertical_centered(|ui| {
+                    self.project_view_ui(ui);
+                    self.output_dir_ui(ui);
+                    self.log_ui(ui);
+                })
+            });
+
+        //}); // horizontal
 
     }
 
@@ -222,7 +232,8 @@ impl Application {
             project: None,
             project_outline: None,
             output_dir: String::new(),
-            log: Vec::new().into()
+            log: Vec::new().into(),
+            selected: false
         }));
         let state_clone = state.clone();
         // Start-up worker thread. Put any slow start-up work here
@@ -293,24 +304,38 @@ impl Application {
     fn project_view_ui(&mut self, ui: &mut egui::Ui) {
         egui::ScrollArea::vertical()
         .max_width(f32::INFINITY)
-        .auto_shrink([false, true])
+        //.auto_shrink([false, true])
         .show(ui, |ui| {
             let state_clone = self.state.clone();
             {
                 //let state = state_clone.lock().unwrap();
                 let state_locked = state_clone.lock();
-                if let Ok(state) = state_locked {
+                if let Ok(mut state) = state_locked { // make mut for selectable
                     if let Some(project) = &state.project {
+
+                        // let id = ui.make_persistent_id("my_collapsing_header");
+                        // //let mut selected = true9896
+                        // egui::collapsing_header::CollapsingState::load_with_default_open(ui.ctx(), id, true)
+                        // .show_header(ui, |ui| {
+                        //     ui.toggle_value(&mut state.selected, "Click to select/unselect");
+                        //     //ui.radio_value(&mut self.radio_value, false, "");
+                        //     //ui.radio_value(&mut self.radio_value, true, "");
+                        // })
+                        // .body(|ui| {
+                        //     ui.label("The body is always custom");
+                        // });
+
                         CollapsingHeader::new(project.get_name())
                         .default_open(true)
                         //.selectable(true) // UPGRADE
                         .show(ui, |ui| {
-                            CollapsingHeader::new("Logical Designs")
+                            let c = CollapsingHeader::new("Logical Designs")
                             .default_open(true)
                             .show(ui, |ui| {
                                 if let Some(project_outline) = &state.project_outline {
                                     for design_outline in &project_outline.designs {
                                         CollapsingHeader::new(&design_outline.name)
+
                                         .default_open(true)
                                         .show(ui, |ui| {
                                             for harness_name in &design_outline.harnesses {
@@ -323,6 +348,7 @@ impl Application {
                                     }
                                 }
                             });
+                            //c.selectable = true;
                             CollapsingHeader::new("Harness Designs")
                             .default_open(true)
                             .show(ui, |ui| {

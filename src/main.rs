@@ -18,6 +18,7 @@ mod wirelist;
 mod deviceindex;
 mod traverse;
 mod table_dump;
+mod outline2;
 
 fn main() {
     let mut native_options = eframe::NativeOptions::default();
