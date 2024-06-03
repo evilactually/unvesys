@@ -75,4 +75,19 @@ impl Library {
             //None
         })
     }
+
+    pub fn lookup_wire_property(&self, partno: &str, property: &str) -> Option<&str> {
+        let part = self.dom.wirepart.iter().find(|part| part.partnumber == partno);
+        part.and_then(|part| {
+            let property_id = self.lookup_user_property_id(property);
+            property_id.and_then(|property_id| {
+                part.chsuserpropertypart.iter().find(|property| property.chsuserproperty_id == property_id)
+            })
+            //println!("{}", property_id);
+        }).and_then(|property| {
+            Some(property.userpropertyvalue.as_ref())
+            //None
+        })
+    }
+
 }

@@ -437,6 +437,9 @@ impl<'a> Connectivity<'a> {
         }).collect()
     }
 
+    pub fn get_wire_by_name(&self, wire_name: &str) -> Option<Wire> {
+        self.get_wire_iter().find(|wire| wire.get_name() == wire_name)
+    }
 
     pub fn get_wire_iter(&self) -> WireIter<'_> {
         WireIter { connectivity: self, wire_iter: self.dom.wire.iter() }
@@ -571,8 +574,8 @@ impl<'a> GroundDevice<'a> {
 }
 
 pub struct Wire<'a> {
-    connectivity: &'a Connectivity<'a>,
-    dom: &'a XmlWire
+    pub connectivity: &'a Connectivity<'a>,
+    pub dom: &'a XmlWire
 }
 
 impl<'a> Wire<'a> {

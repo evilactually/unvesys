@@ -8,6 +8,8 @@ pub struct XmlChssystem {
     pub devicepart: Vec<XmlDevicePart>,
     #[xml(child = "terminalpart")]
     pub terminalpart: Vec<XmlTerminalPart>,
+    #[xml(child = "wirepart")]
+    pub wirepart: Vec<XmlWirePart>,
     #[xml(child = "splicepart")]
     pub splicepart: Vec<XmlSplicePart>,
     #[xml(child = "librarycolor")]
@@ -92,6 +94,20 @@ pub struct XmlChsUserProperty {
     pub chsuserproperty_id: String,
     #[xml(attr = "userpropertyname")]
     pub userpropertyname: String,
+}
+
+/// Wire entry in a library
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "wirepart")]
+pub struct XmlWirePart {
+    #[xml(attr = "libraryobject_id")]
+    pub libraryobject_id: String,
+    #[xml(attr = "partnumber")]
+    pub partnumber: String,
+    #[xml(child = "customerpartnumber")]
+    pub customerpartnumber: Vec<XmlCustomerPartNumber>,
+    #[xml(child = "chsuserpropertypart")]
+    pub chsuserpropertypart: Vec<XmlChsUserPropertyPart>,
 }
 
 

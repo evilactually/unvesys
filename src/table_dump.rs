@@ -1,3 +1,7 @@
+use crate::vysyslib::Library;
+use std::io::Write;
+use csv::Terminator;
+use crate::vesys_table_reader::VysysTableReader;
 use crate::vysis::HarnessDesign;
 use csv::{Writer, WriterBuilder};
 use crate::vysisxml::XmlTableGroup;
@@ -40,89 +44,91 @@ pub fn dump_tables(table_groups: &Vec<XmlTableGroup>, basename: &str, dir: &str)
     Ok(())
 }
 
-pub fn schleuniger_ascii_export(harness_design: &HarnessDesign, basename: &str, dir: &str) ->  std::io::Result<()> {
-    let mut path : PathBuf = dir.into();
-    path.push(String::from("test").clone());
+fn lookup_wire_processing<'a>(library: &'a Library, harness_design: &'a HarnessDesign<'a>, wire_name: &'a str) -> Option<&'a str> {
+    harness_design.get_connectivity().get_wire_by_name(wire_name).and_then(|wire| {
+        wire.dom.partnumber.as_ref().and_then(|part_number| {
+            library.lookup_wire_property(&part_number, "SCHLEUNIGER_PROCESSING")
+        })
+    })
+}
+
+pub fn schleuniger_ascii_export<W: Write>(library: &Library, harness_design: &HarnessDesign, writer: W)  {
     let mut wtr = WriterBuilder::new()
         .delimiter(b'\t')
-        .from_path(path).unwrap(); 
+        .flexible(true) // allow number of fields to change
+        .terminator(Terminator::CRLF)
+        .from_writer(writer); 
 
     wtr.write_record(vec![
         String::from("Import"), String::from("ASCII"),
-    ])?;
+    ]);
 
     wtr.write_record(vec![
         String::from("Units"), String::from("inch"),
-    ])?;
+    ]);
 
     wtr.write_record(vec![
-        String::from("Area"), String::from("TT"),
-    ])?;
-    
+        String::from("Area"), String::from("TT"), // Thermal Transfer
+    ]);
+
     wtr.write_record(vec![
-        String::from("Name"), 
+       String::from("Name"), 
         String::from("Part"), 
         String::from("Length"), 
         String::from("Style"), 
-        String::from("Stripping type"), 
+        String::from("Stripping type"),
         String::from("Right strip"),
         String::from("Left strip"),
-        String::from("Partial strip %"),
+        String::from("Partial strip"),
         String::from("Marker left text"),
         String::from("Marker left position"),
         String::from("Marker right text"),
         String::from("Marker right position"),
         String::from("Autorotation"),
-    ])?;
-    
+    ]);
 
+    let table_groups = harness_design.get_table_groups();
 
+    let harness_wire_table = table_groups.into_iter().find(|x| x.decorationname == "HarnessWireTable");
 
-    // wtr?.write_record(vec![
-    //  String::from("Import"), String::from("ASCII"),
-    // ])?;
-    // wtr.write_record(vec![
-    //  String::from("Import"), String::from("ASCII"),
-    // ])?;
-    // wtr.write_record(vec![
-    //  String::from("Units "), String::from("inch"),
-    // ])?;
-    // wtr.write_record(vec![
-    //  String::from("Area"), String::from("TT"),
-    // ])?;
+    if let Some(harness_wire_table) = harness_wire_table {
+        println!("{}", &harness_wire_table.title);
+        let table_reader = VysysTableReader::new(&harness_wire_table);
+        let row_iter = table_reader.get_row_iter();
+        for (index, row) in row_iter.enumerate() {
+            let from = row.get_column("WIRE_FROM_PINLIST").unwrap_or("N/A").to_owned() + "-" + row.get_column("WIRE_FROM_CAVITY").unwrap_or("N/A");
+            let to = row.get_column("WIRE_TO_PINLIST").unwrap_or("N/A").to_owned() + "-" + row.get_column("WIRE_TO_CAVITY").unwrap_or("N/A");
+            let article_name = from + "/" + &to;
+            let part = index.to_string();
+            let length = row.get_column("MODIFIED_LENGTH").unwrap_or("N/A").to_owned();
+            
+            let style = row.get_column("WIRE_NAME").and_then(|wire_name| {
+                lookup_wire_processing(library, harness_design, wire_name).ok_or("Property not found".to_string())
+            });
+            let stripping_type = "".to_owned();
+            let right_strip = row.get_column("WIRE_TERMINAL_STRIP_LEN1").unwrap_or("N/A").to_owned();
+            let left_strip = row.get_column("WIRE_TERMINAL_STRIP_LEN2").unwrap_or("N/A").to_owned();
+            let partial_strip = "".to_owned();
+            let marker_text = "#C@7\\&n@7".to_owned();
+            let marker_left_position = "".to_owned();
+            let marker_right_position = "".to_owned();
+            let autorotation = "X".to_owned();
 
-
-    // let mut i = 0;
-    // let mut path : PathBuf = dir.into();
-    // for group in table_groups.iter() {
-    //  println!("{:?}", group.title);
-    //  for table in group.tablefamily.table.iter() {
-    //      if let Some(datacache) = &table.tabledatacache {
-    //          //println!("{:?}", datacache.colhdrnames);
-    //          let mut path = path.clone();
-    //          let filename = format!("{}-{}-{}.csv", basename, group.title, i);
-    //          path.push(filename.clone());
-    //          println!("{:?}", path);
-    //          i = i + 1;
-    //          let mut wtr = Writer::from_path(path)?;
-    //          let header = &datacache.colhdrnames.row;
-    //          let header_names : Vec<String> = header.cellvals.iter().map(|v| {
-    //              v.cval.val.clone()
-    //          }).collect();
-    //          println!("{:?}", header_names);
-    //          wtr.write_record(&header_names)?;
-
-    //          for datarow in datacache.datavalues.datarow.iter() {
-    //              let cols : Vec<String> = datarow.cellval.iter().map(|v| {
-    //                  v.cval.val.clone()
-    //              }).collect();
-
-    //              wtr.write_record(&cols)?;
-    //          }
-
-    //      }
-    //  }
-    // }
-
-    Ok(())
+            wtr.write_record(vec![
+                article_name, 
+                part,
+                length, 
+                style.unwrap_or("N/A").to_string(), 
+                stripping_type, 
+                right_strip,
+                left_strip,
+                partial_strip,
+                marker_text.clone(),
+                marker_left_position,
+                marker_text,
+                marker_right_position,
+                autorotation,
+            ]);
+        }
+    }
 }

@@ -208,8 +208,8 @@ impl<'a> eframe::App for Application {
                 
                 ui.vertical_centered(|ui| {
                     self.project_view_ui(ui);
-                    self.output_dir_ui(ui);
-                    self.log_ui(ui);
+                    //self.output_dir_ui(ui);
+                    //self.log_ui(ui);
                 })
             });
 
@@ -402,10 +402,18 @@ impl Application {
         }
 
         if ui.button("Export Schleuniger ASCII").clicked() {
-            let _ = state.with_library_and_project(|_, project| {
+            let _ = state.with_library_and_project(|library, project| {
                 state.log(RichText::new("Exporting Schleuniger ASCII file to ".to_owned() + &state.output_dir).color(Color32::YELLOW), None);
                 if let Some(harness_design) = project.get_harness_design(&current_design_name) {
-                    schleuniger_ascii_export(&harness_design,"test",  &state.output_dir);
+                    let mut path : PathBuf = state.output_dir.clone().into();
+                    let filename = current_design_name.to_owned() + ".txt";
+                    path.push(String::from(&filename));
+                    if let Ok(mut file) = File::create(path) {
+                        schleuniger_ascii_export(&library, &harness_design, &mut file);
+                        state.log(RichText::new("Exported Schleuniger ASCII file to ".to_owned() + &filename).color(Color32::GREEN), Some(LOG_EXPIRATION));
+                    } else {
+                        state.log(RichText::new("Failed to create ".to_owned() + &filename).color(Color32::RED), Some(LOG_EXPIRATION));
+                    }
                 }
                 ui.close_menu();
             });

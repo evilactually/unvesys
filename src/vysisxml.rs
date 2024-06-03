@@ -265,6 +265,8 @@ pub struct XmlSplice {
 pub struct XmlWire {
     #[xml(attr = "name")]
     pub name: String,
+    #[xml(attr = "partnumber")]
+    pub partnumber: Option<String>,
     #[xml(attr = "id")]
     pub id: String,
     #[xml(attr = "harness")]
