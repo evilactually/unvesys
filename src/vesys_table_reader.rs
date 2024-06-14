@@ -95,6 +95,19 @@ impl<'a> Iterator for VysysTableRowIter<'a> {
     type Item = VysysTableRow<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
+
+    	let current_row = Some(VysysTableRow {
+    			table_reader : self.table_reader,
+    			subtable_index : self.subtable_index,
+    			row_index : self.row_index
+    		}
+    	);
+
+    	// No more subtables
+    	if self.subtable_index >= self.table_reader.get_subtable_count() {
+    		return None;
+    	}
+
     	let row_count = self.table_reader.get_subtable_row_count(self.subtable_index);
     	
     	self.row_index = self.row_index + 1;
@@ -103,16 +116,6 @@ impl<'a> Iterator for VysysTableRowIter<'a> {
     		self.subtable_index = self.subtable_index + 1;
     	}
 
-    	// No more subtables
-    	if self.subtable_index >= self.table_reader.get_subtable_count() {
-    		return None;
-    	}
-
-    	Some(VysysTableRow {
-    			table_reader : self.table_reader,
-    			subtable_index : self.subtable_index,
-    			row_index : self.row_index
-    		}
-    	)
+    	return current_row;
     }
 }

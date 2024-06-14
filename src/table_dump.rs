@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use crate::vysyslib::Library;
 use std::io::Write;
 use csv::Terminator;
@@ -47,9 +48,28 @@ pub fn dump_tables(table_groups: &Vec<XmlTableGroup>, basename: &str, dir: &str)
 fn lookup_wire_processing<'a>(library: &'a Library, harness_design: &'a HarnessDesign<'a>, wire_name: &'a str) -> Option<&'a str> {
     harness_design.get_connectivity().get_wire_by_name(wire_name).and_then(|wire| {
         wire.dom.partnumber.as_ref().and_then(|part_number| {
-            library.lookup_wire_property(&part_number, "SCHLEUNIGER_PROCESSING")
+            library.lookup_wire_property(&part_number, "PROCESSING")
         })
     })
+}
+
+pub fn center_label(record: Vec<String>) -> Vec<String> {
+    // Center label
+    let length_f32 = f32::from_str(&record[2]);
+    if let Ok(length_f32) = length_f32 {
+        if length_f32 < 8.0 {
+            let pos = length_f32/2.0 + 0.5;
+            let mut record = record.clone();
+            record[9] = pos.to_string();
+            record[10] = "".to_string();
+            record[11] = "".to_string();
+            return record;
+        } else {
+            return record;
+        }
+    } else {
+        return record;
+    }
 }
 
 pub fn schleuniger_ascii_export<W: Write>(library: &Library, harness_design: &HarnessDesign, writer: W)  {
@@ -79,7 +99,7 @@ pub fn schleuniger_ascii_export<W: Write>(library: &Library, harness_design: &Ha
         String::from("Stripping type"),
         String::from("Right strip"),
         String::from("Left strip"),
-        String::from("Partial strip"),
+        String::from("Partial strip %"),
         String::from("Marker left text"),
         String::from("Marker left position"),
         String::from("Marker right text"),
@@ -99,36 +119,36 @@ pub fn schleuniger_ascii_export<W: Write>(library: &Library, harness_design: &Ha
             let from = row.get_column("WIRE_FROM_PINLIST").unwrap_or("N/A").to_owned() + "-" + row.get_column("WIRE_FROM_CAVITY").unwrap_or("N/A");
             let to = row.get_column("WIRE_TO_PINLIST").unwrap_or("N/A").to_owned() + "-" + row.get_column("WIRE_TO_CAVITY").unwrap_or("N/A");
             let article_name = from + "/" + &to;
-            let part = index.to_string();
+            let part = (index + 1).to_string();
             let length = row.get_column("MODIFIED_LENGTH").unwrap_or("N/A").to_owned();
             
             let style = row.get_column("WIRE_NAME").and_then(|wire_name| {
                 lookup_wire_processing(library, harness_design, wire_name).ok_or("Property not found".to_string())
             });
-            let stripping_type = "".to_owned();
+            let stripping_type = "9".to_owned();
             let right_strip = row.get_column("WIRE_TERMINAL_STRIP_LEN1").unwrap_or("N/A").to_owned();
             let left_strip = row.get_column("WIRE_TERMINAL_STRIP_LEN2").unwrap_or("N/A").to_owned();
-            let partial_strip = "".to_owned();
-            let marker_text = "#C@7\\&n@7".to_owned();
-            let marker_left_position = "".to_owned();
-            let marker_right_position = "".to_owned();
+            let partial_strip = "50%".to_owned();
+            let marker_text = "\\#C@7\\&n\\&@7".to_owned();
+            let marker_left_position = "3.25".to_owned();
+            let marker_right_position = "2.0".to_owned();
             let autorotation = "X".to_owned();
 
-            wtr.write_record(vec![
-                article_name, 
-                part,
-                length, 
-                style.unwrap_or("N/A").to_string(), 
-                stripping_type, 
-                right_strip,
-                left_strip,
-                partial_strip,
-                marker_text.clone(),
-                marker_left_position,
-                marker_text,
-                marker_right_position,
-                autorotation,
-            ]);
+            wtr.write_record(center_label(vec![
+                article_name, // 0
+                part, // 1
+                length, // 2
+                style.unwrap_or("N/A").to_string(), // 3
+                stripping_type, // 4
+                right_strip, // 5
+                left_strip, // 6
+                partial_strip, // 7
+                marker_text.clone(), // 8
+                marker_left_position, // 9
+                marker_text, // 10
+                marker_right_position, // 11
+                autorotation, // 12
+            ]));
         }
     }
 }
