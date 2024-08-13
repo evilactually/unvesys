@@ -5,9 +5,12 @@ use egui::Label;
 use egui::Sense;
 use egui::CollapsingHeader;
 use std::fs::File;
+#[cfg(target_os = "windows")]
 use winreg::enums::HKEY_CURRENT_USER;
 use egui::RichText;
 use std::sync::{Arc, Mutex};
+//#[cfg(target_os = "windows")]
+#[cfg(target_os = "windows")]
 use winreg::*;
 use std::io::prelude::*;
 use std::io;
@@ -32,31 +35,6 @@ r"
 
 
 
-                                                               
-                ▒▒░░░░░░                                        
-              ░░░░░░░░░░░░                                      
-            ░░░░░░░░░░░░░░░░                                    
-            ░░░░░░░░    ░░░░░░                                  
-            ░░░░██░░    ░░░░░░                                  
-              ████      ░░░░░░                                  
-              ░░        ░░░░░░        ░░░░░░░░░░░░              
-              ░░      ░░░░░░      ░░░░░░░░░░░░░░                
-                    ░░░░░░      ░░░░░░░░░░░░░░                  
-                ░░░░░░░░      ░░░░░░░░░░░░░░                    
-              ░░░░░░░░      ░░░░░░░░░░░░░░░░  ░░░░░░░░          
-            ░░░░░░░░        ░░░░░░░░░░░░░░░░░░░░░░░░            
-          ░░░░░░░░░░░░    ░░░░░░░░░░░░░░▒▒░░░░░░░░              
-          ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░                
-          ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░                  
-          ░░▒▒▒▒░░░░░░░░▒▒░░░░░░░░▒▒░░░░░░░░░░                  
-          ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░                  
-            ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░                  
-              ▒▒░░░░░░▒▒░░░░░░░░░░░░░░░░░░░░                    
-                ░░░░░░░░░░░░░░░░░░░░░░░░░░                      
-                  ░░░░░░░░░░░░░░░░░░░░░░              
-
-                        CHANGELOG
-                    - Made it better
 
 
 
@@ -65,8 +43,51 @@ r"
 
 
 
-    
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      It appears you are trying to make a harness...
+
+
+                                                  ▄████▄
+                                                 ▐▌░░░░▐▌
+                                              ▄▀▀█▀░░░░▐▌
+                                              ▄░▐▄░░░░░▐▌▀▀▄
+                                            ▐▀░▄▄░▀▌░▄▀▀░▀▄░▀
+                                            ▐░▀██▀░▌▐░▄██▄░▌
+                                             ▀▄░▄▄▀░▐░░▀▀░░▌
+                                                █░░░░▀▄▄░▄▀
+                                                █░█░░░░█░▐
+                                                █░█░░░▐▌░█ 
+                                                █░█░░░▐▌░█ 
+                                                ▐▌▐▌░░░█░█
+                                                ▐▌░█▄░▐▌░█
+                                                 █░░▀▀▀░░▐▌
+                                                 ▐▌░░░░░░█
+                                                  █▄░░░░▄█
+                                                   ▀████▀
+
 
 ";
 
@@ -110,6 +131,7 @@ impl ApplicationState {
         }
     }
 
+    #[cfg(target_os = "windows")]
     fn load_session_data(&mut self) -> io::Result<()> {
         let hklu = RegKey::predef(HKEY_CURRENT_USER);
         let unvesys_key = hklu.open_subkey("SOFTWARE\\Unvesys")?;
@@ -117,6 +139,7 @@ impl ApplicationState {
         Ok(())
     }
 
+    #[cfg(target_os = "windows")]
     fn save_session_data(&mut self) -> io::Result<()> {
         // Save output directory to registry
         let hkcu = RegKey::predef(HKEY_CURRENT_USER);
@@ -125,6 +148,16 @@ impl ApplicationState {
             Err(err) => return Err(io::Error::new(io::ErrorKind::Other, err)),
         };
         key.set_value("output_dir", &self.output_dir)?;
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    fn load_session_data(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    fn save_session_data(&mut self) -> io::Result<()> {
         Ok(())
     }
 
@@ -374,7 +407,7 @@ impl Application {
     }
     
     fn logic_design_context_menu(&mut self, ui: &mut egui::Ui, state: &ApplicationState, current_design_name: &str, current_harness: &str) {
-        if ui.button("Generate wire list").clicked() {
+        if ui.button("Export Excell wire list").clicked() {
             println!("Generating wire list for {}, {}", current_design_name, current_harness);
             let _ = state.with_library_and_project(|library, project| {
                 let mut filepath = PathBuf::from(state.output_dir.clone());
@@ -385,6 +418,9 @@ impl Application {
                 state.log(RichText::new("Finished wire list ".to_owned() + &filename).color(Color32::GREEN), Some(LOG_EXPIRATION));
             });
             ui.close_menu();   
+        }
+        if ui.button("Export Schleuniger ASCII").clicked() {
+            ui.close_menu();
         }
     }
 
