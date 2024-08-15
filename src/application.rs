@@ -23,6 +23,9 @@ use crate::vysis::*;
 use crate::vysyslib::*;
 use crate::table_dump::*;
 
+// ISSUE: https://github.com/bodil/smartstring/issues/7
+// WORKAROUND: use format! in place of + operator to contacatenate strings
+
 use crate::wire_list_xlsx_formatter::output_cutlist;
 
 static BG_GRAPHIC: &str =
@@ -412,10 +415,10 @@ impl Application {
             let _ = state.with_library_and_project(|library, project| {
                 let mut filepath = PathBuf::from(state.output_dir.clone());
                 let filename = current_harness.to_owned() + ".xlsx";
-                state.log(RichText::new("Generating wire list ".to_owned() + &filename).color(Color32::YELLOW), None);
+                state.log(RichText::new(format!("Generating wire list {}", &filename)).color(Color32::YELLOW), None);
                 filepath.push(current_harness.to_owned() + ".xlsx");
                 output_cutlist(&project, &library, &current_design_name, &current_harness, &filepath.display().to_string());
-                state.log(RichText::new("Finished wire list ".to_owned() + &filename).color(Color32::GREEN), Some(LOG_EXPIRATION));
+                state.log(RichText::new(format!("Finished wire list {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
             });
             ui.close_menu();   
         }
@@ -427,11 +430,11 @@ impl Application {
     fn harness_design_context_menu(&mut self, ui: &mut egui::Ui, state: &ApplicationState, current_design_name: &str) {
         if ui.button("Dump tables to CSV").clicked() {
             let _ = state.with_library_and_project(|_, project| {
-                state.log(RichText::new("Dumping tables to ".to_owned() + &state.output_dir).color(Color32::YELLOW), None);
+                state.log(RichText::new(format!("{}{}", "Dumping tables to ", &state.output_dir)).color(Color32::YELLOW), None);
                 if let Some(harness_design) = project.get_harness_design(&current_design_name) {
                     let table_groups = harness_design.get_table_groups();
                     dump_tables(table_groups, &current_design_name, &state.output_dir);
-                    state.log(RichText::new("Dumped ".to_owned() + &table_groups.len().to_string() + " tables from \"" + &current_design_name + "\" to CSV").color(Color32::GREEN), Some(LOG_EXPIRATION));
+                    state.log(RichText::new(format!("Dumped {} tables from \"{}\" to CSV", &table_groups.len().to_string(), &current_design_name)).color(Color32::GREEN), Some(LOG_EXPIRATION));
                 }
             });
             ui.close_menu();
@@ -439,16 +442,16 @@ impl Application {
 
         if ui.button("Export Schleuniger ASCII").clicked() {
             let _ = state.with_library_and_project(|library, project| {
-                state.log(RichText::new("Exporting Schleuniger ASCII file to ".to_owned() + &state.output_dir).color(Color32::YELLOW), None);
+                state.log(RichText::new(format!("{}{}","Exporting Schleuniger ASCII file to ", &state.output_dir)).color(Color32::YELLOW), None);
                 if let Some(harness_design) = project.get_harness_design(&current_design_name) {
                     let mut path : PathBuf = state.output_dir.clone().into();
                     let filename = current_design_name.to_owned() + ".txt";
                     path.push(String::from(&filename));
                     if let Ok(mut file) = File::create(path) {
                         schleuniger_ascii_export(&library, &harness_design, &mut file);
-                        state.log(RichText::new("Exported Schleuniger ASCII file to ".to_owned() + &filename).color(Color32::GREEN), Some(LOG_EXPIRATION));
+                        state.log(RichText::new(format!("Exported Schleuniger ASCII file to {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
                     } else {
-                        state.log(RichText::new("Failed to create ".to_owned() + &filename).color(Color32::RED), Some(LOG_EXPIRATION));
+                        state.log(RichText::new(format!("Failed to create {}", &filename)).color(Color32::RED), Some(LOG_EXPIRATION));
                     }
                 }
                 ui.close_menu();

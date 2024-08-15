@@ -1,6 +1,11 @@
 
+use polars::prelude::NamedFrom;
 use crate::vysisxml::XmlTableGroup;
 use std::collections::HashMap;
+use polars::prelude::*;
+//use polars::prelude::NamedFrom;
+
+
 
 type ColumnIndex = usize;
 
@@ -14,26 +19,35 @@ type ColumnIndex = usize;
 //  fn get_row_iter() -> IterType; // iterator over types implementing TableRowReader
 // }
 
-trait DataSetRecord {
-    fn new(dataset: Box<dyn DataSet>, index: usize) -> Self where Self: Sized;
-    fn get_field(&self, name: &str) -> &str;
-}
+// trait DataSetRecord {
+//     //fn new(dataset: Box<dyn DataSet>, index: usize) -> Self where Self: Sized;
+//     fn get_field(&self, name: &str) -> &str;
+// }
 
-trait DataSet {
-    fn get_record_count(&self) -> usize;
-    fn get_record(&self, index: usize) -> Box<dyn DataSetRecord>;
-    fn get_record_iter(&self) -> DataSetRecordIter;
-}
+// trait DataSet {
+//     fn get_record_count(&self) -> usize;
+//     fn get_record(&self, index: usize) -> Option<& dyn DataSetRecord>;
+//     //fn get_record_iter(&self) -> DataSetRecordIter;
+// }
 
-pub struct DataSetRecordIter {
-    dataset: Box<dyn DataSet>,
-    row_index : usize
-}
+// pub struct DataSetRecordIter {
+//     dataset: Box<dyn DataSet>,
+//     row_index : usize
+// }
 
 // impl DataSetRecord for VysysTableRow<'_> {
 //     // add code here
-// fn new<Self>(_: Box<(dyn DataSet + 'static)>, _: usize) -> Self { todo!() }
+// //fn new(_: Box<(dyn DataSet + 'static)>, _: usize) -> Self { todo!() } // here I'm limited to only DataSet interface
 // fn get_field(&self, _: &str) -> &str { todo!() }
+// }
+
+// impl DataSet for  VysysTableReader<'_> {
+//     fn get_record_count(&self) -> usize { (0..self.get_subtable_count()).map(|x| self.get_subtable_row_count(x)).sum() }
+//     fn get_record<'b>(&self, i: usize) -> Option<& 'b dyn DataSetRecord> { 
+//         self.get_row_iter().nth(i).map(|row| row as &dyn DataSetRecord)
+//         //todo!()
+//     }
+//     // 
 // }
 
 // impl<'a> Iterator for VysysTableRowIter<'a> {
@@ -66,7 +80,7 @@ pub struct DataSetRecordIter {
 // }
 
 /// Convience parser of Vesys tables.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VysysTableReader<'a> {
     tablegroup: &'a XmlTableGroup,
     column_map: HashMap<String, (ColumnIndex, String)>
@@ -180,3 +194,20 @@ impl<'a> Iterator for VysysTableRowIter<'a> {
         return current_row;
     }
 }
+
+impl From<VysysTableReader<'_>> for DataFrame {
+    fn from(table_reader: VysysTableReader<'_>) -> Self {
+        let fields = table_reader.column_map.keys().map(|k| Field::new(k, DataType::String));
+
+        let sc: Schema = Schema::from_iter(fields);
+        let mut df = DataFrame::empty_with_schema(&sc);
+
+        let row_iter = table_reader.get_row_iter();
+        for row in row_iter {
+            let series: Vec<_> = table_reader.column_map.keys().map(|k| Series::new(k, &[row.get_column(k).unwrap_or("N/A")])).collect();
+            df.vstack_mut(&(DataFrame::new(series).unwrap()));
+        }
+        df
+    }
+}
+

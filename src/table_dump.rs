@@ -8,6 +8,7 @@ use csv::{Writer, WriterBuilder};
 use crate::vysisxml::XmlTableGroup;
 use std::path::PathBuf;
 use std::error::Error;
+use polars::prelude::*;
 
 pub fn dump_tables(table_groups: &Vec<XmlTableGroup>, basename: &str, dir: &str) -> std::io::Result<()> {
     let mut i = 0;
@@ -112,13 +113,18 @@ pub fn schleuniger_ascii_export<W: Write>(library: &Library, harness_design: &Ha
     let harness_wire_table = table_groups.into_iter().find(|x| x.decorationname == "HarnessWireTable");
 
     if let Some(harness_wire_table) = harness_wire_table {
+
         println!("{}", &harness_wire_table.title);
         let table_reader = VysysTableReader::new(&harness_wire_table);
+
+        let dataset : DataFrame = table_reader.clone().into();
+        println!("{}", dataset);
+
         let row_iter = table_reader.get_row_iter();
         for (index, row) in row_iter.enumerate() {
             let from = row.get_column("WIRE_FROM_PINLIST").unwrap_or("N/A").to_owned() + "-" + row.get_column("WIRE_FROM_CAVITY").unwrap_or("N/A");
             let to = row.get_column("WIRE_TO_PINLIST").unwrap_or("N/A").to_owned() + "-" + row.get_column("WIRE_TO_CAVITY").unwrap_or("N/A");
-            let article_name = from + "/" + &to;
+            let article_name = format!("{}/{}", from, &to);
             let part = (index + 1).to_string();
             let length = row.get_column("MODIFIED_LENGTH").unwrap_or("N/A").to_owned();
             

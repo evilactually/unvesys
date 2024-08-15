@@ -115,7 +115,7 @@ impl WireListXlsxFormatter<'_> {
             format!(" (⤫ {})", x.clone())
         });
 
-        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_ITEM, &(wire.name.to_string() + &twisted_indicator.unwrap_or_default()));
+        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_ITEM, &format!("{}{}", wire.name.to_string(), twisted_indicator.unwrap_or_default()));
         // Short Descr
         self.table.set_cell(self.current_row, Self::LEFT + Self::SHORT_DESCR, &wire.descr);
         // From
@@ -128,7 +128,7 @@ impl WireListXlsxFormatter<'_> {
         self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_TERM_NAME, &left_wire_end.termination_name);
         // Wire
         self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_PARTNO, &wire.partno);
-        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_NAME, &(wire.material.to_string() + " " + &wire.spec));
+        self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_NAME, &format!("{} {}", wire.material.to_string(), &wire.spec));
         self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_COLOR, &wire.color_description);
         self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_LEN, &wire.length.to_string());
         // Terminal

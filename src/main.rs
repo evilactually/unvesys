@@ -18,7 +18,7 @@ mod wirelist;
 mod deviceindex;
 mod traverse;
 mod table_dump;
-// mod outline2;
+mod shchleuniger;
 mod vesys_table_reader;
 
 fn main() {
