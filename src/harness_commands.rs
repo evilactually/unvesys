@@ -126,7 +126,13 @@ pub fn harness_schleuniger_ascii_export<W: Write>(library: &Library, harness_des
 
         wirelist_to_schleuniger_ascii(&SchleunigerASCIIConfig::default(), &wirelist_df, writer);
 
-        
+        // let doubled_values: Series = df
+        // .column("values")?
+        // .i32()?
+        // .into_iter()
+        // .map(|opt_val| opt_val.map(|val| transform(val)))
+        // .collect::<Vec<_>>()
+        // .into_series();
 
 
         // let row_iter = table_reader.get_row_iter();
