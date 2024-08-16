@@ -21,7 +21,7 @@ use std::time::{Duration, SystemTime};
 
 use crate::vysis::*;
 use crate::vysyslib::*;
-use crate::table_dump::*;
+use crate::harness_commands::*;
 
 // ISSUE: https://github.com/bodil/smartstring/issues/7
 // WORKAROUND: use format! in place of + operator to contacatenate strings
@@ -448,7 +448,7 @@ impl Application {
                     let filename = current_design_name.to_owned() + ".txt";
                     path.push(String::from(&filename));
                     if let Ok(mut file) = File::create(path) {
-                        schleuniger_ascii_export(&library, &harness_design, &mut file);
+                        harness_schleuniger_ascii_export(&library, &harness_design, &mut file);
                         state.log(RichText::new(format!("Exported Schleuniger ASCII file to {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
                     } else {
                         state.log(RichText::new(format!("Failed to create {}", &filename)).color(Color32::RED), Some(LOG_EXPIRATION));

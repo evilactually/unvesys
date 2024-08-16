@@ -17,7 +17,7 @@ mod wire_list_xlsx_formatter;
 mod wirelist;
 mod deviceindex;
 mod traverse;
-mod table_dump;
+mod harness_commands;
 mod shchleuniger;
 mod vesys_table_reader;
 
