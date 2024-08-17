@@ -74,7 +74,9 @@ pub fn center_label(record: Vec<String>) -> Vec<String> {
     }
 }
 
-
+fn transform(s:Option<&str>) -> Option<&str>{
+    s
+}
 
 pub fn harness_schleuniger_ascii_export<W: Write>(library: &Library, harness_design: &HarnessDesign, writer: W)  {
     // let mut wtr = WriterBuilder::new()
@@ -126,14 +128,29 @@ pub fn harness_schleuniger_ascii_export<W: Write>(library: &Library, harness_des
 
         wirelist_to_schleuniger_ascii(&SchleunigerASCIIConfig::default(), &wirelist_df, writer);
 
-        // let doubled_values: Series = df
-        // .column("values")?
-        // .i32()?
+        // let doubled_values : Series =  wirelist_df
+        // .column("WIRE_NAME").unwrap()
+        // .str().unwrap()
         // .into_iter()
-        // .map(|opt_val| opt_val.map(|val| transform(val)))
-        // .collect::<Vec<_>>()
-        // .into_series();
+        // .map(|opt_val| opt_val.map(|val| transform(val))).from_iter();
+        //.collect::<Vec<_>>();
+        //.into_series();
 
+
+        let processing = wirelist_df.column("WIRE_NAME")
+        .unwrap()
+        .str()
+        .unwrap()
+        .into_iter()
+        .map(|wire_name| {
+            wire_name.and_then(|wire_name| {
+                let p = lookup_wire_processing(library, harness_design, wire_name)
+                //Some(wire_name)
+            })
+        }).collect::<Vec<_>>();
+        let processing_col = Series::new("PROCESSING", &processing);
+
+        println!("{}", processing_col);
 
         // let row_iter = table_reader.get_row_iter();
         // for (index, row) in row_iter.enumerate() {
