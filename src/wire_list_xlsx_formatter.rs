@@ -1,23 +1,10 @@
-use petgraph::dot::{Dot, Config};
-use crate::vysis::Connection;
-use crate::vysis::Connectivity;
-//use crate::WireList;
-use crate::vysis::Project;
-use crate::vysyslib::Library;
-//use crate::WireEntry;
 use xlsxwriter::prelude::FormatColor;
 use std::collections::HashMap;
 use xlsxwriter::*;
 use crate::xlsxtable::*;
 use xlsxwriter::format::*;
-use xlsxwriter::worksheet::WorksheetRow;
-use xlsxwriter::worksheet::WorksheetCol;
 use xlsxwriter::worksheet::PaperType;
-
 use crate::wirelist::*;
-use crate::deviceindex::*;
-
-use crate::traverse::*;
 
 pub struct WireListXlsxFormatter<'a> {
     table : XLSXTable,
@@ -276,241 +263,170 @@ pub fn color_map() -> Box<HashMap<String, FormatColor>> {
 
 
 
-pub fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a str>), library: &Library ) -> WireEndEntry {
-    let mut wire_end_info : WireEndEntry = Default::default();
-    match connection {
-        (Connection::Connector(connector,pin), termination) => {
-            if connector.is_ring() {
-                // If ring is connected to some device, find that device
-                let ring_connection = connector.get_ring_connection();
-                match ring_connection {
-                    Some(ring_connection) => {
-                        match ring_connection {
-                            Connection::Device(mated_device,mated_pin) => {
-                                wire_end_info.device = mated_device.get_name().into();
-                                wire_end_info.pin = mated_pin.get_name().into();
-                            }
-                            Connection::GroundDevice(mated_device,mated_pin) => {
-                                wire_end_info.device = mated_device.get_name().into();
-                                wire_end_info.pin = mated_pin.get_name().into();
-                            }
-                            _ => {
-                                println!("Ring can't connect to device {}", connector.get_name().to_string());
-                            }
-                        }
-                    }
-                    None => {}
-                }
-                // Ring is not connected anywhere, leave device empty
-                // Show ring as termination
-                wire_end_info.termination = connector.get_customer_partno().into();
-                let partno = connector.get_partno();
-                wire_end_info.termination_name = library.lookup_terminal_short_name(partno).unwrap_or_default().into();
-            } else
-            {
-                //println!("{}", connector.get_name());
-                // wire_end_info.device = connector.get_name().into();
-                // wire_end_info.pin = pin.get_name().into();
-                // wire_end_info.termination = "TODO".into();
+// pub fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a str>), library: &Library ) -> WireEndEntry {
+//     let mut wire_end_info : WireEndEntry = Default::default();
+//     match connection {
+//         (Connection::Connector(connector,pin), termination) => {
+//             if connector.is_ring() {
+//                 // If ring is connected to some device, find that device
+//                 let ring_connection = connector.get_ring_connection();
+//                 match ring_connection {
+//                     Some(ring_connection) => {
+//                         match ring_connection {
+//                             Connection::Device(mated_device,mated_pin) => {
+//                                 wire_end_info.device = mated_device.get_name().into();
+//                                 wire_end_info.pin = mated_pin.get_name().into();
+//                             }
+//                             Connection::GroundDevice(mated_device,mated_pin) => {
+//                                 wire_end_info.device = mated_device.get_name().into();
+//                                 wire_end_info.pin = mated_pin.get_name().into();
+//                             }
+//                             _ => {
+//                                 println!("Ring can't connect to device {}", connector.get_name().to_string());
+//                             }
+//                         }
+//                     }
+//                     None => {}
+//                 }
+//                 // Ring is not connected anywhere, leave device empty
+//                 // Show ring as termination
+//                 wire_end_info.termination = connector.get_customer_partno().into();
+//                 let partno = connector.get_partno();
+//                 wire_end_info.termination_name = library.lookup_terminal_short_name(partno).unwrap_or_default().into();
+//             } else
+//             {
+//                 //println!("{}", connector.get_name());
+//                 // wire_end_info.device = connector.get_name().into();
+//                 // wire_end_info.pin = pin.get_name().into();
+//                 // wire_end_info.termination = "TODO".into();
 
-                // Same as devices
-                wire_end_info.device = connector.get_name().into();
-                wire_end_info.pin = pin.get_name().into();
-                wire_end_info.termination = "TODO".into();
-                if let Some(termination) = termination {
-                    //println!("termination {}", termination);
-                    let terminal_partnumber = library.lookup_customer_partnumber(*termination);
-                    wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
-                    wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
-                }
-            }
-        }
-        (Connection::Device(device,pin), termination) => {
-            wire_end_info.device = device.get_name().into();
-            wire_end_info.pin = pin.get_name().into();
-            wire_end_info.termination = "TODO".into();
-            if let Some(termination) = termination {
-                if termination.trim() == "^" { // two wire going to same terminal of device
-                    wire_end_info.termination = "^".into(); // leave ^ alone for now
-                    wire_end_info.termination_name = "".into();
-                } else {
-                    let terminal_partnumber = library.lookup_customer_partnumber(*termination);
-                    wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
-                    wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
-                }
-            }
-        }
-        (Connection::GroundDevice(device,pin), termination) => {
-            wire_end_info.device = device.get_name().into();
-            wire_end_info.pin = pin.get_name().into();
-            wire_end_info.termination = "TODO".into();
-            if let Some(termination) = termination {
-                let terminal_partnumber = library.lookup_customer_partnumber(*termination);
-                wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
-                wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
-            }
-        }
-        (Connection::Splice(splice,pin), _) => {
-            wire_end_info.device = splice.get_name().into();
-            wire_end_info.pin = pin.get_name().into();
-            wire_end_info.termination = "".into();
-            // For splices, use splice part number and short name instead of termination
-            if let Some(library_partnumber) = splice.get_partno() {
-                let customer_partnumber = library.lookup_customer_partnumber(library_partnumber);
-                wire_end_info.termination = customer_partnumber.unwrap_or(library_partnumber).into();
-                wire_end_info.termination_name = library.lookup_terminal_short_name(library_partnumber).unwrap_or_default().into();
-            }
-            // TODO: Read properties of the device to find out which side of the splice wire is meant to 
-        }
-    }
-    //wire_end_info.termination = "TODO".into();
-    wire_end_info
-}
+//                 // Same as devices
+//                 wire_end_info.device = connector.get_name().into();
+//                 wire_end_info.pin = pin.get_name().into();
+//                 wire_end_info.termination = "TODO".into();
+//                 if let Some(termination) = termination {
+//                     //println!("termination {}", termination);
+//                     let terminal_partnumber = library.lookup_customer_partnumber(*termination);
+//                     wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
+//                     wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+//                 }
+//             }
+//         }
+//         (Connection::Device(device,pin), termination) => {
+//             wire_end_info.device = device.get_name().into();
+//             wire_end_info.pin = pin.get_name().into();
+//             wire_end_info.termination = "TODO".into();
+//             if let Some(termination) = termination {
+//                 if termination.trim() == "^" { // two wire going to same terminal of device
+//                     wire_end_info.termination = "^".into(); // leave ^ alone for now
+//                     wire_end_info.termination_name = "".into();
+//                 } else {
+//                     let terminal_partnumber = library.lookup_customer_partnumber(*termination);
+//                     wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
+//                     wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+//                 }
+//             }
+//         }
+//         (Connection::GroundDevice(device,pin), termination) => {
+//             wire_end_info.device = device.get_name().into();
+//             wire_end_info.pin = pin.get_name().into();
+//             wire_end_info.termination = "TODO".into();
+//             if let Some(termination) = termination {
+//                 let terminal_partnumber = library.lookup_customer_partnumber(*termination);
+//                 wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
+//                 wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+//             }
+//         }
+//         (Connection::Splice(splice,pin), _) => {
+//             wire_end_info.device = splice.get_name().into();
+//             wire_end_info.pin = pin.get_name().into();
+//             wire_end_info.termination = "".into();
+//             // For splices, use splice part number and short name instead of termination
+//             if let Some(library_partnumber) = splice.get_partno() {
+//                 let customer_partnumber = library.lookup_customer_partnumber(library_partnumber);
+//                 wire_end_info.termination = customer_partnumber.unwrap_or(library_partnumber).into();
+//                 wire_end_info.termination_name = library.lookup_terminal_short_name(library_partnumber).unwrap_or_default().into();
+//             }
+//             // TODO: Read properties of the device to find out which side of the splice wire is meant to 
+//         }
+//     }
+//     //wire_end_info.termination = "TODO".into();
+//     wire_end_info
+// }
 
 
-pub fn output_connector_io(project: &Project, library: &Library, design_name: &str, connector: &str, filepath: &str ) -> Result<(), Box<dyn std::error::Error>> {
-    let colormap = color_map();
-    if let Some(design) = project.get_design(design_name) {
-        if let Ok(workbook) = Workbook::new(filepath) {
-            // Get harness wires            
-            let wires = design.get_connectivity().get_connector_wires(&connector);
+// pub fn output_connector_io(project: &Project, library: &Library, design_name: &str, connector: &str, filepath: &str ) -> Result<(), Box<dyn std::error::Error>> {
+//     let colormap = color_map();
+//     if let Some(design) = project.get_design(design_name) {
+//         if let Ok(workbook) = Workbook::new(filepath) {
+//             // Get harness wires            
+//             let wires = design.get_connectivity().get_connector_wires(&connector);
 
-        }
-    }
+//         }
+//     }
 
-    todo!();
-}
+//     todo!();
+// }
 
-pub fn output_cutlist_from_connectivity(library: &Library, connectivity: &Connectivity, harness: &str, filepath: &str ) -> Result<(), Box<dyn std::error::Error>> {
-    let colormap = color_map();
-    if let Ok(workbook) = Workbook::new(filepath) {
-    // Get harness wires            
-    let wires = connectivity.get_wires(&harness);
+// pub fn generate_grouped_wirelist(library: &Library, connectivity: &Connectivity, harness: &str) -> Result<Vec<Vec<WireEntry>>, Box<dyn std::error::Error>> {
+//     // Get harness wires            
+//     let wires = connectivity.get_wires(&harness);
 
-    // Processed wire list
-    let mut wire_list: WireList = WireList::new();
+//     // Processed wire list
+//     let mut wire_list: WireList = WireList::new();
 
-    for wire in wires {
-        println!("{}", wire.get_name());
+//     for wire in wires {
+//         let connections = wire.get_connections();
+//         let connection_left = connections.get(0);
 
-        let connections = wire.get_connections();
-        let connection_left = connections.get(0);
+//         // This is where most of VeSys non-sense is fixed regarding where wire is connected and what goes on it
+//         let left_wire_end = connection_left.map(|(connection_left, termination)| {
+//             let mut left_wire_end = process_connection((connection_left, termination), &library);
+//             left_wire_end
+//         });
 
-        // This is where most of VeSys non-sense is fixed regarding where wire is connected and what goes on it
-        let left_wire_end = connection_left.map(|(connection_left, termination)| {
-            let mut left_wire_end = process_connection((connection_left, termination), &library);
-            left_wire_end
-        });
+//         let connection_right = connections.get(1);
+//         let right_wire_end = connection_right.map(|(connection_right, termination)| {
+//             let mut right_wire_end = process_connection((connection_right, termination), &library);
+//             right_wire_end
+//         });
 
-        let connection_right = connections.get(1);
-        let right_wire_end = connection_right.map(|(connection_right, termination)| {
-            let mut right_wire_end = process_connection((connection_right, termination), &library);
-            right_wire_end
-        });
+//         wire_list.wires.insert(
+//             WireEntry {
+//                 name : wire.get_name().into(),
+//                 descr : wire.get_short_descr().into(),
+//                 partno : wire.get_customer_partno().into(),
+//                 material : wire.get_material().into(),
+//                 spec : wire.get_spec().into(),
+//                 color_code : wire.get_color().into(),
+//                 color_description : library.get_color_description(wire.get_color()).unwrap_or_default().into(),
+//                 length : wire.get_length(),
+//                 left : left_wire_end.clone(),
+//                 right : right_wire_end.clone(),
+//                 twisted_with : wire.get_twisted_with().map(|x| x.into()) // check if wire is in twist with any other
+//             }
+//         );
+//     }
 
-        if let Some(twisted_with) = wire.get_twisted_with() {
-            println!("twist: {}", twisted_with);
-        }
+//     let mut wiregroups : Vec<Vec<WireEntry>> = traverse(&wire_list);
 
-        wire_list.wires.insert(
-            WireEntry {
-                name : wire.get_name().into(),
-                descr : wire.get_short_descr().into(),
-                partno : wire.get_customer_partno().into(),
-                material : wire.get_material().into(),
-                spec : wire.get_spec().into(),
-                color_code : wire.get_color().into(),
-                color_description : library.get_color_description(wire.get_color()).unwrap_or_default().into(),
-                length : wire.get_length(),
-                left : left_wire_end.clone(),
-                right : right_wire_end.clone(),
-                twisted_with : wire.get_twisted_with().map(|x| x.into()) // check if wire is in twist with any other
-            }
-        );
-    }
+//     Ok(wiregroups)
+// }
 
-    let mut wiregroups = traverse(&wire_list);
 
-    // for group in wiregroups {
-    //     println!("{}", "BEGIN GROUP");
-    //     for wireentry in group.wires {
-    //         println!("  {}", wireentry.name);
-    //     }
-    //     println!("{}", "END GROUP")
-    // }
 
-    // let g = build_graph_from_wirelist(&wire_list);
-    // let c = find_weakly_connected_components(&g);
-
-    // println!("{:?}", c);
-
-    // let graphs = build_graphs_from_components(&g,c);
-
-    // for graph in graphs {
+// pub fn output_cutlist(project: &Project,library: &Library, design_name: &str, harness: &str, filepath: &str ) -> Result<(), Box<dyn std::error::Error>> {
     
-    //     {
-    //     let dot = Dot::with_attr_getters(&graph, &[Config::EdgeNoLabel, Config::NodeNoLabel], &move|_, edge| {
-    //         //let is_mst_edge = mst_directed_graph.find_edge(edge.source(), edge.target()).is_some();
-    //         if  true {
-    //             format!("color=\"{}\"", "red")
-    //         } else {
-    //             "".to_string()
-    //         }
-    //     },
-    //     &|_, (id,name)| {
-    //         format!("label=\"{}\"", name)
-    //     });
+//     if let Some(design) = project.get_design(design_name) {
+//         let connectivity = design.get_connectivity();
+//         output_cutlist_from_connectivity(library, &connectivity, harness, filepath);
 
-    //     // Print the DOT representation
-    //     println!("{:?}", dot);
-    //     }
+//     } else if let Some(harnessdesign) = project.get_harness_design(design_name) {
+//         let connectivity = harnessdesign.get_connectivity();
+//         output_cutlist_from_connectivity(library, &connectivity, "", filepath);
+//     }
 
-    // }
-
-    
+//     Ok(())
+// }
 
 
-    let mut xlsx_formatter = WireListXlsxFormatter::new(&workbook, &colormap);
-    // Output plain wire list
-    xlsx_formatter.print_header();
-    // for wire in wire_list.wires.iter() {
-    //     xlsx_formatter.print_entry(wire);
-    //     //xlsx_formatter.bar();
-    // }
-
-    for mut group in wiregroups {
-        // Sort wire group
-        sort_wirelist_by_left_device_pin(&mut group);
-        //println!("{}", "BEGIN GROUP");
-        for wireentry in group {
-            //println!("  {}", wireentry.name);
-            xlsx_formatter.print_entry(&wireentry);
-        }
-        xlsx_formatter.bar();
-        //println!("{}", "END GROUP")
-    }
-
-    // outout device index
-
-
-} else {
-    // can't open path
-    // return
-}
-
-Ok(())
-}
-
-pub fn output_cutlist(project: &Project,library: &Library, design_name: &str, harness: &str, filepath: &str ) -> Result<(), Box<dyn std::error::Error>> {
-    
-    if let Some(design) = project.get_design(design_name) {
-        let connectivity = design.get_connectivity();
-        output_cutlist_from_connectivity(library, &connectivity, harness, filepath);
-
-    } else if let Some(harnessdesign) = project.get_harness_design(design_name) {
-        let connectivity = harnessdesign.get_connectivity();
-        output_cutlist_from_connectivity(library, &connectivity, "", filepath);
-    }
-
-    Ok(())
-}

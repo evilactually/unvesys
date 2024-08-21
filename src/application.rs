@@ -1,3 +1,5 @@
+use crate::logic_commands::logic_harness_shchleuniger_export;
+use crate::logic_commands::export_xslx_wirelist;
 use std::thread;
 use std::path::PathBuf;
 use crate::outline::ProjectOutline;
@@ -26,7 +28,6 @@ use crate::harness_commands::*;
 // ISSUE: https://github.com/bodil/smartstring/issues/7
 // WORKAROUND: use format! in place of + operator to contacatenate strings
 
-use crate::wire_list_xlsx_formatter::output_cutlist;
 
 static BG_GRAPHIC: &str =
 r"     
@@ -350,7 +351,7 @@ impl Application {
                     if let Some(project) = &state.project {
 
                         // let id = ui.make_persistent_id("my_collapsing_header");
-                        // //let mut selected = true9896
+                        // //let mut selected = true
                         // egui::collapsing_header::CollapsingState::load_with_default_open(ui.ctx(), id, true)
                         // .show_header(ui, |ui| {
                         //     ui.toggle_value(&mut state.selected, "Click to select/unselect");
@@ -417,12 +418,31 @@ impl Application {
                 let filename = current_harness.to_owned() + ".xlsx";
                 state.log(RichText::new(format!("Generating wire list {}", &filename)).color(Color32::YELLOW), None);
                 filepath.push(current_harness.to_owned() + ".xlsx");
-                output_cutlist(&project, &library, &current_design_name, &current_harness, &filepath.display().to_string());
+                export_xslx_wirelist(&project, &library, &current_design_name, &current_harness, &filepath.display().to_string());
                 state.log(RichText::new(format!("Finished wire list {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
             });
             ui.close_menu();   
         }
         if ui.button("Export Schleuniger ASCII").clicked() {
+
+            state.log(RichText::new(format!("{}{}","Exporting Schleuniger ASCII file to ", &state.output_dir)).color(Color32::YELLOW), None);
+            let _ = state.with_library_and_project(|library, project| {
+                let mut filepath = PathBuf::from(state.output_dir.clone());
+                let filename = current_harness.to_owned() + ".txt";
+                state.log(RichText::new(format!("Generating wire list {}", &filename)).color(Color32::YELLOW), None);
+                filepath.push(current_harness.to_owned() + ".txt");
+                export_xslx_wirelist(&project, &library, &current_design_name, &current_harness, &filepath.display().to_string());
+                if let Ok(mut file) = File::create(filepath) {
+                    //harness_schleuniger_ascii_export(&library, &harness_design, &mut file);
+                    logic_harness_shchleuniger_export(&project, &library, current_design_name, current_harness,  &mut file);
+                    state.log(RichText::new(format!("Exported Schleuniger ASCII file to {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
+                } else {
+                    state.log(RichText::new(format!("Failed to create {}", &filename)).color(Color32::RED), Some(LOG_EXPIRATION));
+                }
+                state.log(RichText::new(format!("Finished wire list {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
+            });
+
+
             ui.close_menu();
         }
     }

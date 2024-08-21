@@ -31,12 +31,12 @@ Go to File -> Open to load project XML, then you may right click on various harn
 ![Library XML](screenshot.JPG){width=250}
 
 
-Capital Essentials Online Project Viewer
-
 ROADMAP
 ------------
 
-- Improved project outline
-- Separate data from format
+- Separate data from format (using Polars for intermediate data format)
+- Shchleuniger ASCII output for internal harnesses
+- Multi-wire terminations and indicators
 - Device index (or just BOM) for harness wire list report
-- Multi-wire terminations
+- Improved project outline
+- Table preview
