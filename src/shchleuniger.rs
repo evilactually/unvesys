@@ -98,6 +98,9 @@ pub fn wirelist_to_schleuniger_ascii<W: Write>(config: &SchleunigerASCIIConfig, 
         String::from("Autorotation"),
     ]);
 
+    let mut wire_list = wire_list.clone(); 
+    wire_list.as_single_chunk_par(); // need to run this before getting columns
+    println!("{:?}", wire_list);
     let mut iters = wire_list.columns(["WIRE_NAME",
                                        "WIRE_FROM_PINLIST", 
                                        "WIRE_FROM_CAVITY", 
@@ -135,6 +138,8 @@ pub fn wirelist_to_schleuniger_ascii<W: Write>(config: &SchleunigerASCIIConfig, 
         let marker_left_position = config.left_position;
         let marker_right_position = config.right_position;
         let autorotation = "X".to_owned();
+
+        println!("{}", wire_name);
 
         wtr.write_record(center_label(config, vec![
             article_name, // 0

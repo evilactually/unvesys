@@ -304,10 +304,10 @@ pub fn grouped_wirelist_to_data_frame(grouped_wirelist: Vec<Vec<WireEntry>>) -> 
      "COLOR_DESCRIPTION", // TODO: VERIFY THIS!
      "WIRE_FROM_PINLIST", 
      "WIRE_FROM_CAVITY", 
-     "WIRE_TERMINAL_STRIP_LEN1", 
-     "WIRE_TO_PINLIST", 
-     "WIRE_TO_CAVITY", 
-     "WIRE_TERMINAL_STRIP_LEN2", 
+     "WIRE_TERMINAL_STRIP_LEN1",
+     "WIRE_TO_PINLIST",
+     "WIRE_TO_CAVITY",
+     "WIRE_TERMINAL_STRIP_LEN2",
      "MODIFIED_LENGTH",
      "TWIST_WIDTH",
      "PROCESSING"]; // CUSTOM FIELD
@@ -340,7 +340,7 @@ pub fn grouped_wirelist_to_data_frame(grouped_wirelist: Vec<Vec<WireEntry>>) -> 
             ""];
             //println!("{:?}", column_values);
             let series = column_names.iter().zip(column_values).map(|(name, value)| Series::new(name, &[value]) ).collect::<Vec<_>>();
-            println!("{:?}", &(DataFrame::new(series.clone()).unwrap()));
+            //println!("{:?}", &(DataFrame::new(series.clone()).unwrap()));
             let _ = df.vstack_mut(&(DataFrame::new(series).unwrap()));
         }
         // let series: Vec<_> = table_reader.column_map.keys().map(|k| Series::new(k, &[row.get_column(k).unwrap_or("N/A")])).collect();
