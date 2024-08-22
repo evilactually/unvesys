@@ -64,8 +64,28 @@ impl Library {
         })
     }
 
-    pub fn lookup_terminal_short_name(&self, partno: &str) -> Option<&str> {
-        let part = self.dom.terminalpart.iter().find(|part| part.partnumber == partno);
+    pub fn lookup_terminal_short_name<'a>(&self, part: Option<&'a XmlTerminalPart>) -> Option<&'a str> {
+        //let part = self.dom.terminalpart.iter().find(|part| part.partnumber == partno);
+        part.and_then(|part| {
+            let property_id = self.lookup_user_property_id("TERMINAL_NAME").unwrap_or("N/A");
+            //println!("{}", property_id);
+            part.chsuserpropertypart.iter().find(|property| property.chsuserproperty_id == property_id)
+        }).and_then(|property| {
+            Some(property.userpropertyvalue.as_ref())
+            //None
+        })
+    }
+
+    pub fn lookup_terminal_part(&self, partno: &str) -> Option<&XmlTerminalPart> {
+        self.dom.terminalpart.iter().find(|part| part.partnumber == partno)
+    }
+
+    pub fn lookup_splice_part(&self, partno: &str) -> Option<&XmlSplicePart> {
+        self.dom.splicepart.iter().find(|part| part.partnumber == partno)
+    }
+
+    pub fn lookup_splice_short_name<'a>(&self, part: Option<&'a XmlSplicePart>) -> Option<&'a str> {
+        //let part = self.dom.terminalpart.iter().find(|part| part.partnumber == partno);
         part.and_then(|part| {
             let property_id = self.lookup_user_property_id("TERMINAL_NAME").unwrap_or("N/A");
             //println!("{}", property_id);

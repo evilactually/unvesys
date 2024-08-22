@@ -139,8 +139,6 @@ pub fn wirelist_to_schleuniger_ascii<W: Write>(config: &SchleunigerASCIIConfig, 
         let marker_right_position = config.right_position;
         let autorotation = "X".to_owned();
 
-        println!("{}", wire_name);
-
         wtr.write_record(center_label(config, vec![
             article_name, // 0
             part, // 1

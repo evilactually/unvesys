@@ -40,6 +40,10 @@ pub struct XmlSplicePart {
     pub partnumber: String,
     #[xml(child = "customerpartnumber")]
     pub customerpartnumber: Vec<XmlCustomerPartNumber>,
+    #[xml(child = "chsuserpropertypart")]
+    pub chsuserpropertypart: Vec<XmlChsUserPropertyPart>,
+    #[xml(attr = "striplength")]
+    pub striplength: f32,
 }
 
 /// Device entry in a library
@@ -54,6 +58,8 @@ pub struct XmlTerminalPart {
     pub customerpartnumber: Vec<XmlCustomerPartNumber>,
     #[xml(child = "chsuserpropertypart")]
     pub chsuserpropertypart: Vec<XmlChsUserPropertyPart>,
+    #[xml(attr = "striplength")]
+    pub striplength: f32,
 }
 
 /// Customer part number of a component

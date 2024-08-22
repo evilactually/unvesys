@@ -25,6 +25,7 @@ pub struct WireEntry {
     pub partno: Box<str>,
     pub material: Box<str>,
     pub spec: Box<str>,
+    pub processing: Box<str>,
     pub color_code: Box<str>,
     pub color_description: Box<str>,
     pub length: f32,
@@ -62,7 +63,7 @@ impl WireEntry {
 pub struct WireEndEntry {
     pub device : Box<str>,
     pub pin : Box<str>,
-    pub termination : Box<str>,
+    pub termination_partnumber : Box<str>,
     pub termination_name : Box<str>,
     pub strip: f32
 }
@@ -172,9 +173,11 @@ fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a str>)
                 }
                 // Ring is not connected anywhere, leave device empty
                 // Show ring as termination
-                wire_end_info.termination = connector.get_customer_partno().into();
+                wire_end_info.termination_partnumber = connector.get_customer_partno().into();
                 let partno = connector.get_partno();
-                wire_end_info.termination_name = library.lookup_terminal_short_name(partno).unwrap_or_default().into();
+                let terminal_dom = library.lookup_terminal_part(partno);
+                wire_end_info.termination_name = library.lookup_terminal_short_name(terminal_dom).unwrap_or_default().into();
+                wire_end_info.strip = terminal_dom.and_then(|terminal_dom| Some(terminal_dom.striplength)).unwrap_or_default().into();
             } else
             {
                 //println!("{}", connector.get_name());
@@ -185,49 +188,57 @@ fn process_connection<'a>(connection: (&'a  Connection<'a>, &'a Option<&'a str>)
                 // Same as devices
                 wire_end_info.device = connector.get_name().into();
                 wire_end_info.pin = pin.get_name().into();
-                wire_end_info.termination = "TODO".into();
+                wire_end_info.termination_partnumber = "TODO".into();
                 if let Some(termination) = termination {
                     //println!("termination {}", termination);
                     let terminal_partnumber = library.lookup_customer_partnumber(*termination);
-                    wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
-                    wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+                    wire_end_info.termination_partnumber = terminal_partnumber.unwrap_or_default().into();
+                    let terminal_dom = library.lookup_terminal_part(termination);
+                    wire_end_info.termination_name = library.lookup_terminal_short_name(terminal_dom).unwrap_or_default().into();
+                    wire_end_info.strip = terminal_dom.and_then(|terminal_dom| Some(terminal_dom.striplength)).unwrap_or_default().into();
                 }
             }
         }
         (Connection::Device(device,pin), termination) => {
             wire_end_info.device = device.get_name().into();
             wire_end_info.pin = pin.get_name().into();
-            wire_end_info.termination = "TODO".into();
+            wire_end_info.termination_partnumber = "TODO".into();
             if let Some(termination) = termination {
                 if termination.trim() == "^" { // two wire going to same terminal of device
-                    wire_end_info.termination = "^".into(); // leave ^ alone for now
+                    wire_end_info.termination_partnumber = "^".into(); // leave ^ alone for now
                     wire_end_info.termination_name = "".into();
                 } else {
                     let terminal_partnumber = library.lookup_customer_partnumber(*termination);
-                    wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
-                    wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+                    wire_end_info.termination_partnumber = terminal_partnumber.unwrap_or_default().into();
+                    let terminal_dom = library.lookup_terminal_part(termination);
+                    wire_end_info.termination_name = library.lookup_terminal_short_name(terminal_dom).unwrap_or_default().into();
+                    wire_end_info.strip = terminal_dom.and_then(|terminal_dom| Some(terminal_dom.striplength)).unwrap_or_default().into();
                 }
             }
         }
         (Connection::GroundDevice(device,pin), termination) => {
             wire_end_info.device = device.get_name().into();
             wire_end_info.pin = pin.get_name().into();
-            wire_end_info.termination = "TODO".into();
+            wire_end_info.termination_partnumber = "TODO".into();
             if let Some(termination) = termination {
                 let terminal_partnumber = library.lookup_customer_partnumber(*termination);
-                wire_end_info.termination = terminal_partnumber.unwrap_or_default().into();
-                wire_end_info.termination_name = library.lookup_terminal_short_name(*termination).unwrap_or_default().into();
+                wire_end_info.termination_partnumber = terminal_partnumber.unwrap_or_default().into();
+                let terminal_dom = library.lookup_terminal_part(termination);
+                wire_end_info.termination_name = library.lookup_terminal_short_name(terminal_dom).unwrap_or_default().into();
+                wire_end_info.strip = terminal_dom.and_then(|terminal_dom| Some(terminal_dom.striplength)).unwrap_or_default().into();
             }
         }
         (Connection::Splice(splice,pin), _) => {
             wire_end_info.device = splice.get_name().into();
             wire_end_info.pin = pin.get_name().into();
-            wire_end_info.termination = "".into();
+            wire_end_info.termination_partnumber= "".into();
             // For splices, use splice part number and short name instead of termination
             if let Some(library_partnumber) = splice.get_partno() {
                 let customer_partnumber = library.lookup_customer_partnumber(library_partnumber);
-                wire_end_info.termination = customer_partnumber.unwrap_or(library_partnumber).into();
-                wire_end_info.termination_name = library.lookup_terminal_short_name(library_partnumber).unwrap_or_default().into();
+                wire_end_info.termination_partnumber = customer_partnumber.unwrap_or(library_partnumber).into();
+                let splice_dom = library.lookup_splice_part(library_partnumber);
+                wire_end_info.termination_name = library.lookup_splice_short_name(splice_dom).unwrap_or_default().into();
+                wire_end_info.strip = splice_dom.and_then(|splice_dom| Some(splice_dom.striplength)).unwrap_or_default().into();
             }
             // TODO: Read properties of the device to find out which side of the splice wire is meant to 
         }
@@ -267,6 +278,9 @@ pub fn generate_grouped_wirelist(library: &Library, connectivity: &Connectivity,
                 partno : wire.get_customer_partno().into(),
                 material : wire.get_material().into(),
                 spec : wire.get_spec().into(),
+                processing : wire.dom.partnumber.as_ref().and_then(|part_number| {
+                    library.lookup_wire_property(&part_number, "PROCESSING")
+                }).unwrap_or_default().into(),
                 color_code : wire.get_color().into(),
                 color_description : library.get_color_description(wire.get_color()).unwrap_or_default().into(),
                 length : wire.get_length(),
@@ -337,7 +351,7 @@ pub fn grouped_wirelist_to_data_frame(grouped_wirelist: Vec<Vec<WireEntry>>) -> 
             &right_end.strip.to_string(), 
             &wire.length.to_string(),
             &wire.twisted_with.unwrap_or_default(),
-            ""];
+            &wire.processing];
             //println!("{:?}", column_values);
             let series = column_names.iter().zip(column_values).map(|(name, value)| Series::new(name, &[value]) ).collect::<Vec<_>>();
             //println!("{:?}", &(DataFrame::new(series.clone()).unwrap()));
@@ -345,7 +359,7 @@ pub fn grouped_wirelist_to_data_frame(grouped_wirelist: Vec<Vec<WireEntry>>) -> 
         }
         // let series: Vec<_> = table_reader.column_map.keys().map(|k| Series::new(k, &[row.get_column(k).unwrap_or("N/A")])).collect();
     }
-    println!("{:?}", df);
+    //println!("{:?}", df);
     df
 }
 /*

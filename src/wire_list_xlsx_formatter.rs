@@ -111,7 +111,7 @@ impl WireListXlsxFormatter<'_> {
         self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_DASH, "-");
         self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_PIN, &left_wire_end.pin);
         // Terminal
-        self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_TERM_PARTNO, &left_wire_end.termination);
+        self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_TERM_PARTNO, &left_wire_end.termination_partnumber);
         self.table.set_cell(self.current_row, Self::LEFT + Self::FROM_TERM_NAME, &left_wire_end.termination_name);
         // Wire
         self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_PARTNO, &wire.partno);
@@ -120,7 +120,7 @@ impl WireListXlsxFormatter<'_> {
         self.table.set_cell(self.current_row, Self::LEFT + Self::WIRE_LEN, &wire.length.to_string());
         // Terminal
         let right_wire_end = wire.right.clone().unwrap_or_default();
-        self.table.set_cell(self.current_row, Self::LEFT + Self::TO_TERM_PARTNO, &right_wire_end.termination);
+        self.table.set_cell(self.current_row, Self::LEFT + Self::TO_TERM_PARTNO, &right_wire_end.termination_partnumber);
         self.table.set_cell(self.current_row, Self::LEFT + Self::TO_TERM_NAME, &right_wire_end.termination_name);
         // To
         self.table.set_cell(self.current_row, Self::LEFT + Self::TO_DEVICE, &right_wire_end.device);
