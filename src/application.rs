@@ -1,3 +1,4 @@
+use wildflower::Pattern;
 use crate::egui::Button;
 use crate::logic_commands::logic_harness_shchleuniger_export;
 use crate::logic_commands::export_xslx_wirelist;
@@ -75,23 +76,23 @@ r"
       It appears you are trying to make a harness...
 
 
-                                                  ▄████▄
-                                                 ▐▌░░░░▐▌
-                                              ▄▀▀█▀░░░░▐▌
-                                              ▄░▐▄░░░░░▐▌▀▀▄
-                                            ▐▀░▄▄░▀▌░▄▀▀░▀▄░▀
-                                            ▐░▀██▀░▌▐░▄██▄░▌
-                                             ▀▄░▄▄▀░▐░░▀▀░░▌
-                                                █░░░░▀▄▄░▄▀
-                                                █░█░░░░█░▐
-                                                █░█░░░▐▌░█ 
-                                                █░█░░░▐▌░█ 
-                                                ▐▌▐▌░░░█░█
-                                                ▐▌░█▄░▐▌░█
-                                                 █░░▀▀▀░░▐▌
-                                                 ▐▌░░░░░░█
-                                                  █▄░░░░▄█
-                                                   ▀████▀
+                                              ▄████▄
+                                             ▐▌░░░░▐▌
+                                          ▄▀▀█▀░░░░▐▌
+                                          ▄░▐▄░░░░░▐▌▀▀▄
+                                        ▐▀░▄▄░▀▌░▄▀▀░▀▄░▀
+                                        ▐░▀██▀░▌▐░▄██▄░▌
+                                         ▀▄░▄▄▀░▐░░▀▀░░▌
+                                            █░░░░▀▄▄░▄▀
+                                            █░█░░░░█░▐
+                                            █░█░░░▐▌░█ 
+                                            █░█░░░▐▌░█ 
+                                            ▐▌▐▌░░░█░█
+                                            ▐▌░█▄░▐▌░█
+                                             █░░▀▀▀░░▐▌
+                                             ▐▌░░░░░░█
+                                              █▄░░░░▄█
+                                               ▀████▀
 
 
 ";
@@ -126,7 +127,6 @@ fn ui_hover_label_with_menu(ui: &mut egui::Ui, name: &str, context_menu_ui: impl
         label.highlight();
     }
 }
-
 
 impl ApplicationState {
 
@@ -239,7 +239,7 @@ impl Application {
             output_dir: String::new(),
             log: Vec::new().into(),
             //selected: false
-            filter: String::new()
+            filter: "*".to_owned()
         }));
 
         // Construct return value and return while thread is working
@@ -350,7 +350,9 @@ impl Application {
                 //let mut filter = String::new();
                 ui.horizontal(|ui| {
                     ui.label("Filter:");
-                    ui.add(egui::TextEdit::singleline(&mut state.filter).desired_width(f32::INFINITY));
+                    ui.add(egui::TextEdit::singleline(&mut state.filter)
+                        .desired_width(f32::INFINITY)
+                        .hint_text("WILDCARD SYNTAX: * (any) \\ (escape) ? (single) Ex.: *J5*"));
                 });
                 ui.add_space(5.0);
 
@@ -371,7 +373,7 @@ impl Application {
                 let state_locked = state_clone.lock();
                 if let Ok(mut state) = state_locked { // make mut for selectable
                     if let Some(project) = &state.project {
-
+                        let pattern = Pattern::new(state.filter.clone());
 
                         // let id = ui.make_persistent_id("my_collapsing_header");
                         // //let mut selected = true
@@ -398,7 +400,8 @@ impl Application {
 
                                         .default_open(true)
                                         .show(ui, |ui| {
-                                            for harness_name in &design_outline.harnesses {
+                                            let filtered_harnesses = design_outline.harnesses.iter().filter(|x| pattern.matches(x) );
+                                            for harness_name in filtered_harnesses {
                                                 ui_hover_label_with_menu(ui, &harness_name, |ui| {
                                                     // Right click on logic harness
                                                     self.logic_design_context_menu(ui, &state, &design_outline.name, &harness_name)
@@ -413,7 +416,8 @@ impl Application {
                             .default_open(true)
                             .show(ui, |ui| {
                                 if let Some(project_outline) = &state.project_outline {
-                                    for harness_design in project_outline.harnessdesigns.iter() {
+                                    let filtered_harnesses = project_outline.harnessdesigns.iter().filter(|x| pattern.matches(&x.name) );
+                                    for harness_design in filtered_harnesses {
                                         ui_hover_label_with_menu(ui, &harness_design.name, |ui| {
                                             // Right click on logic harness
                                             self.harness_design_context_menu(ui, &state, &harness_design.name)
