@@ -1,3 +1,4 @@
+use crate::egui::Button;
 use crate::logic_commands::logic_harness_shchleuniger_export;
 use crate::logic_commands::export_xslx_wirelist;
 use std::thread;
@@ -99,11 +100,13 @@ static LOG_EXPIRATION: Duration = Duration::from_secs(5);
 
 struct ApplicationState {
     project: Option<Project>, // VeSys Project                                                          // Opened document
+    project_path: Option<PathBuf>,                                                                      // Path to project XMl for reloading
     library: Option<Library>, // VeSys Library                                                          // Loaded on start
     project_outline: Option<ProjectOutline>,   // Cached UI representation of the VeSys project         // UI representation
     output_dir: String,       // Output directory                                                       // UI storage
     log: RefCell<Vec::<(RichText, SystemTime, Option<Duration>)>>,     // Log output lines              // state of log
-    selected: bool
+    //selected: bool,
+    filter: String
 }
 
 fn read_file(filename:&str) -> std::io::Result<String> {
@@ -165,35 +168,6 @@ impl ApplicationState {
         Ok(())
     }
 
-    fn load_library(&mut self) -> Result<(), String> {
-        //self.log(RichText::new("Loading library").color(Color32::YELLOW), None);
-        let path = process_path::get_executable_path();
-        match path {
-            None => {}
-            Some(mut path) => { 
-                path.set_file_name("Library.xml");
-                let library_xml = read_file(&path.display().to_string());
-                match library_xml {
-                    Ok(library_xml) => {
-                        //println!("{}", &library_xml);
-                        match Library::new(&library_xml) {
-                            Ok(library) => {
-                                self.library = Some(library);
-                            }
-                            _ => {
-                                return Err("Failed to parse Library.xml".to_string());
-                            }
-                        }
-                    }
-                    _ => {
-                        return Err("Failed to load Library.xml".to_string());
-                    }
-                }
-            },
-        }
-        Ok(())
-    }
-
     fn log(&self, msg: RichText, expire: Option<Duration>) { // note, RefCell allows this function to take immutable &self
         self.log.borrow_mut().push((msg, SystemTime::now(), expire));
     }
@@ -223,8 +197,6 @@ impl<'a> eframe::App for Application {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         ctx.request_repaint_after(Duration::from_secs(1)); // refresh the UI occasionally
 
-        
-
             // Draw menu
             egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
                 self.menu_ui(ui);
@@ -237,21 +209,16 @@ impl<'a> eframe::App for Application {
             .show(ctx, |ui| {
                 ui.vertical_centered(|ui| {
                     self.output_dir_ui(ui);
-                    self.log_ui(ui);
+                    self.log_ui(ui); // BUG: Layout issue, this takes an extra frame to pop up for some reason
                 })
             });
 
             egui::CentralPanel::default().show(ctx, |ui| {
-                
                 ui.vertical_centered(|ui| {
+                    self.filter_ui(ui);
                     self.project_view_ui(ui);
-                    //self.output_dir_ui(ui);
-                    //self.log_ui(ui);
                 })
             });
-
-        //}); // horizontal
-
     }
 
     fn on_exit(&mut self, ctx: Option<&eframe::glow::Context>) {
@@ -267,70 +234,106 @@ impl Application {
         let state = Arc::new(Mutex::new(ApplicationState {
             library: None,
             project: None,
+            project_path: None,
             project_outline: None,
             output_dir: String::new(),
             log: Vec::new().into(),
-            selected: false
+            //selected: false
+            filter: String::new()
         }));
-        let state_clone = state.clone();
-        // Start-up worker thread. Put any slow start-up work here
-        std::thread::spawn(move || {
 
-                state_clone.clone().lock().unwrap().log(RichText::new("Loading library...").color(Color32::YELLOW), None);
-                {
-                    thread::sleep(Duration::from_secs(1)); // let UI have the first lock
-                    let mut state = state_clone.lock().unwrap();
-                    match state.load_library() { // load Library XML {
-                        Ok(_) => state.log(RichText::new("Library Loaded").color(Color32::GREEN), Some(LOG_EXPIRATION)),
-                        Err(msg) => state.log(RichText::new(msg).color(Color32::RED), None)
-                    }
-                }
-
-                state_clone.clone().lock().unwrap().load_session_data(); // load registry values
-        });
         // Construct return value and return while thread is working
-        Self {
+        let application = Self {
             state : state
-        }
+        };
+
+        application.load_library();
+        application
     }
 
+    fn load_project(&self, path: PathBuf) {
+        // Clone Arc to avoid using self inside closure
+        let state_clone = self.state.clone();
+
+        // Wrap slow loading code in a thread
+        std::thread::spawn(move || { // state_clone and path are moved
+            let loading_msg = format!("Loading project {:?}", path.file_name().unwrap());
+            state_clone.lock().unwrap().log(RichText::new(loading_msg).color(Color32::YELLOW), None);
+            let xmlpath = path.display().to_string();
+            let xml = read_file(&xmlpath);
+            match xml {
+                Ok(xml) => {
+                    let project = Project::new(&xml);
+                    match Project::new(&xml) {
+                        Ok(project) => {
+                            state_clone.lock().unwrap().project = Some(project);
+                            state_clone.lock().unwrap().update_project_outline();
+                            let done_loading_msg = format!("Loaded project {:?}", path.file_name().unwrap());
+                            state_clone.lock().unwrap().log(RichText::new(done_loading_msg).color(Color32::GREEN), Some(LOG_EXPIRATION));
+                        },
+                        _ => state_clone.lock().unwrap().log(RichText::new("Failed to parse project XML!").color(Color32::RED), Some(LOG_EXPIRATION)),
+                    }
+                },
+                _ => state_clone.lock().unwrap().log(RichText::new("Failed to load project XML file!").color(Color32::RED), Some(LOG_EXPIRATION)),
+            }
+        });
+    }
+
+    fn load_library(&self) {
+        // Clone Arc to avoid using self inside closure
+        let state_clone = self.state.clone();
+
+        // Wrap slow loading code in a thread
+        std::thread::spawn(move || { // state_clone and path are moved
+            state_clone.lock().unwrap().log(RichText::new("Loading library").color(Color32::YELLOW), None);
+            let path = process_path::get_executable_path();
+            match path {
+                None => {}
+                Some(mut path) => {
+                    path.set_file_name("Library.xml");
+                    let library_xml = read_file(&path.display().to_string());
+                    match library_xml {
+                        Ok(library_xml) => {
+                            //println!("{}", &library_xml);
+                            match Library::new(&library_xml) {
+                                Ok(library) => {
+                                    state_clone.lock().unwrap().library = Some(library);
+                                }
+                                _ => {
+                                    state_clone.lock().unwrap().log(RichText::new("Failed to parse Library.xml").color(Color32::RED), Some(LOG_EXPIRATION))
+                                }
+                            }
+                        }
+                        _ => {
+                            state_clone.lock().unwrap().log(RichText::new("Failed to load Library.xml").color(Color32::RED), Some(LOG_EXPIRATION))
+                        }
+                    }
+                },
+            }
+            state_clone.lock().unwrap().log(RichText::new("Library loaded").color(Color32::GREEN), Some(LOG_EXPIRATION));
+        });
+    }
 
     fn menu_ui(&mut self, ui: &mut egui::Ui) {
 
         egui::menu::bar(ui, |ui| {
                 menu::bar(ui, |ui| {
                     ui.menu_button("File", |ui| {
+                        // OPEN
                         if ui.button("Open").clicked() {
                             if let Some(path) = rfd::FileDialog::new()
                                 .add_filter("VeSys XML Project", &["xml"])
                                 .pick_file() {
-                                
-                                // Clone Arc to avoid using self inside closure
-                                let state_clone = self.state.clone();
-
-                                // Wrap slow loading code in a thread
-                                std::thread::spawn(move || { // state_clone and path are moved
-                                    let loading_msg = format!("Loading project {:?}", path.file_name().unwrap());
-                                    state_clone.lock().unwrap().log(RichText::new(loading_msg).color(Color32::YELLOW), None);
-                                    let xmlpath = path.display().to_string();
-                                    let xml = read_file(&xmlpath);
-                                    match xml {
-                                        Ok(xml) => {
-                                            let project = Project::new(&xml);
-                                            match Project::new(&xml) {
-                                                Ok(project) => {
-                                                    state_clone.lock().unwrap().project = Some(project);
-                                                    state_clone.lock().unwrap().update_project_outline();
-                                                    let done_loading_msg = format!("Loaded project {:?}", path.file_name().unwrap());
-                                                    state_clone.lock().unwrap().log(RichText::new(done_loading_msg).color(Color32::GREEN), Some(LOG_EXPIRATION));
-                                                },
-                                                _ => state_clone.lock().unwrap().log(RichText::new("Failed to parse project XML!").color(Color32::RED), Some(LOG_EXPIRATION)),
-                                            }
-                                        },
-                                        _ => state_clone.lock().unwrap().log(RichText::new("Failed to load project XML file!").color(Color32::RED), Some(LOG_EXPIRATION)),
-                                    }
-                                });
+                                self.state.clone().lock().unwrap().project_path = Some(path.clone());
+                                self.load_project(path); // spawns a thread
                             }
+                            ui.close_menu(); // close menu so it doesn't stay opened
+                        }
+
+                        // RELOAD
+                        let project_path_is_some = self.state.clone().lock().unwrap().project_path.is_some();
+                        if ui.add_enabled(project_path_is_some, Button::new("Reload")).clicked() {
+                            self.load_project(self.state.clone().lock().unwrap().project_path.clone().unwrap_or_default());
                             ui.close_menu(); // close menu so it doesn't stay opened
                         }
                     });
@@ -338,7 +341,26 @@ impl Application {
             });
     }
 
+    fn filter_ui(&mut self, ui: &mut egui::Ui) { 
+        //let state = state_clone.lock().unwrap();
+        let state_clone = self.state.clone();
+        let state_locked = state_clone.lock();
+        if let Ok(mut state) = state_locked { // make mut for selectable
+            if let Some(project) = &state.project {
+                //let mut filter = String::new();
+                ui.horizontal(|ui| {
+                    ui.label("Filter:");
+                    ui.add(egui::TextEdit::singleline(&mut state.filter).desired_width(f32::INFINITY));
+                });
+                ui.add_space(5.0);
+
+            }
+        }
+    }
+
+
     fn project_view_ui(&mut self, ui: &mut egui::Ui) {
+
         egui::ScrollArea::vertical()
         .max_width(f32::INFINITY)
         .auto_shrink([false, true])
@@ -349,6 +371,7 @@ impl Application {
                 let state_locked = state_clone.lock();
                 if let Ok(mut state) = state_locked { // make mut for selectable
                     if let Some(project) = &state.project {
+
 
                         // let id = ui.make_persistent_id("my_collapsing_header");
                         // //let mut selected = true
@@ -433,7 +456,6 @@ impl Application {
                 filepath.push(current_harness.to_owned() + ".txt");
                 export_xslx_wirelist(&project, &library, &current_design_name, &current_harness, &filepath.display().to_string());
                 if let Ok(mut file) = File::create(filepath) {
-                    //harness_schleuniger_ascii_export(&library, &harness_design, &mut file);
                     logic_harness_shchleuniger_export(&project, &library, current_design_name, current_harness,  &mut file);
                     state.log(RichText::new(format!("Exported Schleuniger ASCII file to {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
                 } else {
@@ -502,7 +524,7 @@ impl Application {
             let duration = SystemTime::now().duration_since(*timestamp).unwrap_or(Duration::ZERO);
 
             if duration < expire.unwrap_or(Duration::MAX) {
-                ui.label(status.clone());    
+                ui.label(status.clone());
             } else {
                 ui.label("");
             }
