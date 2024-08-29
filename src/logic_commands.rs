@@ -1,4 +1,7 @@
 
+use polars::datatypes::AnyValue;
+use polars::frame::DataFrame;
+use polars::frame::row::Row;
 use crate::shchleuniger::wirelist_to_schleuniger_ascii;
 use crate::shchleuniger::SchleunigerASCIIConfig;
 use crate::wirelist::grouped_wirelist_to_data_frame;
@@ -83,4 +86,25 @@ pub fn logic_harness_shchleuniger_export<W:Write>(project: &Project, library: &L
     }
 
     Ok(())
+}
+
+pub fn logic_harness_bom_export(project: &Project, library: &Library, design_name: &str, harness: &str) {
+    if let Some(design) = project.get_design(design_name) {
+        let connectivity = design.get_connectivity();
+        let wires = connectivity.get_wires(harness);
+
+        let mut bom_rows = Vec::new();
+        
+        // Add wires
+        for wire in wires {
+            if let Some(partnumber) = &wire.dom.partnumber {
+                let row : Row = Row::new([AnyValue::String(partnumber), AnyValue::Float32(wire.dom.wirelength)].to_vec());
+                bom_rows.push(row);
+            }
+            //unimplemented!();
+        }
+
+        let df = DataFrame::from_rows(&bom_rows);
+        println!("{:?}",&df);
+    }
 }

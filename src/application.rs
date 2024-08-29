@@ -1,7 +1,6 @@
 use wildflower::Pattern;
 use crate::egui::Button;
-use crate::logic_commands::logic_harness_shchleuniger_export;
-use crate::logic_commands::export_xslx_wirelist;
+use crate::logic_commands::*;
 use std::thread;
 use std::path::PathBuf;
 use crate::outline::ProjectOutline;
@@ -143,6 +142,7 @@ impl ApplicationState {
         let hklu = RegKey::predef(HKEY_CURRENT_USER);
         let unvesys_key = hklu.open_subkey("SOFTWARE\\Unvesys")?;
         self.output_dir = unvesys_key.get_value("output_dir")?;
+        println!("{}", self.output_dir);
         Ok(())
     }
 
@@ -248,6 +248,7 @@ impl Application {
         };
 
         application.load_library();
+        application.state.lock().unwrap().load_session_data();
         application
     }
 
@@ -448,7 +449,7 @@ impl Application {
                 export_xslx_wirelist(&project, &library, &current_design_name, &current_harness, &filepath.display().to_string());
                 state.log(RichText::new(format!("Finished wire list {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
             });
-            ui.close_menu();   
+            ui.close_menu();
         }
         if ui.button("Export Schleuniger ASCII").clicked() {
 
@@ -470,6 +471,13 @@ impl Application {
 
 
             ui.close_menu();
+        }
+        if ui.button("Export Excell BOM").clicked() {
+            let _ = state.with_library_and_project(|library, project| {
+                let mut filepath = PathBuf::from(state.output_dir.clone());
+                let filename = current_harness.to_owned() + ".txt";
+                logic_harness_bom_export(project, library, &current_design_name, &current_harness);
+            });
         }
     }
 
