@@ -1,4 +1,7 @@
 
+use polars::prelude::*;
+use std::fs::File;
+use crate::wirelist::wirelist_dataframe_to_label_dataframe;
 use polars::datatypes::AnyValue;
 use polars::frame::DataFrame;
 use polars::frame::row::Row;
@@ -74,6 +77,48 @@ pub fn logic_harness_shchleuniger_export<W:Write>(project: &Project, library: &L
         //     // xlsx_formatter.print_header();
 
             wirelist_to_schleuniger_ascii(&SchleunigerASCIIConfig::default(), &df, writer);
+        // }
+        // else 
+        // {
+
+        // }
+    // outout device index
+    } else {
+        // can't open path
+        // return
+    }
+
+    Ok(())
+}
+
+pub fn logic_harness_labels_csv_export(project: &Project, library: &Library, design_name: &str, harness: &str, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
+    // Export DataFrame to CSV
+    let mut file = File::create(filepath)?;
+    logic_harness_labels_export(project, library, design_name, harness, file)
+}
+
+
+pub fn logic_harness_labels_export<W:Write>(project: &Project, library: &Library, design_name: &str, harness: &str,  mut writer: W) -> Result<(), Box<dyn std::error::Error>> {
+    
+    if let Some(design) = project.get_design(design_name) {
+        let connectivity = design.get_connectivity();
+
+        //if let Ok(workbook) = Workbook::new(filepath) {
+
+            let wiregroups = generate_grouped_wirelist(library, &connectivity, harness).unwrap();
+
+            let wire_list_df = grouped_wirelist_to_data_frame(wiregroups);
+         
+        //     // let mut xlsx_formatter = WireListXlsxFormatter::new(&workbook, &colormap);
+        //     // // Output plain wire list
+        //     // xlsx_formatter.print_header();
+
+            let mut label_df = wirelist_dataframe_to_label_dataframe(&wire_list_df);
+            CsvWriter::new(&mut writer)
+            .include_header(true)
+            .finish(&mut label_df)?;
+            println!("{}", label_df);
+            //println!("{}", wire_list_df);
         // }
         // else 
         // {

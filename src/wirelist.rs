@@ -12,6 +12,7 @@ use std::hash::Hasher;
 use std::hash::Hash;
 use std::collections::HashSet;
 use std::cmp::Ordering::*;
+use crate::utils::*;
 
 #[derive(Clone)]
 pub struct WireList {
@@ -362,6 +363,47 @@ pub fn grouped_wirelist_to_data_frame(grouped_wirelist: Vec<Vec<WireEntry>>) -> 
     //println!("{:?}", df);
     df
 }
+
+/// Build label dataframe from wirelist dataframe, this works for external harness dataframe too
+pub fn wirelist_dataframe_to_label_dataframe(wire_list: &DataFrame) -> DataFrame {
+    let mut wire_list = wire_list.clone();
+    // If you don't do this it will crash :( 
+    /*
+        thread 'main' panicked at C:\Users\vlad.shcherbakov\.cargo\registry\src\index.crates.io-6f17d22bba15001f\polars-core-0.42.0\src\series\iterator.rs:88:9:
+        assertion `left == right` failed: impl error
+        left: 137
+        right: 1
+    */
+    wire_list.as_single_chunk_par(); 
+
+    let mut iters = wire_list.columns(["WIRE_FROM_PINLIST", 
+                                       "WIRE_FROM_CAVITY", 
+                                       "WIRE_TO_PINLIST", 
+                                       "WIRE_TO_CAVITY"]).unwrap().iter().map(|s| s.iter()).collect::<Vec<_>>();
+    // New dataframe column names
+    let column_names = ["From", "To"];
+    // New datarfame string fields
+    let fields = column_names.map(|k| Field::new(k, DataType::String));
+    // New dataframe schema
+    let schema: Schema = Schema::from_iter(fields);
+    // New empty dataframe from schema
+    let mut df = DataFrame::empty_with_schema(&schema);
+
+    for row in 0..wire_list.height() {
+        let wire_from_pinlist = anyvalue_to_str(&iters[0].next().unwrap_or_default());
+        let wire_from_cavity = anyvalue_to_str(&iters[1].next().unwrap_or_default());
+        let wire_to_pinlist = anyvalue_to_str(&iters[2].next().unwrap_or_default());
+        let wire_to_cavity = anyvalue_to_str(&iters[3].next().unwrap_or_default());
+        let column_values = [
+            format!("{}-{}",wire_from_pinlist, wire_from_cavity),
+            format!("{}-{}",wire_to_pinlist, wire_to_cavity)];
+        let series = column_names.iter().zip(column_values).map(|(name, value)| Series::new(name, &[value]) ).collect::<Vec<_>>();
+        let _ = df.vstack_mut(&(DataFrame::new(series).unwrap()));
+
+    }
+    df
+}
+
 /*
 pub struct WireEntry {
     pub name: Box<str>,

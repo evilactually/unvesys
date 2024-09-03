@@ -21,6 +21,7 @@ mod harness_commands;
 mod shchleuniger;
 mod vesys_table_reader;
 mod logic_commands;
+mod utils;
 
 fn main() {
     let mut native_options = eframe::NativeOptions::default();

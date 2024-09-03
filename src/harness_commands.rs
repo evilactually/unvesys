@@ -1,3 +1,5 @@
+use std::fs::File;
+use crate::wirelist::wirelist_dataframe_to_label_dataframe;
 use std::str::FromStr;
 use crate::vysyslib::Library;
 use std::io::Write;
@@ -9,6 +11,8 @@ use crate::vysisxml::XmlTableGroup;
 use std::path::PathBuf;
 use std::error::Error;
 use polars::prelude::*;
+use polars::lazy::dsl::col;
+use polars::df;
 use crate::shchleuniger::*;
 
 /// Dump all harness tables into CSV
@@ -57,6 +61,48 @@ fn lookup_wire_processing<'a>(library: &'a Library, harness_design: &'a HarnessD
     })
 }
 
+/// Check if wire is in multicore
+fn is_in_multicore(harness_design: &HarnessDesign, wire_name: &Series) -> bool {
+    let wire_name = wire_name.str().unwrap().get(0).unwrap();
+    harness_design.get_connectivity().get_wire_by_name(wire_name).map(|wire| {
+        wire.is_in_multicore()
+    }).unwrap_or(false)
+}
+
+pub fn harness_labels_csv_export(library: &Library, harness_design: &HarnessDesign, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
+    // Export DataFrame to CSV
+    let mut file = File::create(filepath)?;
+    harness_labels_export(library, harness_design, file)
+}
+
+/// Export harness design HarnessWireTable into CSV label file
+pub fn harness_labels_export<W: Write>(library: &Library, harness_design: &HarnessDesign, mut writer: W) -> std::result::Result<(), Box<dyn std::error::Error>>  {
+    let table_groups = harness_design.get_table_groups();
+
+    let harness_wire_table = table_groups.into_iter().find(|x| x.decorationname == "HarnessWireTable");
+
+    if let Some(harness_wire_table) = harness_wire_table { // if harness wire table is present
+
+        println!("{}", &harness_wire_table.title);
+        let table_reader = VysysTableReader::new(&harness_wire_table);
+
+        let mut wirelist_df : DataFrame = table_reader.into();
+        wirelist_df.as_single_chunk_par(); // need to run this before getting columns
+
+        let mut label_df = wirelist_dataframe_to_label_dataframe(&wirelist_df);
+        CsvWriter::new(&mut writer)
+        .include_header(true)
+        .finish(&mut label_df)?;
+        println!("{}", label_df);
+
+    } else {
+        return Err("HarnessWireTable not found".into())
+    }
+    Ok(())
+}
+
+
+
 /// Export harness design HarnessWireTable into SHCHLEUNIGER ASCII file for the wire cutting machine
 pub fn harness_schleuniger_ascii_export<W: Write>(library: &Library, harness_design: &HarnessDesign, writer: W) -> std::result::Result<(), String>  {
 
@@ -86,6 +132,13 @@ pub fn harness_schleuniger_ascii_export<W: Write>(library: &Library, harness_des
         let processing_col = Series::new("PROCESSING", &processing); // make a Series from Vec
 
         let wirelist_df = wirelist_df.hstack(&[processing_col]).unwrap();
+
+        //wirelist_df.lazy().filter(col("WIRE_NAME").apply(|w| Ok(Some(Series(&[false]))), GetOutput::from_type(DataType::Boolean) ));
+        let filtered_df: DataFrame = wirelist_df.clone()
+        .lazy()
+        .filter(col("WIRE_NAME").lt(2))
+        .collect().unwrap();
+
 
         wirelist_to_schleuniger_ascii(&SchleunigerASCIIConfig::default(), &wirelist_df, writer);
 

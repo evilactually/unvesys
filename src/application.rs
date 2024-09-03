@@ -451,6 +451,21 @@ impl Application {
             });
             ui.close_menu();
         }
+        if ui.button("Export CSV label list").clicked() {
+            println!("Generating CSV label list for {}, {}", current_design_name, current_harness);
+            let _ = state.with_library_and_project(|library, project| {
+                let mut filepath = PathBuf::from(state.output_dir.clone());
+                let filename = current_harness.to_owned() + ".csv";
+                state.log(RichText::new(format!("Generating CSV labellist {}", &filename)).color(Color32::YELLOW), None);
+                filepath.push(current_harness.to_owned() + ".csv");
+                if let Err(e) = logic_harness_labels_csv_export(&project, &library, &current_design_name, &current_harness, &filepath.display().to_string()) {
+                    println!{"{}", e};
+                } else {
+                    state.log(RichText::new(format!("Finished CSV label list {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
+                }
+            });
+            ui.close_menu();
+        }
         if ui.button("Export Schleuniger ASCII").clicked() {
 
             state.log(RichText::new(format!("{}{}","Exporting Schleuniger ASCII file to ", &state.output_dir)).color(Color32::YELLOW), None);
@@ -504,6 +519,24 @@ impl Application {
                     if let Ok(mut file) = File::create(path) {
                         harness_schleuniger_ascii_export(&library, &harness_design, &mut file);
                         state.log(RichText::new(format!("Exported Schleuniger ASCII file to {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
+                    } else {
+                        state.log(RichText::new(format!("Failed to create {}", &filename)).color(Color32::RED), Some(LOG_EXPIRATION));
+                    }
+                }
+                ui.close_menu();
+            });
+        }
+
+        if ui.button("Export CSV label list").clicked() {
+            let _ = state.with_library_and_project(|library, project| {
+                state.log(RichText::new(format!("{}{}","Exporting CSV label list file to ", &state.output_dir)).color(Color32::YELLOW), None);
+                if let Some(harness_design) = project.get_harness_design(&current_design_name) {
+                    let mut path : PathBuf = state.output_dir.clone().into();
+                    let filename = current_design_name.to_owned() + ".csv";
+                    path.push(String::from(&filename));
+                    if let Ok(mut file) = File::create(path) {
+                        harness_labels_export(&library, &harness_design, &mut file);
+                        state.log(RichText::new(format!("Exported CSV label list to {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
                     } else {
                         state.log(RichText::new(format!("Failed to create {}", &filename)).color(Color32::RED), Some(LOG_EXPIRATION));
                     }

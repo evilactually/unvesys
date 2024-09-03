@@ -699,6 +699,13 @@ impl<'a> Wire<'a> {
 
         None
     }
+
+    /// Check if wire is inside a multicore (used for skipping multicores in schleuniger output)
+    pub fn is_in_multicore(&self) -> bool {
+        self.connectivity.dom.multicore.iter().find(|x| { // iterate over multicores
+            x.member.iter().find(|y| y.ref_ == self.dom.id).is_some() // find one that has the wire
+        }).is_some()
+    }
 }
 
 pub struct Pin<'a> {
