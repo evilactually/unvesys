@@ -1,4 +1,5 @@
 
+use chrono::Local;
 use polars::prelude::*;
 use std::fs::File;
 use crate::wirelist::wirelist_dataframe_to_label_dataframe;
@@ -33,6 +34,7 @@ pub fn export_xslx_wirelist(project: &Project,library: &Library, design_name: &s
             let wiregroups = generate_grouped_wirelist(library, &connectivity, harness).unwrap();
          
             let mut xlsx_formatter = WireListXlsxFormatter::new(&workbook, &colormap);
+
             // Output plain wire list
             xlsx_formatter.print_header();
 
@@ -47,6 +49,10 @@ pub fn export_xslx_wirelist(project: &Project,library: &Library, design_name: &s
                 xlsx_formatter.bar();
                 //println!("{}", "END GROUP")
             }
+
+            // Print title
+            let current_date = Local::now().format("%m/%d/%Y").to_string();
+            xlsx_formatter.print_title(&format!("{}, {}, {}", design_name, harness, current_date));
         }
         else 
         {

@@ -39,6 +39,10 @@ impl WireListXlsxFormatter<'_> {
     const TO_DEVICE: u16 = 13;
     const TO_DASH: u16 = 14;
     const TO_PIN: u16 = 15;
+
+    const LABEL_FROM: u16 = 17;
+    const LABEL_TO: u16 = 18;
+
     // Margins
     const LEFT:u16 = 0;
     const TOP:u32 = 0;
@@ -55,6 +59,10 @@ impl WireListXlsxFormatter<'_> {
             current_row : Self::TOP + 1,
             bg_colormap : bg_colormap
         }
+    }
+
+    pub fn print_title(&mut self, title: &str) {
+        self.sheet.set_header(title);
     }
 
     pub fn print_header(&mut self) {
@@ -93,6 +101,9 @@ impl WireListXlsxFormatter<'_> {
         self.table.set_col_width_pixels(Self::LEFT + Self::TO_DASH, 20);
         self.table.set_cell(row, Self::LEFT + Self::TO_PIN, "Pin");
         self.table.set_col_width_pixels(Self::LEFT + Self::TO_PIN, 35);
+        // From/To Label Columns
+        self.table.set_cell(row, Self::LEFT + Self::LABEL_FROM, "From");
+        self.table.set_cell(row, Self::LEFT + Self::LABEL_TO, "To");
     }
 
     pub fn print_entry(&mut self, wire: &WireEntry) {
@@ -126,6 +137,9 @@ impl WireListXlsxFormatter<'_> {
         self.table.set_cell(self.current_row, Self::LEFT + Self::TO_DEVICE, &right_wire_end.device);
         self.table.set_cell(self.current_row, Self::LEFT + Self::TO_DASH, "-");
         self.table.set_cell(self.current_row, Self::LEFT + Self::TO_PIN, &right_wire_end.pin);
+        // From/To Label Columns
+        self.table.set_cell(self.current_row, Self::LEFT + Self::LABEL_FROM, &format!("{}-{}", &left_wire_end.device, &left_wire_end.pin));
+        self.table.set_cell(self.current_row, Self::LEFT + Self::LABEL_TO, &format!("{}-{}", &right_wire_end.device, &right_wire_end.pin));
         // Set row bg color
         self.table.modify_region_format(&XLSXTableRegion {
             first_row: self.current_row,
