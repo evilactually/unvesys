@@ -158,7 +158,9 @@ pub struct XmlColumnStyle {
     #[xml(attr = "displayname")]
     pub displayname: String,
     #[xml(attr = "visibility")]
-    pub visibility: String
+    pub visibility: String,
+    #[xml(attr = "hideempty")]
+    pub hideempty: String
 }
 
 

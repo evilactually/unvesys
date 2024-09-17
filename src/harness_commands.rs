@@ -134,10 +134,10 @@ pub fn harness_schleuniger_ascii_export<W: Write>(library: &Library, harness_des
         let wirelist_df = wirelist_df.hstack(&[processing_col]).unwrap();
 
         //wirelist_df.lazy().filter(col("WIRE_NAME").apply(|w| Ok(Some(Series(&[false]))), GetOutput::from_type(DataType::Boolean) ));
-        let filtered_df: DataFrame = wirelist_df.clone()
-        .lazy()
-        .filter(col("WIRE_NAME").lt(2))
-        .collect().unwrap();
+        // let filtered_df: DataFrame = wirelist_df.clone()
+        // .lazy()
+        // .filter(col("WIRE_NAME").lt(2))
+        // .collect().unwrap();
 
 
         wirelist_to_schleuniger_ascii(&SchleunigerASCIIConfig::default(), &wirelist_df, writer);

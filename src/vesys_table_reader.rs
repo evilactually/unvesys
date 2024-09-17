@@ -91,12 +91,13 @@ impl<'a> VysysTableReader<'a> {
         let mut column_map = HashMap::new();
         let mut index = 0;
         for (_, columnstyle) in tablegroup.columnstyle.iter().enumerate() {
-            if columnstyle.visibility == "true" {
+            if columnstyle.visibility == "true" && columnstyle.hideempty == "false"  {
                 column_map.insert(columnstyle.columnname.clone(), (index, columnstyle.displayname.clone()));
                 index = index + 1;
             }
         }
 
+        println!("Column map: {:?}",  column_map);
         //println!("{:?}", index, );
         VysysTableReader {
             tablegroup: tablegroup,
@@ -156,7 +157,8 @@ pub struct VysysTableRow<'a> {
 
 impl<'a> VysysTableRow<'a> {
     pub fn get_column(&self, column_name: &str) -> Result<&str, String> { 
-        self.table_reader.get_subtable_cell(self.subtable_index, column_name, self.row_index)
+        let value = self.table_reader.get_subtable_cell(self.subtable_index, column_name, self.row_index);
+        value
     }
 }
 
