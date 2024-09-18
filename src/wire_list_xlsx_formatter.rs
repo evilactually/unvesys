@@ -1,3 +1,11 @@
+/*
+ Wire list Excell formatter
+
+ Vladislav Shcherbakov
+ Copyright Firefly Automatix 2024
+ 9/18/2024 3:34:10 PM
+*/
+
 use xlsxwriter::prelude::FormatColor;
 use std::collections::HashMap;
 use xlsxwriter::*;

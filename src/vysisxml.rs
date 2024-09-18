@@ -1,3 +1,11 @@
+/*
+ Vesys XML
+
+ Vladislav Shcherbakov
+ Copyright Firefly Automatix 2024
+ 9/18/2024 3:34:10 PM
+*/
+
 pub use hard_xml::{XmlRead};
 
 #[derive(XmlRead, PartialEq, Debug)]

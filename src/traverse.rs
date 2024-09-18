@@ -1,3 +1,11 @@
+/*
+ Wire list ordered traverse
+
+ Vladislav Shcherbakov
+ Copyright Firefly Automatix 2024
+ 9/18/2024 3:34:10 PM
+*/
+
 use std::collections::HashMap;
 use crate::wirelist::*;
 use crate::bfs::*;

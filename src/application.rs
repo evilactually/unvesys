@@ -1,3 +1,11 @@
+/*
+ Main application
+
+ Vladislav Shcherbakov
+ Copyright Firefly Automatix 2024
+ 9/18/2024 3:34:10 PM
+*/
+
 use wildflower::Pattern;
 use crate::egui::Button;
 use crate::logic_commands::*;

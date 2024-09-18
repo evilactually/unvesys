@@ -1,6 +1,14 @@
 use polars::prelude::NamedFrom;
 use polars::series::Series;
 use polars::frame::DataFrame;
+/*
+ Wire list
+
+ Vladislav Shcherbakov
+ Copyright Firefly Automatix 2024
+ 9/18/2024 3:34:10 PM
+*/
+
 use polars::datatypes::Field;
 use polars::datatypes::DataType;
 use polars::prelude::Schema;

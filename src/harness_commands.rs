@@ -1,3 +1,11 @@
+/*
+ Harness design commands
+
+ Vladislav Shcherbakov
+ Copyright Firefly Automatix 2024
+ 9/18/2024 3:34:10 PM
+*/
+
 use std::fs::File;
 use crate::wirelist::wirelist_dataframe_to_label_dataframe;
 use std::str::FromStr;
