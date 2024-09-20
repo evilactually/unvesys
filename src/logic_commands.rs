@@ -146,23 +146,48 @@ pub fn logic_harness_labels_export<W:Write>(project: &Project, library: &Library
     Ok(())
 }
 
+fn group_by_sum(df: &DataFrame) -> PolarsResult<DataFrame> {
+    df
+    .group_by(["mpn", "partnum", "descr"])?
+    .sum()
+}
+
 pub fn logic_harness_bom_export(project: &Project, library: &Library, design_name: &str, harness: &str) {
     if let Some(design) = project.get_design(design_name) {
         let connectivity = design.get_connectivity();
         let wires = connectivity.get_wires(harness);
+        let components = connectivity.get_harness_components(harness);
 
         let mut bom_rows = Vec::new();
+        let na = "N/A".to_owned();
         
+        let fields = [
+            Field::new("mpn", DataType::String), 
+            Field::new("partnum", DataType::String), 
+            Field::new("descr", DataType::String), 
+            Field::new("quantity", DataType::Float32)];
+        
+        let schema: Schema = Schema::from_iter(fields);
+
         // Add wires
         for wire in wires {
-            if let Some(partnumber) = &wire.dom.partnumber {
-                let row : Row = Row::new([AnyValue::String(partnumber), AnyValue::Float32(wire.dom.wirelength)].to_vec());
-                bom_rows.push(row);
-            }
-            //unimplemented!();
+            let customer_partnumber = wire.get_customer_partno();
+            let partnumber = wire.dom.partnumber.as_ref().unwrap();
+            let wire_part = library.lookup_wire_part(&partnumber);
+            let description = wire_part.map(|w| &w.description).unwrap_or(&na);
+            let row : Row = Row::new([AnyValue::String(&partnumber), AnyValue::String(&customer_partnumber), AnyValue::String(description), AnyValue::Float32(wire.dom.wirelength)].to_vec());
+            bom_rows.push(row);
         }
 
-        let df = DataFrame::from_rows(&bom_rows);
+        for c in components.iter() {
+            library.lookup_component_partno_and_descr(&c);
+        }
+
+        // Add connectors
+
+
+        let df = DataFrame::from_rows_and_schema(&bom_rows, &schema);
+        let df = group_by_sum(&df.unwrap());
         println!("{:?}",&df);
     }
 }

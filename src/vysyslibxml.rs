@@ -21,6 +21,10 @@ pub struct XmlChssystem {
     pub wirepart: Vec<XmlWirePart>,
     #[xml(child = "splicepart")]
     pub splicepart: Vec<XmlSplicePart>,
+    #[xml(child = "connectorpart")]
+    pub connectorpart: Vec<XmlConnectorPart>,
+    #[xml(child = "grounddevicepart")]
+    pub grounddevicepart: Vec<XmlGroundDevicePart>,
     #[xml(child = "librarycolor")]
     pub librarycolor: Vec<XmlLibraryColorCode>,
     #[xml(child = "chsuserproperty")]
@@ -37,7 +41,24 @@ pub struct XmlDevicePart {
     pub partnumber: String,
     #[xml(child = "customerpartnumber")]
     pub customerpartnumber: Vec<XmlCustomerPartNumber>,
+    #[xml(attr = "description")]
+    pub description: String,
 }
+
+/// Device entry in a library
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "connectorpart")]
+pub struct XmlConnectorPart {
+    #[xml(attr = "libraryobject_id")]
+    pub libraryobject_id: String,
+    #[xml(attr = "partnumber")]
+    pub partnumber: String,
+    #[xml(child = "customerpartnumber")]
+    pub customerpartnumber: Vec<XmlCustomerPartNumber>,
+    #[xml(attr = "description")]
+    pub description: String,
+}
+
 
 /// Splice entry in a library
 #[derive(XmlRead, PartialEq, Debug)]
@@ -53,6 +74,26 @@ pub struct XmlSplicePart {
     pub chsuserpropertypart: Vec<XmlChsUserPropertyPart>,
     #[xml(attr = "striplength")]
     pub striplength: f32,
+    #[xml(attr = "description")]
+    pub description: String,
+}
+
+/// Splice entry in a library
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "grounddevicepart")]
+pub struct XmlGroundDevicePart {
+    #[xml(attr = "libraryobject_id")]
+    pub libraryobject_id: String,
+    #[xml(attr = "partnumber")]
+    pub partnumber: String,
+    #[xml(child = "customerpartnumber")]
+    pub customerpartnumber: Vec<XmlCustomerPartNumber>,
+    #[xml(child = "chsuserpropertypart")]
+    pub chsuserpropertypart: Vec<XmlChsUserPropertyPart>,
+    #[xml(attr = "striplength")]
+    pub striplength: f32,
+    #[xml(attr = "description")]
+    pub description: String,
 }
 
 /// Device entry in a library
@@ -123,6 +164,8 @@ pub struct XmlWirePart {
     pub customerpartnumber: Vec<XmlCustomerPartNumber>,
     #[xml(child = "chsuserpropertypart")]
     pub chsuserpropertypart: Vec<XmlChsUserPropertyPart>,
+    #[xml(attr = "description")]
+    pub description: String,
 }
 
 

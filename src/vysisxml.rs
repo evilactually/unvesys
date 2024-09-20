@@ -207,7 +207,7 @@ pub struct XmlDevice {
     #[xml(attr = "partnumber")]
     pub partnumber: Option<String>,
     #[xml(attr = "customerpartnumber")]
-    pub customerpartnumber: Option<String>,
+    pub customerpartnumber: String,
     #[xml(attr = "customername")]
     pub customername: Option<String>,
     #[xml(attr = "partdesc")]
@@ -230,6 +230,8 @@ pub struct XmlDevice {
     pub shortdescription: Option<String>,
     #[xml(child = "pin")]
     pub pin: Vec<XmlPin>,
+    #[xml(attr = "harness")]
+    pub harness: Option<String>,
 }
 
 #[derive(XmlRead, PartialEq, Debug)]
@@ -242,9 +244,11 @@ pub struct XmlConnector {
     #[xml(attr = "connectorusage")]
     pub connectorusage: String,
     #[xml(attr = "partnumber")]
-    pub partnumber: String,
+    pub partnumber: Option<String>,
     #[xml(attr = "customerpartnumber")]
     pub customerpartnumber: String,
+    #[xml(attr = "harness")]
+    pub harness: Option<String>,
     //TODO: add cavitydetail to get termination assignments
 }
 
@@ -268,6 +272,10 @@ pub struct XmlSplice {
     pub partnumber: Option<String>,
     #[xml(child = "pin")]
     pub pin: Vec<XmlPin>,
+    #[xml(attr = "harness")]
+    pub harness: Option<String>,
+    #[xml(attr = "customerpartnumber")]
+    pub customerpartnumber: String,
 }
 
 #[derive(XmlRead, PartialEq, Debug)]
@@ -328,6 +336,12 @@ pub struct XmlGroundDevice {
     pub name: String,
     #[xml(child = "pin")]
     pub pin: Vec<XmlPin>,
+    #[xml(attr = "harness")]
+    pub harness: Option<String>,
+    #[xml(attr = "customerpartnumber")]
+    pub customerpartnumber: String,
+    #[xml(attr = "partnumber")]
+    pub partnumber: Option<String>,
 }
 
 

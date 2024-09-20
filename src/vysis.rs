@@ -1,3 +1,10 @@
+/*
+ Vesys wrapper
+
+ Vladislav Shcherbakov
+ Copyright Firefly Automatix 2024
+ 9/18/2024 3:34:10 PM
+*/
 
 //mod vysisxml;
 use std::rc::Rc;
@@ -336,6 +343,29 @@ impl<'a> Connectivity<'a> {
         }
     }
 
+    pub fn get_harness_components(&'a self, harness: &str) -> Vec<Component>{
+        let mut components = Vec::new();
+        // compare strings or return false of first string is None
+        let optional_eq = |h : &Option<String>, h2| h.as_ref().map(|h| h == h2).unwrap_or_default();
+        
+        let mut connectors : Vec<&XmlConnector> = self.dom.connector.iter().filter(|c| optional_eq(&c.harness, &harness)).collect();
+        let mut gnds : Vec<&XmlGroundDevice> = self.dom.grounddevice.iter().filter(|c| optional_eq(&c.harness, &harness)).collect();
+        let mut wires : Vec<&XmlWire> = self.dom.wire.iter().filter(|c| optional_eq(&c.harness, &harness)).collect();
+        let mut splices : Vec<&XmlSplice> = self.dom.splice.iter().filter(|c| optional_eq(&c.harness, &harness)).collect();
+        let mut devices : Vec<&XmlDevice> = self.dom.device.iter().filter(|c| optional_eq(&c.harness, &harness)).collect();
+
+        let mut connector_components : Vec<Component> = connectors.into_iter().map(|c| Component::Connector(Connector::new(self, c))).collect();
+        let mut gnd_components : Vec<Component> = gnds.into_iter().map(|c| Component::GroundDevice(GroundDevice::new(self, c))).collect();
+        let mut wire_components : Vec<Component> = wires.into_iter().map(|c| Component::Wire(Wire::new(self, c))).collect();
+        let mut splice_components : Vec<Component> = splices.into_iter().map(|c| Component::Splice(Splice::new(self, c))).collect();
+        components.append(&mut connector_components);
+        components.append(&mut gnd_components);
+        components.append(&mut wire_components);
+        components.append(&mut splice_components);
+
+        components
+    }
+
     pub fn get_connection_by_pinref(&'a self, pinref: &str) -> Option<Connection<'a>> {
          // search connectors
         for connector_dom in &self.dom.connector {
@@ -472,6 +502,14 @@ pub enum Connection<'a> {
     Splice(Splice<'a>, Pin<'a>)
 }
 
+pub enum Component<'a> {
+    Wire(Wire<'a>),
+    Device(Device<'a>),
+    GroundDevice(GroundDevice<'a>),
+    Connector(Connector<'a>),
+    Splice(Splice<'a>)   
+}
+
 pub struct Connector<'a> {
     connectivity: &'a Connectivity<'a>,
     pub dom: &'a XmlConnector
@@ -483,6 +521,13 @@ pub struct Splice<'a> {
 }
 
 impl<'a> Splice<'a> {
+    pub fn new(connectivity: &'a Connectivity, dom: &'a XmlSplice) -> Splice<'a> {
+        Splice {
+            connectivity : connectivity,
+            dom : dom
+        }
+    }
+
     pub fn get_name(&self) -> &'a str { // Lifetime of returned string must match dom struct, but not &self reference
         self.dom.name.as_ref()
     }
@@ -491,9 +536,20 @@ impl<'a> Splice<'a> {
         self.dom.partnumber.as_ref().map(|x| x.as_ref())
     }
 
+    pub fn get_customer_partno(&'a self) -> &'a str {
+        self.dom.customerpartnumber.as_ref()
+    }
+
 }
 
 impl<'a> Connector<'a> {
+    pub fn new(connectivity: &'a Connectivity, dom: &'a XmlConnector) -> Connector<'a> {
+        Connector {
+            connectivity : connectivity,
+            dom : dom
+        }
+    }
+
     pub fn get_name(&self) -> &'a str { // Lifetime of returned string must match dom struct, but not &self reference
         self.dom.name.as_ref()
     }
@@ -543,7 +599,7 @@ impl<'a> Connector<'a> {
 
 
     pub fn get_partno(&'a self) -> &'a str {
-        self.dom.partnumber.as_ref()
+        self.dom.partnumber.as_ref().expect("partnumber field missing")
     }
 
     pub fn get_customer_partno(&'a self) -> &'a str {
@@ -552,25 +608,47 @@ impl<'a> Connector<'a> {
 }
 
 pub struct Device<'a> {
-    connectivity: &'a Connectivity<'a>,
-    dom: &'a XmlDevice
+    pub connectivity: &'a Connectivity<'a>,
+    pub dom: &'a XmlDevice
 }
 
 impl<'a> Device<'a> {
+    pub fn new(connectivity: &'a Connectivity, dom: &'a XmlDevice) -> Device<'a> {
+        Device {
+            connectivity : connectivity,
+            dom : dom
+        }
+    }
+
     pub fn get_name(&self) -> &'a str { // Note that function takes &self NOT &'a self! In &'a str we are declaring the lifetime of returned reference to be different 
         self.dom.name.as_ref()          // from the lifetime of containing struct Device to allow returned reference to outlive the struct.
     }                                   // This is important for passing those references around later on.
+
+    pub fn get_customer_partno(&'a self) -> &'a str {
+        self.dom.customerpartnumber.as_ref()
+    }
 }
 
 pub struct GroundDevice<'a> {
     connectivity: &'a Connectivity<'a>,
-    dom: &'a XmlGroundDevice
+    pub dom: &'a XmlGroundDevice
 }
 
 impl<'a> GroundDevice<'a> {
+    pub fn new(connectivity: &'a Connectivity, dom: &'a XmlGroundDevice) -> GroundDevice<'a> {
+        GroundDevice {
+            connectivity : connectivity,
+            dom : dom
+        }
+    }
+
     pub fn get_name(&self) -> &'a str { // Note that function takes &self NOT &'a self! In &'a str we are declaring the lifetime of returned reference to be different 
         self.dom.name.as_ref()          // from the lifetime of containing struct Device to allow returned reference to outlive the struct.
     }                                   // This is important for passing those references around later on.
+
+    pub fn get_customer_partno(&'a self) -> &'a str {
+        self.dom.customerpartnumber.as_ref()
+    }
 }
 
 pub struct Wire<'a> {
@@ -579,6 +657,13 @@ pub struct Wire<'a> {
 }
 
 impl<'a> Wire<'a> {
+    pub fn new(connectivity: &'a Connectivity, dom: &'a XmlWire) -> Wire<'a> {
+        Wire {
+            connectivity : connectivity,
+            dom : dom
+        }
+    }
+
     pub fn get_name(&self) -> &'a str {
         self.dom.name.as_ref()
     }

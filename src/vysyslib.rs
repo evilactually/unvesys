@@ -1,4 +1,12 @@
+/*
+ Vesys Library wrapper
 
+ Vladislav Shcherbakov
+ Copyright Firefly Automatix 2024
+ 9/18/2024 3:34:10 PM
+*/
+
+use crate::vysis::Component;
 use hard_xml::XmlError;
 
 use crate::vysyslibxml::*;
@@ -80,8 +88,24 @@ impl Library {
         self.dom.terminalpart.iter().find(|part| part.partnumber == partno)
     }
 
+    pub fn lookup_wire_part(&self, partno: &str) -> Option<&XmlWirePart> {
+        self.dom.wirepart.iter().find(|part| part.partnumber == partno)
+    }
+
     pub fn lookup_splice_part(&self, partno: &str) -> Option<&XmlSplicePart> {
         self.dom.splicepart.iter().find(|part| part.partnumber == partno)
+    }
+
+    pub fn lookup_device_part(&self, partno: &str) -> Option<&XmlDevicePart> {
+        self.dom.devicepart.iter().find(|part| part.partnumber == partno)
+    }
+
+    pub fn lookup_connector_part(&self, partno: &str) -> Option<&XmlConnectorPart> {
+        self.dom.connectorpart.iter().find(|part| part.partnumber == partno)
+    }
+
+    pub fn lookup_grounddevice_part(&self, partno: &str) -> Option<&XmlGroundDevicePart> {
+        self.dom.grounddevicepart.iter().find(|part| part.partnumber == partno)
     }
 
     pub fn lookup_splice_short_name<'a>(&self, part: Option<&'a XmlSplicePart>) -> Option<&'a str> {
@@ -108,6 +132,36 @@ impl Library {
             Some(property.userpropertyvalue.as_ref())
             //None
         })
+    }
+
+    pub fn lookup_component_partno_and_descr(&self, component: &Component) -> (String, String) {
+        match component {
+            Component::Wire(w) => (w.get_customer_partno().to_string(), 
+                w.dom.partnumber.as_ref().and_then(
+                    |pn| self.lookup_wire_part(pn).map(|p| p.description.clone()))
+                .unwrap_or_default() 
+                ),
+            Component::Device(w) => (w.get_customer_partno().to_string(), 
+                 w.dom.partnumber.as_ref().and_then(
+                    |pn| self.lookup_device_part(pn).map(|p| p.description.clone()))
+                .unwrap_or_default() 
+                ),
+            Component::Connector(w) => (w.get_customer_partno().to_string().to_string(),
+                w.dom.partnumber.as_ref().and_then(
+                    |pn| self.lookup_connector_part(pn).map(|p| p.description.clone()))
+                .unwrap_or_default() 
+                ),
+            Component::Splice(w) => (w.get_customer_partno().to_string(), 
+                w.dom.partnumber.as_ref().and_then(
+                    |pn| self.lookup_splice_part(pn).map(|p| p.description.clone()))
+                .unwrap_or_default()
+                ),
+            Component::GroundDevice(w) => (w.get_customer_partno().to_string(), 
+                w.dom.partnumber.as_ref().and_then(
+                    |pn| self.lookup_grounddevice_part(pn).map(|p| p.description.clone()))
+                .unwrap_or_default()
+                ),
+        }
     }
 
 }
