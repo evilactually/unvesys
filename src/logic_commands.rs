@@ -6,6 +6,7 @@
  9/18/2024 3:34:10 PM
 */
 
+use crate::vysis::Component;
 use chrono::Local;
 use polars::prelude::*;
 use std::fs::File;
@@ -152,7 +153,25 @@ fn group_by_sum(df: &DataFrame) -> PolarsResult<DataFrame> {
     .sum()
 }
 
-pub fn logic_harness_bom_export(project: &Project, library: &Library, design_name: &str, harness: &str) {
+pub fn logic_harness_bom_export(project: &Project, library: &Library, design_name: &str, harness: &str, filepath: &str) -> Result<(), Box<dyn std::error::Error>>  {
+    // Export DataFrame to CSV
+    let mut writer = File::create(filepath)?;
+
+    let mut bom_df = get_logic_harness_bom_dataframe(project, library, design_name, harness).map(|df| {
+        let mut df = df.select(["partnum", "descr", "quantity_sum"]).unwrap();
+        df.rename("partnum", "Part Number");
+        df.rename("descr", "Description");
+        df.rename("quantity_sum", "Quantity/Length");
+        df
+    });
+
+    CsvWriter::new(&mut writer)
+    .include_header(true)
+    .finish(&mut bom_df?)?;
+    Ok(())
+}
+
+pub fn get_logic_harness_bom_dataframe(project: &Project, library: &Library, design_name: &str, harness: &str) -> Result<DataFrame, String> {
     if let Some(design) = project.get_design(design_name) {
         let connectivity = design.get_connectivity();
         let wires = connectivity.get_wires(harness);
@@ -169,25 +188,24 @@ pub fn logic_harness_bom_export(project: &Project, library: &Library, design_nam
         
         let schema: Schema = Schema::from_iter(fields);
 
-        // Add wires
-        for wire in wires {
-            let customer_partnumber = wire.get_customer_partno();
-            let partnumber = wire.dom.partnumber.as_ref().unwrap();
-            let wire_part = library.lookup_wire_part(&partnumber);
-            let description = wire_part.map(|w| &w.description).unwrap_or(&na);
-            let row : Row = Row::new([AnyValue::String(&partnumber), AnyValue::String(&customer_partnumber), AnyValue::String(description), AnyValue::Float32(wire.dom.wirelength)].to_vec());
-            bom_rows.push(row);
-        }
-
         for c in components.iter() {
-            library.lookup_component_partno_and_descr(&c);
+            if let Some(partnumber) = c.get_partno() {
+                let customer_partnumber = c.get_customer_partno().unwrap_or(&na);
+                let description = c.lookup_library_description(library).unwrap_or(&na);
+                let mut quantity = 1.0;
+                if let Component::Wire(w) = c {
+                    quantity = w.dom.wirelength;
+                }
+                let row : Row = Row::new([AnyValue::String(partnumber), AnyValue::String(&customer_partnumber), AnyValue::String(&description), AnyValue::Float32(quantity)].to_vec());
+                bom_rows.push(row);
+            }
         }
-
-        // Add connectors
-
 
         let df = DataFrame::from_rows_and_schema(&bom_rows, &schema);
         let df = group_by_sum(&df.unwrap());
         println!("{:?}",&df);
+        Ok(df.unwrap())
+    } else {
+        Err("No design".to_owned())
     }
 }

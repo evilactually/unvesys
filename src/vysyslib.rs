@@ -134,34 +134,6 @@ impl Library {
         })
     }
 
-    pub fn lookup_component_partno_and_descr(&self, component: &Component) -> (String, String) {
-        match component {
-            Component::Wire(w) => (w.get_customer_partno().to_string(), 
-                w.dom.partnumber.as_ref().and_then(
-                    |pn| self.lookup_wire_part(pn).map(|p| p.description.clone()))
-                .unwrap_or_default() 
-                ),
-            Component::Device(w) => (w.get_customer_partno().to_string(), 
-                 w.dom.partnumber.as_ref().and_then(
-                    |pn| self.lookup_device_part(pn).map(|p| p.description.clone()))
-                .unwrap_or_default() 
-                ),
-            Component::Connector(w) => (w.get_customer_partno().to_string().to_string(),
-                w.dom.partnumber.as_ref().and_then(
-                    |pn| self.lookup_connector_part(pn).map(|p| p.description.clone()))
-                .unwrap_or_default() 
-                ),
-            Component::Splice(w) => (w.get_customer_partno().to_string(), 
-                w.dom.partnumber.as_ref().and_then(
-                    |pn| self.lookup_splice_part(pn).map(|p| p.description.clone()))
-                .unwrap_or_default()
-                ),
-            Component::GroundDevice(w) => (w.get_customer_partno().to_string(), 
-                w.dom.partnumber.as_ref().and_then(
-                    |pn| self.lookup_grounddevice_part(pn).map(|p| p.description.clone()))
-                .unwrap_or_default()
-                ),
-        }
-    }
+    
 
 }

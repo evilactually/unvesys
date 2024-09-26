@@ -7,6 +7,7 @@
 */
 
 //mod vysisxml;
+use crate::vysyslib::Library;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::io::Error;
@@ -508,6 +509,65 @@ pub enum Component<'a> {
     GroundDevice(GroundDevice<'a>),
     Connector(Connector<'a>),
     Splice(Splice<'a>)   
+}
+
+impl<'a> Component<'a> {
+    pub fn get_partno(&'a self) -> Option<&str> {
+        let p = match self {
+            Component::Wire(c) => {
+                c.dom.partnumber.as_ref().map(|s| s.as_str())
+            },
+            Component::Device(c) => {
+                c.dom.partnumber.as_ref().map(|s| s.as_str())
+            },
+            Component::GroundDevice(c) => {
+                c.dom.partnumber.as_ref().map(|s| s.as_str())
+            },
+            Component::Connector(c) => {
+                c.dom.partnumber.as_ref().map(|s| s.as_str())
+            },
+            Component::Splice(c) => {
+                c.dom.partnumber.as_ref().map(|s| s.as_str())
+            },
+        };
+        p.and_then( |s| if s.is_empty() { None } else { Some(s)} )
+    }
+
+    pub fn get_customer_partno(&'a self) -> Option<&str> {
+        match self {
+            Component::Wire(c) => {
+                c.dom.customerpartnumber.as_ref().map(|s| s.as_str())
+            },
+            Component::Device(c) => {
+                Some(c.dom.customerpartnumber.as_str())
+            },
+            Component::GroundDevice(c) => {
+                Some(c.dom.customerpartnumber.as_str())
+            },
+            Component::Connector(c) => {
+                Some(c.dom.customerpartnumber.as_str())
+            },
+            Component::Splice(c) => {
+                Some(c.dom.customerpartnumber.as_str())
+            },
+        }
+    }
+
+    pub fn lookup_library_description<'b>(&'a self, library: &'b Library) -> Option<&'b str> {
+        let p = match &self {
+            Component::Wire(w) => w.dom.partnumber.as_ref().and_then(
+                    |pn| library.lookup_wire_part(pn).map(|p| &p.description)),
+            Component::Device(w) => w.dom.partnumber.as_ref().and_then(
+                    |pn| library.lookup_device_part(pn).map(|p| &p.description)),
+            Component::Connector(w) => w.dom.partnumber.as_ref().and_then(
+                    |pn| library.lookup_connector_part(pn).map(|p| &p.description)),
+            Component::Splice(w) => w.dom.partnumber.as_ref().and_then(
+                    |pn| library.lookup_splice_part(pn).map(|p| &p.description)),
+            Component::GroundDevice(w) => w.dom.partnumber.as_ref().and_then(
+                    |pn| library.lookup_grounddevice_part(pn).map(|p| &p.description)),
+        };
+        p.map(|s| s.as_str())
+    }
 }
 
 pub struct Connector<'a> {
