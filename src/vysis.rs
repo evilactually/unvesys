@@ -7,6 +7,7 @@
 */
 
 //mod vysisxml;
+use std::collections::HashMap;
 use crate::vysyslib::Library;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -150,6 +151,14 @@ impl<'a> LogicalDesign<'a> {
 
     pub fn get_connectivity(&'a self) -> Connectivity {
         Connectivity { dom : &self.dom.connectivity}
+    }
+
+    pub fn get_design_properties(&'a self) -> HashMap<&'a str, &'a str> {
+        let mut property_map : HashMap<&'a str, &'a str> = HashMap::new();
+        for p in self.dom.properties.iter() {
+            property_map.insert(&p.name, &p.val);
+        }
+        property_map
     }
 
     // pub fn get_connection_by_pinref(&'a self, pinref: &str) -> Option<Connection<'a>> {
@@ -932,6 +941,14 @@ impl<'a> HarnessDesign<'a> {
     pub fn get_table_groups(&'a self) ->  &'a Vec<XmlTableGroup> {
         return &self.dom.harnessdiagram.harnessdiagramcontent.tablegroup;
     }
+}
+
+/// Internal harness properties are stored in design properties using the syntax PROPERTY(HARNESS)
+pub fn lookup_internal_harness_property<'a>(property_map: HashMap<&'a str, &'a str>, property_name : &str, harness_name : &str ) -> Option<&'a str> {
+    let property : String = property_name.to_string() + "(" + harness_name.trim() + ")";
+    let value = property_map.get(property.as_str()).copied();
+    println!("{}={:?}",property, value);
+    value
 }
 
 

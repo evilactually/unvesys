@@ -6,6 +6,7 @@
  9/18/2024 3:34:10 PM
 */
 
+use crate::vysis::lookup_internal_harness_property;
 use crate::vysis::Component;
 use chrono::Local;
 use polars::prelude::*;
@@ -58,9 +59,13 @@ pub fn export_xslx_wirelist(project: &Project,library: &Library, design_name: &s
                 //println!("{}", "END GROUP")
             }
 
+            // Get harness part number
+            let properties = design.get_design_properties();
+            let pn = lookup_internal_harness_property(properties, "PN", harness ).unwrap_or_default();
+
             // Print title
             let current_date = Local::now().format("%m/%d/%Y").to_string();
-            xlsx_formatter.print_title(&format!("{}, {}, {}", design_name, harness, current_date));
+            xlsx_formatter.print_title(&format!("{}, {}, {}, {}", design_name, harness, pn, current_date));
         }
         else 
         {
@@ -83,6 +88,7 @@ pub fn logic_harness_shchleuniger_export<W:Write>(project: &Project, library: &L
         //if let Ok(workbook) = Workbook::new(filepath) {
 
             let wiregroups = generate_grouped_wirelist(library, &connectivity, harness).unwrap();
+            println!("{:?}", wiregroups);
 
             let df = grouped_wirelist_to_data_frame(wiregroups);
          

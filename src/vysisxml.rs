@@ -35,6 +35,19 @@ pub struct XmlLogicalDesign {
     pub description: Option<String>,
     #[xml(child = "connectivity")]
     pub connectivity: XmlConnectivity,
+    #[xml(child = "property")]
+    pub properties: Vec<XmlProperty>,
+}
+
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "property")]
+pub struct XmlProperty {
+    #[xml(attr = "name")]
+    pub name: String,
+    #[xml(attr = "val")]
+    pub val: String,
+    #[xml(attr = "type")]
+    pub r#type: String,
 }
 
 #[derive(XmlRead, PartialEq, Debug)]

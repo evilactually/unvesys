@@ -298,7 +298,7 @@ pub fn traverse(wirelist: &WireList) -> Vec<Vec<WireEntry>> {
                 for wire_entry in device_wire_entries {
                     let extracted_entries = wirelist_copy.wires.take(&wire_entry);
                     for entry in extracted_entries.iter() {
-                        println!("{:?}: ", entry.name);
+                        //println!("{:?}: ", entry.name);
                         let mut entry_reconciled = entry.clone();
                         // Reconcile wire ends to be on the same side
                         if entry.left.as_ref().unwrap().device != graph[node] {

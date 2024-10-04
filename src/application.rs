@@ -502,8 +502,11 @@ impl Application {
                 filepath.push(filename.to_owned());
                 if logic_harness_bom_export(project, library, &current_design_name, &current_harness, &filepath.display().to_string()).is_ok() {
                     state.log(RichText::new(format!("Finished CSV BOM list {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
-                };
+                } else {
+                    state.log(RichText::new(format!("Failed to create {}", &filename)).color(Color32::RED), Some(LOG_EXPIRATION));
+                }
             });
+            ui.close_menu();
         }
     }
 

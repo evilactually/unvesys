@@ -27,7 +27,7 @@ pub struct WireList {
     pub wires:HashSet<WireEntry>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct WireEntry {
     pub name: Box<str>,
     pub descr: Box<str>,
@@ -69,6 +69,7 @@ impl WireEntry {
 
 #[derive(Default)]
 #[derive(Clone)]
+#[derive(Debug)]
 pub struct WireEndEntry {
     pub device : Box<str>,
     pub pin : Box<str>,
@@ -345,23 +346,25 @@ pub fn grouped_wirelist_to_data_frame(grouped_wirelist: Vec<Vec<WireEntry>>) -> 
             let wire = wire.clone();
             let left_end = wire.left.unwrap_or_default();
             let right_end = wire.right.unwrap_or_default();
-            let column_values = [wire.name.as_ref(), 
-            wire.descr.as_ref(),
-            wire.partno.as_ref(), 
-            wire.material.as_ref(), 
-            wire.spec.as_ref(), 
-            wire.color_code.as_ref(), 
-            wire.color_description.as_ref(), 
-            left_end.device.as_ref(), 
-            left_end.pin.as_ref(), 
-            &left_end.strip.to_string(), 
-            right_end.device.as_ref(), 
-            right_end.pin.as_ref(), 
-            &right_end.strip.to_string(), 
-            &wire.length.to_string(),
-            &wire.twisted_with.unwrap_or_default(),
-            &wire.processing];
-            //println!("{:?}", column_values);
+            let column_values = [
+                wire.name.as_ref(), 
+                wire.descr.as_ref(),
+                wire.partno.as_ref(),
+                wire.material.as_ref(),
+                wire.spec.as_ref(), 
+                wire.color_code.as_ref(), 
+                wire.color_description.as_ref(), 
+                left_end.device.as_ref(), 
+                left_end.pin.as_ref(), 
+                &left_end.strip.to_string(), 
+                right_end.device.as_ref(), 
+                right_end.pin.as_ref(), 
+                &right_end.strip.to_string(), 
+                &wire.length.to_string(),
+                &wire.twisted_with.unwrap_or_default(),
+                &wire.processing
+            ];
+            println!("{:?}", column_values);
             let series = column_names.iter().zip(column_values).map(|(name, value)| Series::new(name, &[value]) ).collect::<Vec<_>>();
             //println!("{:?}", &(DataFrame::new(series.clone()).unwrap()));
             let _ = df.vstack_mut(&(DataFrame::new(series).unwrap()));
