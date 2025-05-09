@@ -33,7 +33,9 @@ pub fn dump_tables(table_groups: &Vec<XmlTableGroup>, basename: &str, dir: &str)
             if let Some(datacache) = &table.tabledatacache {
                 //println!("{:?}", datacache.colhdrnames);
                 let mut path = path.clone();
-                let filename = format!("{}-{}-{}.csv", basename, group.title, i);
+                let mut title = group.title.clone();
+                title.truncate(10);
+                let filename = format!("{}-{}-{}.csv", basename, title, i);
                 path.push(filename.clone());
                 println!("{:?}", path);
                 i = i + 1;
