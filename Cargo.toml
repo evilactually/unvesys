@@ -35,6 +35,7 @@ serde_yaml = "0.9.25"
 xlsxwriter = "0.6.0"
 polars = { version = "0.42.0", features = ["rows", "lazy"]} 
 wildflower = "0.3.0"
+sanitise-file-name = "1.0.0"
 
 [target.'cfg(windows)'.dependencies] 
 winreg = "0.51"

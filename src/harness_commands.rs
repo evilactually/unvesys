@@ -22,6 +22,7 @@ use polars::prelude::*;
 use polars::lazy::dsl::col;
 use polars::df;
 use crate::shchleuniger::*;
+use sanitise_file_name::sanitise;
 
 /// Dump all harness tables into CSV
 pub fn dump_tables(table_groups: &Vec<XmlTableGroup>, basename: &str, dir: &str) -> std::io::Result<()> {
@@ -34,8 +35,9 @@ pub fn dump_tables(table_groups: &Vec<XmlTableGroup>, basename: &str, dir: &str)
                 //println!("{:?}", datacache.colhdrnames);
                 let mut path = path.clone();
                 let mut title = group.title.clone();
-                title.truncate(10);
+                //title.truncate(200);
                 let filename = format!("{}-{}-{}.csv", basename, title, i);
+                let filename = sanitise(&filename);
                 path.push(filename.clone());
                 println!("{:?}", path);
                 i = i + 1;

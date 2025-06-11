@@ -33,12 +33,16 @@ use crate::vysis::Project;
 
 use crate::vysyslib::Library;
 
+use sanitise_file_name::sanitise;
+
 pub fn export_xslx_wirelist(project: &Project,library: &Library, design_name: &str, harness: &str, filepath: &str ) -> Result<(), Box<dyn std::error::Error>> {
     let colormap = color_map();
     if let Some(design) = project.get_design(design_name) {
         let connectivity = design.get_connectivity();
 
-        if let Ok(workbook) = Workbook::new(filepath) {
+        //let filepath = sanitise(filepath);
+        //println!("{:?}", filepath);
+        if let Ok(workbook) = Workbook::new(&filepath) {
 
             let wiregroups = generate_grouped_wirelist(library, &connectivity, harness).unwrap();
          

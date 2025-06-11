@@ -34,6 +34,8 @@ use crate::vysis::*;
 use crate::vysyslib::*;
 use crate::harness_commands::*;
 
+use sanitise_file_name::sanitise;
+
 // ISSUE: https://github.com/bodil/smartstring/issues/7
 // WORKAROUND: use format! in place of + operator to contacatenate strings
 
@@ -451,7 +453,7 @@ impl Application {
             println!("Generating wire list for {}, {}", current_design_name, current_harness);
             let _ = state.with_library_and_project(|library, project| {
                 let mut filepath = PathBuf::from(state.output_dir.clone());
-                let filename = current_harness.to_owned() + ".xlsx";
+                let filename = sanitise(&(current_harness.to_owned() + ".xlsx"));
                 state.log(RichText::new(format!("Generating wire list {}", &filename)).color(Color32::YELLOW), None);
                 filepath.push(current_harness.to_owned() + ".xlsx");
                 export_xslx_wirelist(&project, &library, &current_design_name, &current_harness, &filepath.display().to_string());
@@ -463,7 +465,7 @@ impl Application {
             println!("Generating CSV label list for {}, {}", current_design_name, current_harness);
             let _ = state.with_library_and_project(|library, project| {
                 let mut filepath = PathBuf::from(state.output_dir.clone());
-                let filename = current_harness.to_owned() + ".csv";
+                let filename = sanitise(&(current_harness.to_owned() + ".xlsx"));
                 state.log(RichText::new(format!("Generating CSV labellist {}", &filename)).color(Color32::YELLOW), None);
                 filepath.push(current_harness.to_owned() + ".csv");
                 if let Err(e) = logic_harness_labels_csv_export(&project, &library, &current_design_name, &current_harness, &filepath.display().to_string()) {
@@ -479,7 +481,7 @@ impl Application {
             state.log(RichText::new(format!("{}{}","Exporting Schleuniger ASCII file to ", &state.output_dir)).color(Color32::YELLOW), None);
             let _ = state.with_library_and_project(|library, project| {
                 let mut filepath = PathBuf::from(state.output_dir.clone());
-                let filename = current_harness.to_owned() + ".txt";
+                let filename = sanitise(&(current_harness.to_owned() + ".xlsx"));
                 state.log(RichText::new(format!("Generating wire list {}", &filename)).color(Color32::YELLOW), None);
                 filepath.push(current_harness.to_owned() + ".txt");
                 export_xslx_wirelist(&project, &library, &current_design_name, &current_harness, &filepath.display().to_string());
@@ -498,7 +500,7 @@ impl Application {
         if ui.button("Export CSV BOM").clicked() {
             let _ = state.with_library_and_project(|library, project| {
                 let mut filepath = PathBuf::from(state.output_dir.clone());
-                let filename = current_harness.to_owned() + " BOM" + ".csv";
+                let filename = sanitise(&(current_harness.to_owned() + " BOM" + ".csv"));
                 filepath.push(filename.to_owned());
                 if logic_harness_bom_export(project, library, &current_design_name, &current_harness, &filepath.display().to_string()).is_ok() {
                     state.log(RichText::new(format!("Finished CSV BOM list {}", &filename)).color(Color32::GREEN), Some(LOG_EXPIRATION));
