@@ -18,7 +18,11 @@ use petgraph::EdgeType;
 
 use petgraph::visit::EdgeRef;
 
-use petgraph::algo::{min_spanning_tree, MinSpanningTree};
+//use petgraph::algo::{min_spanning_tree, MinSpanningTree};
+
+use petgraph::algo::{min_spanning_tree};
+
+use petgraph::algo::min_spanning_tree::MinSpanningTree;
 
 
 fn find_node_or_add<T, S, U>(graph: &mut Graph<S, T, U>, node_weight:S) -> NodeIndex where U: EdgeType, S: std::cmp::PartialEq<S> + Clone {

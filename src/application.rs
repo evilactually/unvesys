@@ -405,6 +405,7 @@ impl Application {
                             let c = CollapsingHeader::new("Logical Designs")
                             .default_open(true)
                             .show(ui, |ui| {
+                                
                                 if let Some(project_outline) = &state.project_outline {
                                     for design_outline in &project_outline.designs {
                                         CollapsingHeader::new(&design_outline.name)
@@ -418,11 +419,23 @@ impl Application {
                                                     self.logic_design_context_menu(ui, &state, &design_outline.name, &harness_name)
                                                 });
                                             }
+                                        }).header_response.context_menu(|ui| { 
+                                            if ui.button("Export index file").clicked() {
+                                                println!("Exporting index...");
+                                                let _ = state.with_library_and_project(|library, project| {
+                                                    if let Some(design) = project.get_design(&design_outline.name) {
+                                                        let diagrams = design.get_diagram_names();
+                                                        for diagram in diagrams {
+                                                            println!("{:?}", diagram);
+                                                        }
+                                                    }
+                                                });
+                                            }
                                         });
                                     }
                                 }
                             });
-                            //c.selectable = true;
+
                             CollapsingHeader::new("Harness Designs")
                             .default_open(true)
                             .show(ui, |ui| {

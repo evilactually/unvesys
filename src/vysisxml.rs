@@ -34,9 +34,11 @@ pub struct XmlLogicalDesign {
     #[xml(attr = "description")]
     pub description: Option<String>,
     #[xml(child = "connectivity")]
-    pub connectivity: XmlConnectivity,
+    pub connectivity: XmlConnectivity, // Logic connectivity of design
     #[xml(child = "property")]
     pub properties: Vec<XmlProperty>,
+    #[xml(child = "diagram")]
+    pub diagram: Vec<XmlDiagram> // All digrams in design
 }
 
 #[derive(XmlRead, PartialEq, Debug)]
@@ -215,6 +217,8 @@ pub struct XmlConnectivity {
 #[derive(XmlRead, PartialEq, Debug)]
 #[xml(tag = "device")]
 pub struct XmlDevice {
+    #[xml(attr = "id")]
+    pub id: String,
     #[xml(attr = "name")]
     pub name: String,
     #[xml(attr = "partnumber")]
@@ -364,6 +368,97 @@ pub struct XmlConnection {
     #[xml(attr = "pinref")]
     pub pinref: String,
 }
+
+//
+// Diagram XML
+//
+
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "diagram")]
+pub struct XmlDiagram {
+    #[xml(attr = "name")]
+    pub name: String,
+    #[xml(child = "diagramcontent")]
+    pub diagramcontent : XmlDiagramContent
+}
+
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "diagramcontent")]
+pub struct XmlDiagramContent {
+    #[xml(child = "schemconnector")]
+    pub schemconnector: Vec<XmlSchemConnector>,
+    #[xml(child = "schemdevice")]
+    pub schemdevice: Vec<XmlSchemDevice>,
+    #[xml(child = "schemsplice")]
+    pub schemsplice: Vec<XmlSchemSplice>,
+    #[xml(child = "schemgrounddevice")]
+    pub schemgrounddevice: Vec<XmlSchemGroundDevice>,
+    #[xml(child = "schemwire")]
+    pub schemwire: Vec<XmlSchemWire>,
+    #[xml(child = "schemshield")]
+    pub schemshield: Vec<XmlSchemShield>,
+}
+
+// Schematic representation of connector
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "schemconnector")]
+pub struct XmlSchemConnector {
+    #[xml(attr = "id")]
+    pub id: String,
+    #[xml(attr = "connref")]
+    pub connref: String, // reference to object in XmlConnectivity
+}
+
+// Schematic representation of device
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "schemdevice")]
+pub struct XmlSchemDevice {
+    #[xml(attr = "id")]
+    pub id: String,
+    #[xml(attr = "connref")]
+    pub connref: String, // reference to object in XmlConnectivity
+}
+
+// Schematic representation of splice
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "schemsplice")]
+pub struct XmlSchemSplice {
+    #[xml(attr = "id")]
+    pub id: String,
+    #[xml(attr = "connref")]
+    pub connref: String, // reference to object in XmlConnectivity
+}
+
+// Schematic representation of ground device
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "schemgrounddevice")]
+pub struct XmlSchemGroundDevice {
+    #[xml(attr = "id")]
+    pub id: String,
+    #[xml(attr = "connref")]
+    pub connref: String, // reference to object in XmlConnectivity
+}
+
+// Schematic representation of wire
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "schemwire")]
+pub struct XmlSchemWire {
+    #[xml(attr = "id")]
+    pub id: String,
+    #[xml(attr = "connref")]
+    pub connref: String, // reference to object in XmlConnectivity
+}
+
+// Schematic representation of wire
+#[derive(XmlRead, PartialEq, Debug)]
+#[xml(tag = "schemshield")]
+pub struct XmlSchemShield {
+    #[xml(attr = "id")]
+    pub id: String,
+    #[xml(attr = "connref")]
+    pub connref: String, // reference to object in XmlConnectivity
+}
+
 
 
 // Library

@@ -149,7 +149,7 @@ impl<'a> LogicalDesign<'a> {
         self.dom.name.as_ref()
     }
 
-    pub fn get_connectivity(&'a self) -> Connectivity {
+    pub fn get_connectivity(&'a self) -> Connectivity<'a> {
         Connectivity { dom : &self.dom.connectivity}
     }
 
@@ -160,6 +160,16 @@ impl<'a> LogicalDesign<'a> {
         }
         property_map
     }
+
+    pub fn get_diagram_names(&'a self) -> Vec<&'a str> {
+        let mut names = Vec::new();
+        for diagram in &self.dom.diagram {
+             names.push(diagram.name.as_ref());
+        }
+        names
+    }
+
+
 
     // pub fn get_connection_by_pinref(&'a self, pinref: &str) -> Option<Connection<'a>> {
     //      // search connectors
@@ -299,11 +309,52 @@ impl<'a> LogicalDesign<'a> {
     }
 }
 
+pub struct Diagram<'a> {
+    pub design: &'a LogicalDesign<'a>,
+    pub dom: &'a XmlDiagram,
+    connectivity: &'a Connectivity<'a>
+}
+
+impl<'a> Diagram<'a> {
+    pub fn get_devices(&'a self) -> Vec<Device<'a>> {
+        //let connectivity = self.design.get_connectivity();
+        let mut devices = Vec::new();
+        for schemdevice in &self.dom.diagramcontent.schemdevice {
+            if let Some(device) = self.connectivity.get_device_by_id(&schemdevice.id) {
+                devices.push(device);
+            }
+        }
+        devices
+    }
+}
+
+// impl<'a> Diagram<'a> {
+//     pub fn get_devices(&'a self) -> Vec<Device<'a>> {
+//         let connectivity = self.design.get_connectivity();
+//         self.dom.diagramcontent.schemdevice
+//             .iter()
+//             .filter_map(move |sd| connectivity.get_device_by_id(&sd.id))
+//             .collect()
+//     }
+// }
+
 pub struct Connectivity<'a> {
     pub dom: &'a XmlConnectivity
 }
 
 impl<'a> Connectivity<'a> {
+
+    pub fn get_device_by_id(&'a self, id: &str) -> Option<Device<'a>> {
+        // search devices
+        if let Some(device_dom) = self.dom.device.iter().find(|device_dom| device_dom.id == id) {
+            Some(Device {
+               connectivity: self,
+               dom: device_dom
+           })
+        } else {
+            None
+        }
+    }
 
     pub fn get_device_by_name(&'a self, name: &str) -> Option<Device<'a>> {
         // search devices
